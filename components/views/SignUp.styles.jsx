@@ -1,25 +1,28 @@
+import { Dimensions } from 'react-native';
 import { Button, Card, Text } from '@a-little-world/little-world-design-system-native';
 import styled from 'styled-components/native';
+
+// Get the window width
+const windowWidth = Dimensions.get('window').width;
 
 export const StyledCard = styled(Card)`
   position: relative;
   max-width: 500px;
   align-self: flex-start;
   flex: 1;
-
-  ${({ theme }) =>
-    `@media (max-width: ${theme.breakpoints.small}) {
-      padding-top: ${theme.spacing.medium};
-      padding-bottom: ${theme.spacing.medium};
-    }`}
+  padding-top: ${({ theme }) => 
+    windowWidth < 500 ? theme.spacing.medium : theme.spacing.small};
+  padding-bottom: ${({ theme }) => 
+    windowWidth < 500 ? theme.spacing.medium : theme.spacing.small};
 `;
 
-export const StyledForm = styled.form`
+export const StyledForm = styled.View`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xxxsmall};
   align-items: flex-start;
   flex-grow: 1;
+  margin-top: ${({ theme }) => theme.spacing.xxxsmall};
+  margin-bottom: ${({ theme }) => theme.spacing.xxxsmall};
 `;
 
 export const StyledCta = styled(Button)`
@@ -33,19 +36,22 @@ export const Title = styled(Text)`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
 `;
 
-export const NameContainer = styled.div`
+export const NameContainer = styled.View`
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: ${({ theme }) => theme.spacing.xxsmall};
+  margin-top: ${({ theme }) => theme.spacing.xxsmall};
+  margin-bottom: ${({ theme }) => theme.spacing.xxsmall};
 `;
 
-export const NameInputs = styled.div`
+export const NameInputs = styled.View`
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: ${({ theme }) => theme.spacing.xxsmall};
+  margin-top: ${({ theme }) => theme.spacing.xxsmall};
+  margin-bottom: ${({ theme }) => theme.spacing.xxsmall};
 `;
 
 export const FormDescription = styled(Text)`

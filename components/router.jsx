@@ -3,6 +3,7 @@ import {
   GlobalStyles,
 } from '@a-little-world/little-world-design-system-native';
 import React from 'react';
+import Login from '@/components/views/Login';
 
 import RouterError from '@/components/blocks/ErrorView/ErrorView';
 import FormLayout from '@/components/blocks/Layout/FormLayout';
@@ -24,7 +25,7 @@ export const ROUTES = [
     path: LOGIN_ROUTE,
     element: (
       <FormLayout>
-        <>LOgin VIEW</>
+        <Login />
       </FormLayout>
     ),
     errorElement: <RouterError Layout={FormLayout} />,

@@ -1,5 +1,5 @@
 import { API_FIELDS, USER_FIELDS } from '@/components/constants';
-import { formatApiError } from '@/components/helpers';
+import { formatApiError } from './helpers.ts';
 import { Cookies } from '@/components/constants/CookieMock';
 import { BACKEND_URL } from '@/components/constants';
 
