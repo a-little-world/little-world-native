@@ -1,29 +1,29 @@
 import {
   ButtonAppearance,
   ButtonSizes,
-  Link,
-  MessageTypes,
-  StatusMessage,
+  //Link,
+  //MessageTypes,
+  //StatusMessage,
   TextInput,
   TextTypes,
 } from '@a-little-world/little-world-design-system-native';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+// import { useDispatch } from 'react-redux';
 // import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { login } from '@/components/api';
 //import { initialise } from '@/components/features/userData';
 import { onFormError, registerInput } from '@/components/helpers/form.ts';
-import {
-  FORGOT_PASSWORD_ROUTE,
-  SIGN_UP_ROUTE,
-} from '@/components/routes';
+//import {
+//  FORGOT_PASSWORD_ROUTE,
+//  SIGN_UP_ROUTE,
+//} from '@/components/routes';
 import { StyledCard, StyledCta, StyledForm, Title } from './SignUp.styles';
 
 const Login = () => {
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const { t } = useTranslation();
   // const [searchParams] = useSearchParams();
 
@@ -111,15 +111,15 @@ const Login = () => {
           type="password"
         />
 
-        <Link to={`/${FORGOT_PASSWORD_ROUTE}/`}>
+        {/* <Link to={`/${FORGOT_PASSWORD_ROUTE}/`}>
           {t('login.forgot_password')}
-        </Link>
-        <StatusMessage
+        </Link> */}
+        {/* <StatusMessage
           $visible={errors?.root?.serverError}
           $type={MessageTypes.Error}
         >
           {t(errors?.root?.serverError?.message)}
-        </StatusMessage>
+        </StatusMessage> */}
         <StyledCta
           type="submit"
           disabled={isSubmitting}
@@ -128,13 +128,13 @@ const Login = () => {
         >
           {t('login.submit_btn')}
         </StyledCta>
-        <Link
+        {/* <Link
           to={`/${SIGN_UP_ROUTE}`}
           buttonAppearance={ButtonAppearance.Secondary}
           buttonSize={ButtonSizes.Stretch}
         >
           {t('login.change_location_cta')}
-        </Link>
+        </Link> */}
       </StyledForm>
     </StyledCard>
   );
