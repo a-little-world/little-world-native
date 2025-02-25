@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { ROUTES } from '@/components/router';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +32,9 @@ export default function RootLayout() {
   return (
       <Stack>
         <Stack.Screen name="app" options={{ headerShown: false }} />
+        {ROUTES.map((route) => (
+          <Stack.Screen key={route.path} name={route.path} options={{ headerShown: false }} />
+        ))}
         <Stack.Screen name="+not-found" />
       </Stack>
   );
