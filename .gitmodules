@@ -1,3 +1,6 @@
 [submodule "main_frontend"]
 	path = main_frontend
 	url = https://github.com/a-little-world/little-world-frontend
+[submodule "lw_components"]
+	path = lw_components
+	url = https://github.com/a-little-world/little-world-design-system-native
