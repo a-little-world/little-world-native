@@ -18,7 +18,7 @@ export default function Page() {
         <Text>Testing styled component</Text>
       </StyledView>
       <ThemeDebugger />
-      {/* <Login /> */}
+      <Login />
     </CustomThemeProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { Dimensions } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 import { Button, Card, Text } from '@a-little-world/little-world-design-system-native';
 import styled from 'styled-components/native';
 
@@ -15,6 +15,7 @@ export const StyledCard = styled(Card)`
   padding-bottom: ${({ theme }) => 
     windowWidth < 500 ? theme.spacing.medium : theme.spacing.small};
 `;
+// TODO: re-add the box shadow
 
 export const StyledForm = styled.View`
   display: flex;
