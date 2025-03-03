@@ -15,8 +15,9 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@a-little-world/little-world-design-system": "^1.20.13",
+    "@a-little-world/little-world-design-system-native": "file:./lw_components/a-little-world-little-world-design-system-native-1.20.53.tgz",
     "@expo/vector-icons": "^14.0.2",
-    "@a-little-world/little-world-design-system-native": "file:./lw_components/a-little-world-little-world-design-system-native-1.20.34.tgz",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.0.3",
     "@radix-ui/react-label": "^2.0.0",
@@ -58,7 +59,6 @@
     "react-native-webview": "13.12.5",
     "react-redux": "^9.2.0",
     "styled-components": "^5.3.6"
-
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

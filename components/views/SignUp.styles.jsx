@@ -37,6 +37,14 @@ export const Title = styled(Text)`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
 `;
 
+
+export const TitleColored = styled(Text)`
+  text-align: center;
+  color: ${({ theme }) => theme.color.text.secondary};
+  width: 100%;
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
 export const NameContainer = styled.View`
   display: flex;
   flex-direction: column;

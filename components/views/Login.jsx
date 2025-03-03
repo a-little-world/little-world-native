@@ -1,12 +1,19 @@
 import {
   ButtonAppearance,
+  ButtonVariations,
   ButtonSizes,
   //Link,
   //MessageTypes,
   //StatusMessage,
   TextInput,
+  TextProps,
+  Button,
   TextTypes,
 } from '@a-little-world/little-world-design-system-native';
+import {
+  Button as NonNativeButton
+} from '@a-little-world/little-world-design-system';
+import { StyledElement, TextTest } from '../StyledTest';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -16,13 +23,47 @@ import { useTranslation } from 'react-i18next';
 import { login } from '@/components/api';
 //import { initialise } from '@/components/features/userData';
 import { onFormError, registerInput } from '@/components/helpers/form.ts';
+import { Title, TitleColored } from './SignUp.styles';
 //import {
 //  FORGOT_PASSWORD_ROUTE,
 //  SIGN_UP_ROUTE,
 //} from '@/components/routes';
-import { StyledCard, StyledCta, StyledForm, Title } from './SignUp.styles';
+import { StyledCard, StyledCta, StyledForm } from './SignUp.styles';
 
 const t = (key) => key;
+
+import styled, { useTheme } from 'styled-components/native';
+import { Text, View } from 'react-native';
+
+// Test with progressively more complex styling
+const SimpleText = styled.Text`
+  color: red;
+`;
+
+const MediumText = styled.Text`
+  color: blue;
+  font-size: 16px;
+  ${props => props.bold ? 'font-weight: bold;' : ''}
+`;
+
+const ComplexText = styled.Text`
+  color: green;
+  font-size: 18px;
+  ${props => props.bold ? 'font-weight: bold;' : ''}
+  ${props => props.center ? 'text-align: center;' : ''}
+`;
+
+
+function TestComponent() {
+  return (
+    <View>
+      <SimpleText>Simple Text</SimpleText>
+      <MediumText bold>Medium Text</MediumText>
+      <ComplexText bold center>Complex Text</ComplexText>
+    </View>
+  );
+}
+
 
 const Login = () => {
   // const dispatch = useDispatch();
@@ -30,7 +71,7 @@ const Login = () => {
   // const [searchParams] = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const theme = useTheme();
   const {
     register,
     handleSubmit,
@@ -81,12 +122,76 @@ const Login = () => {
       })
       .catch(onError);
   };
+  
+  const [isActive, setIsActive] = useState(false);
+
+  const clickEvent = () => {
+    console.log('clickEvent');
+  };
 
   return (
     <StyledCard>
-      <Title tag="h2" type={TextTypes.Heading4}>
-        {t('login.title')}
+      <TestComponent />
+      <StyledElement $type={TextTypes.Heading1}>Heading 1</StyledElement>
+      <Title tag="h1" type={TextTypes.Heading1}>
+        H1
       </Title>
+      <Title tag="h2" type={TextTypes.Heading2}>
+        H2
+      </Title>
+      <Title tag="h3" type={TextTypes.Heading3}>
+        H3
+      </Title>
+      <Title type={TextTypes.Body2} bold={true}>
+        Body2 bold
+      </Title>
+      <Title type={TextTypes.Body2} bold={false}>
+        Body2 non-bold
+      </Title>
+      <TitleColored type={TextTypes.Body2} bold={false}>
+        Text Body2 secondary color
+      </TitleColored>
+      <Title>{"<a href='https://www.google.com'>Text Parser?</a>"}</Title>
+      <Button
+        type="button"
+        variation={ButtonVariations.Basic}
+        appearance={
+          isActive ? ButtonAppearance.Secondary : ButtonAppearance.Primary
+        }
+        onClick={clickEvent}
+      >Basic Button</Button>
+      <Button
+        type="button"
+        variation={ButtonVariations.Basic}
+        appearance={
+          true ? ButtonAppearance.Secondary : ButtonAppearance.Primary
+        }
+        onClick={clickEvent}
+      >Basic Button Active</Button>
+      <Button
+        type="button"
+        variation={ButtonVariations.Inline}
+        appearance={
+          true ? ButtonAppearance.Secondary : ButtonAppearance.Primary
+        }
+        onClick={clickEvent}
+      >Inline Button</Button>
+      <Button
+        type="button"
+        variation={ButtonVariations.Option}
+        appearance={
+          ButtonAppearance.Primary
+        }
+        onClick={clickEvent}
+      >Option Button Primary</Button>
+      <Button
+        type="button"
+        variation={ButtonVariations.Option}
+        appearance={
+          ButtonAppearance.Secondary
+        }
+        onClick={clickEvent}
+      >Option Button Secondary</Button>
    </StyledCard>
   );
 };
