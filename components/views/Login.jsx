@@ -22,9 +22,11 @@ import { onFormError, registerInput } from '@/components/helpers/form.ts';
 //} from '@/components/routes';
 import { StyledCard, StyledCta, StyledForm, Title } from './SignUp.styles';
 
+const t = (key) => key;
+
 const Login = () => {
   // const dispatch = useDispatch();
-  const { t } = useTranslation();
+  //const { t } = useTranslation();
   // const [searchParams] = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,58 +87,7 @@ const Login = () => {
       <Title tag="h2" type={TextTypes.Heading4}>
         {t('login.title')}
       </Title>
-      <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
-        <TextInput
-          {...registerInput({
-            register,
-            name: 'email',
-            options: { required: 'error.required' },
-          })}
-          id="email"
-          label={t('login.email_label')}
-          error={t(errors?.email?.message)}
-          placeholder={t('login.email_placeholder')}
-          type="email"
-        />
-        <TextInput
-          {...registerInput({
-            register,
-            name: 'password',
-            options: { required: 'error.required' },
-          })}
-          id="password"
-          error={t(errors?.password?.message)}
-          label={t('login.password_label')}
-          placeholder={t('login.password_placeholder')}
-          type="password"
-        />
-
-        {/* <Link to={`/${FORGOT_PASSWORD_ROUTE}/`}>
-          {t('login.forgot_password')}
-        </Link> */}
-        {/* <StatusMessage
-          $visible={errors?.root?.serverError}
-          $type={MessageTypes.Error}
-        >
-          {t(errors?.root?.serverError?.message)}
-        </StatusMessage> */}
-        <StyledCta
-          type="submit"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          size={ButtonSizes.Stretch}
-        >
-          {t('login.submit_btn')}
-        </StyledCta>
-        {/* <Link
-          to={`/${SIGN_UP_ROUTE}`}
-          buttonAppearance={ButtonAppearance.Secondary}
-          buttonSize={ButtonSizes.Stretch}
-        >
-          {t('login.change_location_cta')}
-        </Link> */}
-      </StyledForm>
-    </StyledCard>
+   </StyledCard>
   );
 };
 
