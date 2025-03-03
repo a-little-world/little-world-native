@@ -25,3 +25,80 @@ This is the native expo app for Little World.
 Other things that can break native:
 
 - Don't use arrays in the `style={}` prop!
+
+```
+CSS2Properties doesn't have an indexed property setter for '0'
+```
+
+This error *almost always originates from wronly merged styles* e.g.:
+
+breaks very fast by accidently setting a css prop twice:
+```javascript
+const Text = React.forwardRef<any, TextProps>(({
+  bold = false,
+  center = false,
+  children,
+  color,
+  className,
+  disableParser = false,
+  id,
+  style,
+  tag = 'p',
+  type = TextTypes.Body5,
+  ...restProps
+}, ref) => {
+
+  return (
+    <StyledElement
+      ref={ref}
+      style={style}
+      $type={type}
+      $bold={bold}
+      $center={center}
+      {...restProps}
+    >
+      {children}
+    </StyledElement>
+  );
+});
+```
+
+Manages merging text styles:
+
+```javascript
+const Text = React.forwardRef<any, TextProps>(({
+  bold = false,
+  center = false,
+  children,
+  color,
+  className,
+  disableParser = false,
+  id,
+  style,
+  tag = 'p',
+  type = TextTypes.Body5,
+  ...restProps
+}, ref) => {
+
+  const textStyles = [
+    styles.base,
+    type === TextTypes.Heading1 && styles.heading1,
+    // ... other type conditions
+    bold && styles.bold,
+    center && styles.center,
+  ].filter(Boolean);
+  
+  return (
+    <StyledElement
+      ref={ref}
+      style={[...textStyles, style]}
+      $type={type}
+      $bold={bold}
+      $center={center}
+      {...restProps}
+    >
+      {children}
+    </StyledElement>
+  );
+});
+```
