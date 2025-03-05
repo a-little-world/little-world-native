@@ -4,6 +4,14 @@ This is the native expo app for Little World.
 
 > This is very much in an MVP state!
 
+### Developing & Fixing Components
+
+```bash
+git submodule update --init --recursive # the 'little-world-design-system-native' is cloned in 'lw_components'
+npm run start # starts expo react-native ( for web version )
+./_scripts/pack_and_update.sh # run to update the native components when you've made changes to the 'lw_components'
+```
+
 ### ReactWeb -> ReactNative conversion cheatsheet
 
 - `styled.div` -> `styled.View`
@@ -102,3 +110,5 @@ const Text = React.forwardRef<any, TextProps>(({
   );
 });
 ```
+
+- React Native `<Button>` Doesn't accept `{children}` only a `title`, use (`TouchableOpacity`) instead.
