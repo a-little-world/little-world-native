@@ -6,7 +6,7 @@ export const ThemeDebugger = () => {
   const theme = useTheme();
   
   return (
-    <ScrollView style={{ maxHeight: 200, borderWidth: 1, borderColor: 'red', padding: 10 }}>
+    <ScrollView style={{ maxHeight: 200, minHeight: 200, borderWidth: 1, borderColor: 'red', padding: 10 }}>
       <Text>Theme Debug:</Text>
       <Text>breakpoints: {JSON.stringify(theme.breakpoints)}</Text>
       <Text>spacing: {JSON.stringify(theme.spacing)}</Text>
