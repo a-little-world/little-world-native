@@ -4,7 +4,7 @@ import { Button, Card, Text } from '@a-little-world/little-world-design-system-n
 import { useWindowDimensions } from 'react-native';
 import { useTheme } from 'styled-components/native';
 
-// import Header from '../Header';
+import Header from '../Header';
 
 const Wrapper = styled.View`
   display: flex;
@@ -45,7 +45,7 @@ export const StyledCard = styled(Card)`
 
 const FormLayout = ({ children }: { children: React.ReactNode }) => (
   <Wrapper>
-    {/* <Header /> */}
+    <Header />
     <Content>{children}</Content>
   </Wrapper>
 );
