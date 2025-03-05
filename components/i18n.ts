@@ -46,3 +46,5 @@ export const updateTranslationResources = ({ apiTranslations }: { apiTranslation
     });
   });
 };
+
+export default i18next;

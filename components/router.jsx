@@ -7,7 +7,11 @@ import Login from '@/components/views/Login';
 
 import RouterError from '@/components/blocks/ErrorView/ErrorView';
 import FormLayout from '@/components/blocks/Layout/FormLayout';
-import { LOGIN_ROUTE } from '@/components/routes';
+import { 
+  LOGIN_ROUTE,
+  TEST_COMPONENT_ROUTE,
+} from '@/components/routes';
+import Test from '@/components/views/Test';
 
 export const Root = ({
   children,
@@ -29,5 +33,9 @@ export const ROUTES = [
       </FormLayout>
     ),
     errorElement: <RouterError Layout={FormLayout} />,
+  },
+  {
+    path: TEST_COMPONENT_ROUTE,
+    element: <Test/>
   },
 ];

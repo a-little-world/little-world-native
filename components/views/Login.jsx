@@ -2,7 +2,7 @@ import {
   ButtonAppearance,
   ButtonVariations,
   ButtonSizes,
-  //Link,
+  Link,
   //MessageTypes,
   //StatusMessage,
   TextInput,
@@ -16,6 +16,7 @@ import {
 import { StyledElement, TextTest } from '../StyledTest';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import i18next from '@/components/i18n'; // DON"T remove! impoant for translations to work!
 import { useTranslation } from 'react-i18next';
 // import { useDispatch } from 'react-redux';
 // import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -24,10 +25,9 @@ import { login } from '@/components/api';
 //import { initialise } from '@/components/features/userData';
 import { onFormError, registerInput } from '@/components/helpers/form.ts';
 import { Title, TitleColored } from './SignUp.styles';
-//import {
-//  FORGOT_PASSWORD_ROUTE,
-//  SIGN_UP_ROUTE,
-//} from '@/components/routes';
+import {
+  FORGOT_PASSWORD_ROUTE,
+} from '@/components/routes';
 import { StyledCard, StyledCta, StyledForm } from './SignUp.styles';
 
 // const t = (key) => key;
@@ -135,6 +135,37 @@ const Login = () => {
       <Title tag="h2" type={TextTypes.Heading4}>
         {t('login.title')}
       </Title>
+      <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
+        <TextInput
+            {...registerInput({
+              register,
+              name: 'email',
+              options: { required: 'error.required' },
+            })}
+            id="email"
+            label={t('login.email_label')}
+            error={t(errors?.email?.message)}
+            placeholder={t('login.email_placeholder')}
+            type="email"
+        />
+        <TextInput
+          {...registerInput({
+            register,
+            name: 'password',
+            options: { required: 'error.required' },
+          })}
+          id="password"
+          error={t(errors?.password?.message)}
+          label={t('login.password_label')}
+          placeholder={t('login.password_placeholder')}
+          type="password"
+        />
+        <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
+          {t('login.forgot_password')}
+        </Link>
+
+        HI there?
+      </StyledForm>
    </StyledCard>
   );
 };
