@@ -3,8 +3,7 @@ import {
   ButtonVariations,
   ButtonSizes,
   Link,
-  //MessageTypes,
-  //StatusMessage,
+  MessageTypes,
   TextInput,
   TextProps,
   Button,
@@ -27,6 +26,7 @@ import { onFormError, registerInput } from '@/components/helpers/form.ts';
 import { Title, TitleColored } from './SignUp.styles';
 import {
   FORGOT_PASSWORD_ROUTE,
+  SIGN_UP_ROUTE
 } from '@/components/routes';
 import { StyledCard, StyledCta, StyledForm } from './SignUp.styles';
 
@@ -163,8 +163,21 @@ const Login = () => {
         <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
           {t('login.forgot_password')}
         </Link>
-
-        HI there?
+        <StyledCta
+          type="submit"
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          size={ButtonSizes.Stretch}
+        >
+          {t('login.submit_btn')}
+        </StyledCta>
+        <Link
+          href={`/${SIGN_UP_ROUTE}`}
+          buttonAppearance={ButtonAppearance.Secondary}
+          buttonSize={ButtonSizes.Stretch}
+        >
+          {t('login.change_location_cta')}
+        </Link>
       </StyledForm>
    </StyledCard>
   );
