@@ -38,6 +38,10 @@ Other things that can break native:
 CSS2Properties doesn't have an indexed property setter for '0'
 ```
 
+### Using SVG's in react native
+
+- https://stackoverflow.com/questions/38830568/how-to-show-svg-file-on-react-native
+
 This error *almost always originates from wronly merged styles* e.g.:
 
 breaks very fast by accidently setting a css prop twice:
