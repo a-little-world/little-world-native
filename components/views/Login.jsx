@@ -30,7 +30,7 @@ import { Title, TitleColored } from './SignUp.styles';
 //} from '@/components/routes';
 import { StyledCard, StyledCta, StyledForm } from './SignUp.styles';
 
-const t = (key) => key;
+// const t = (key) => key;
 
 import styled, { useTheme } from 'styled-components/native';
 import { Text, View } from 'react-native';
@@ -68,6 +68,7 @@ function TestComponent() {
 const Login = () => {
   // const dispatch = useDispatch();
   //const { t } = useTranslation();
+  const { t } = useTranslation();
   // const [searchParams] = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,67 +132,9 @@ const Login = () => {
 
   return (
     <StyledCard>
-      <TestComponent />
-      <StyledElement $type={TextTypes.Heading1}>Heading 1</StyledElement>
-      <Title tag="h1" type={TextTypes.Heading1}>
-        H1
+      <Title tag="h2" type={TextTypes.Heading4}>
+        {t('login.title')}
       </Title>
-      <Title tag="h2" type={TextTypes.Heading2}>
-        H2
-      </Title>
-      <Title tag="h3" type={TextTypes.Heading3}>
-        H3
-      </Title>
-      <Title type={TextTypes.Body2} bold={true}>
-        Body2 bold
-      </Title>
-      <Title type={TextTypes.Body2} bold={false}>
-        Body2 non-bold
-      </Title>
-      <TitleColored type={TextTypes.Body2} bold={false}>
-        Text Body2 secondary color
-      </TitleColored>
-      <Title>{"<a href='https://www.google.com'>Text Parser?</a>"}</Title>
-      <Button
-        type="button"
-        variation={ButtonVariations.Basic}
-        appearance={
-          isActive ? ButtonAppearance.Secondary : ButtonAppearance.Primary
-        }
-        onClick={clickEvent}
-      >Basic Button</Button>
-      <Button
-        type="button"
-        variation={ButtonVariations.Basic}
-        appearance={
-          true ? ButtonAppearance.Secondary : ButtonAppearance.Primary
-        }
-        onClick={clickEvent}
-      >Basic Button Active</Button>
-      <Button
-        type="button"
-        variation={ButtonVariations.Inline}
-        appearance={
-          true ? ButtonAppearance.Secondary : ButtonAppearance.Primary
-        }
-        onClick={clickEvent}
-      >Inline Button</Button>
-      <Button
-        type="button"
-        variation={ButtonVariations.Option}
-        appearance={
-          ButtonAppearance.Primary
-        }
-        onClick={clickEvent}
-      >Option Button Primary</Button>
-      <Button
-        type="button"
-        variation={ButtonVariations.Option}
-        appearance={
-          ButtonAppearance.Secondary
-        }
-        onClick={clickEvent}
-      >Option Button Secondary</Button>
    </StyledCard>
   );
 };
