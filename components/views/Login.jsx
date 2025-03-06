@@ -165,6 +165,7 @@ const Login = () => {
         </Link>
         <StyledCta
           type="submit"
+          onClick={clickEvent}
           disabled={isSubmitting}
           loading={isSubmitting}
           size={ButtonSizes.Stretch}
