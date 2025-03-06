@@ -12,11 +12,12 @@ import { ROUTES } from '@/components/router';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Signika-Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
+    'Signika Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
   });
 
   useEffect(() => {
@@ -30,12 +31,12 @@ export default function RootLayout() {
   }
 
   return (
-      <Stack>
-        <Stack.Screen name="app" options={{ headerShown: false }} />
-        {ROUTES.map((route) => (
-          <Stack.Screen key={route.path} name={route.path} options={{ headerShown: false }} />
-        ))}
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <Stack>
+      <Stack.Screen name="app" options={{ headerShown: false }} />
+      {ROUTES.map((route) => (
+        <Stack.Screen key={route.path} name={route.path} options={{ headerShown: false }} />
+      ))}
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }
