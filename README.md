@@ -38,6 +38,10 @@ Other things that can break native:
 CSS2Properties doesn't have an indexed property setter for '0'
 ```
 
+### react-native useWindowDimensiions instead of @media -queries
+
+see `components/blocks/Header.jsx` as an example how.
+
 ### Using SVG's in react native
 
 - https://stackoverflow.com/questions/38830568/how-to-show-svg-file-on-react-native
