@@ -146,6 +146,7 @@ const Login = () => {
             label={t('login.email_label')}
             error={t(errors?.email?.message)}
             placeholder={t('login.email_placeholder')}
+            toolTipText="test"
             type="email"
         />
         <TextInput
