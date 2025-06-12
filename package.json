@@ -3,11 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --port 9000",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "android": "expo start --android --port 9000",
+    "ios": "expo start --ios --port 9000",
+    "web": "expo start --web --port 9000",
     "test": "jest --watchAll",
     "lint": "expo lint"
   },
@@ -15,8 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@a-little-world/little-world-design-system": "^1.20.13",
-    "@a-little-world/little-world-design-system-native": "file:./lw_components/a-little-world-little-world-design-system-native-1.20.84.tgz",
+    "@a-little-world/little-world-design-system-native": "file:../little-world-design-system/packages/native",
     "@expo/vector-icons": "^14.0.2",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.0.3",
