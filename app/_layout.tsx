@@ -1,42 +1,54 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React from "react";
+import { ROUTES } from "@/src/routes";
+import {
+  CustomThemeProvider,
+  loadFonts,
+} from "@a-little-world/little-world-design-system-native";
+import { PortalHost } from "@rn-primitives/portal";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import "react-native-reanimated";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { ROUTES } from '@/components/router';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    'Signika-Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
-    'Signika Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
-  });
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    if (loaded) {
+    const prepare = async (): Promise<void> => {
+      try {
+        await loadFonts();
+        setFontsLoaded(true);
+      } catch (e) {
+        console.warn("Failed to load fonts:", e);
+      }
+    };
+    prepare();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
+  // The Stack component is what Expo Router uses to handle navigation
+  // It will automatically render the current route's content
   return (
-    <Stack>
-      <Stack.Screen name="app" options={{ headerShown: false }} />
-      {ROUTES.map((route) => (
-        <Stack.Screen key={route.path} name={route.path} options={{ headerShown: false }} />
-      ))}
-      <Stack.Screen name="+not-found" />
-    </Stack>
+    <CustomThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="app" />
+        {ROUTES.map((route) => (
+          <Stack.Screen key={route.path} name={route.path} />
+        ))}
+        <Stack.Screen name="+not-found" />
+        {/* <PortalHost /> */}
+      </Stack>
+    </CustomThemeProvider>
   );
 }

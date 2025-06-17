@@ -3,10 +3,10 @@ import {
   ButtonVariations,
 } from '@a-little-world/little-world-design-system-native';
 import { useTranslation } from 'react-i18next';
-import i18next from '@/components/i18n'; // DON"T remove! impoant for translations to work!
+import i18next from '@/src/i18n'; // DON"T remove! impoant for translations to work!
 import styled, { css } from 'styled-components/native';
 
-import { LANGUAGES } from '@/components/constants';
+import { LANGUAGES } from '@/src/constants';
 
 const Selector = styled.View`
   display: flex;

@@ -1,0 +1,150 @@
+import {
+  Link,
+  TextInput,
+  Button,
+  Card,
+} from "@a-little-world/little-world-design-system-native";
+import {
+  ButtonAppearance,
+  ButtonVariations,
+  ButtonSizes,
+  StatusTypes,
+  TextBaseProps,
+  TextTypes,
+} from "@a-little-world/little-world-design-system-core";
+
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import i18next from "@/src/i18n"; // DON"T remove! impoant for translations to work!
+import { useTranslation } from "react-i18next";
+
+import { login } from "@/src/api";
+import { onFormError, registerInput } from "@/src/helpers/form";
+
+import { FORGOT_PASSWORD_ROUTE, SIGN_UP_ROUTE } from "@/src/routes";
+import { StyledCta, StyledForm, Title } from "./shared.styles";
+
+import { useTheme } from "styled-components/native";
+import { View } from "react-native";
+
+const Login = () => {
+  // const dispatch = useDispatch();
+  //const { t } = useTranslation();
+  const { t } = useTranslation();
+  // const [searchParams] = useSearchParams();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const theme = useTheme();
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+    setError,
+    setFocus,
+  } = useForm({ shouldUnregister: true });
+
+  //const navigate = useNavigate(); TODO
+
+  useEffect(() => {
+    setFocus("email");
+  }, [setFocus]);
+
+  const onError = (e) => {
+    setIsSubmitting(false);
+    onFormError({ e, formFields: getValues(), setError });
+  };
+
+  const onFormSubmit = async (data) => {
+    setIsSubmitting(true);
+
+    login(data)
+      .then((loginData) => {
+        //dispatch(initialise(loginData));
+        setIsSubmitting(false);
+
+        //passAuthenticationBoundary(); TODO
+
+        if (!loginData.user.emailVerified) {
+          //navigate(getAppRoute(VERIFY_EMAIL_ROUTE)); TODO
+        } else if (!loginData.user.userFormCompleted) {
+          //navigate(getAppRoute(USER_FORM_ROUTE)); TODO
+        } else if (/*searchParams.get('next')*/ false) {
+          // users can be redirected from /login?next=<url>
+          // consider this route after the requried for entry forms verify-email / user-form
+          // we add missing front `/` otherwise 'app' would incorrectly navigate to /login/app
+          //navigate(
+          //  searchParams.get('next').startsWith('/') ?
+          //    searchParams.get('next') :
+          //    `/${searchParams.get('next')}`,
+          //);
+        } else {
+          // per default route to /app on successful login
+          //navigate(getAppRoute()); TODO
+        }
+      })
+      .catch(onError);
+  };
+
+  const [isActive, setIsActive] = useState(false);
+
+  const clickEvent = () => {
+    console.log("clickEvent");
+  };
+
+  return (
+    <Card>
+      <Title tag="h2" type={TextTypes.Heading4}>
+        {t("login.title")}
+      </Title>
+      <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
+        <TextInput
+          {...registerInput({
+            register,
+            name: "email",
+            options: { required: "error.required" },
+          })}
+          id="email"
+          label={t("login.email_label")}
+          error={t(errors?.email?.message)}
+          placeholder={t("login.email_placeholder")}
+          toolTipText="test"
+          type="email"
+        />
+        <TextInput
+          {...registerInput({
+            register,
+            name: "password",
+            options: { required: "error.required" },
+          })}
+          id="password"
+          error={t(errors?.password?.message)}
+          label={t("login.password_label")}
+          placeholder={t("login.password_placeholder")}
+          type="password"
+        />
+        <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
+          {t("login.forgot_password")}
+        </Link>
+        <StyledCta
+          type="submit"
+          onClick={clickEvent}
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          size={ButtonSizes.Stretch}
+        >
+          {t("login.submit_btn")}
+        </StyledCta>
+        <Link
+          href={`/${SIGN_UP_ROUTE}`}
+          buttonAppearance={ButtonAppearance.Secondary}
+          buttonSize={ButtonSizes.Stretch}
+        >
+          {t("login.change_location_cta")}
+        </Link>
+      </StyledForm>
+    </Card>
+  );
+};
+
+export default Login;

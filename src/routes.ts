@@ -43,3 +43,8 @@ export const isActiveRoute = (locationPath: string, path: string) =>
   locationPath === path || path !== getAppRoute('')
     ? locationPath?.includes(path)
     : false;
+
+export const ROUTES = [
+  { path: BASE_ROUTE, name: 'Home' },
+  { path: LOGIN_ROUTE, name: 'Login' },
+];
