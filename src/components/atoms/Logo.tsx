@@ -3,9 +3,9 @@ import { TouchableOpacity, View } from 'react-native';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
 
-import LogoImageSvg from '@/assets/images/logo-image.svg';
-import LogoTextSvg from '@/assets/images/logo-text.svg';
-import { getAppRoute } from '@/components/routes';
+import LogoImageSvg from '@/src/assets/images/logo-image.svg';
+import LogoTextSvg from '@/src/assets/images/logo-text.svg';
+import { getAppRoute } from '@/src/routes';
 
 enum LogoSizes {
   Small = 'Small',

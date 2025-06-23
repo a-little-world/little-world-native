@@ -8,6 +8,7 @@ This is the native expo app for Little World.
 
 ```bash
 git submodule update --init --recursive # the 'little-world-design-system-native' is cloned in 'lw_components'
+npm install
 npm run start # starts expo react-native ( for web version )
 ./_scripts/pack_and_update.sh # run to update the native components when you've made changes to the 'lw_components'
 ```
@@ -34,8 +35,7 @@ Other things that can break native:
 
 - Don't use arrays in the `style={}` prop!
 
-```
-CSS2Properties doesn't have an indexed property setter for '0'
+```CSS2Properties doesn't have an indexed property setter for '0'
 ```
 
 ### react-native useWindowDimensiions instead of @media -queries
@@ -120,3 +120,31 @@ const Text = React.forwardRef<any, TextProps>(({
 ```
 
 - React Native `<Button>` Doesn't accept `{children}` only a `title`, use (`TouchableOpacity`) instead.
+```
+
+### Linking Local Design System Package
+
+The app uses a local version of the design system package. To set this up:
+
+1. Make sure you have the design system repository cloned at `../little-world-design-system` relative to this project
+2. In the design system repository:
+   ```bash
+   cd packages/native
+   npm install
+   npm run build  # if needed
+   ```
+3. In this repository:
+   ```bash
+   npm install
+   ```
+4. If you make changes to the design system:
+   ```bash
+   # In the design system repository
+   cd packages/native
+   npm run build
+   
+   # In this repository
+   npm install  # This will pick up the changes
+   ```
+
+Note: The package is linked using a local file dependency in package.json. This allows for easier development and testing of the design system package.

@@ -1,7 +1,6 @@
-import { API_FIELDS, USER_FIELDS } from '@/components/constants';
-import { formatApiError } from './helpers.ts';
-import { Cookies } from '@/components/constants/CookieMock';
-import { BACKEND_URL } from '@/components/constants';
+import { API_FIELDS, USER_FIELDS, BACKEND_URL } from '@/src/constants/';
+import { formatApiError } from './helpers';
+import { Cookies } from '@/src/constants/CookieMock';
 
 export const completeForm = async () => {
   const res = await fetch('/api/profile/completed/', {
