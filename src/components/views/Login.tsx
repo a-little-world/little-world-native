@@ -3,6 +3,7 @@ import {
   TextInput,
   Button,
   Card,
+  Text,
 } from "@a-little-world/little-world-design-system-native";
 import {
   ButtonAppearance,

@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,15 +41,17 @@ export default function RootLayout() {
   // The Stack component is what Expo Router uses to handle navigation
   // It will automatically render the current route's content
   return (
-    <CustomThemeProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="app" />
-        {ROUTES.map((route) => (
-          <Stack.Screen key={route.path} name={route.path} />
-        ))}
-        <Stack.Screen name="+not-found" />
-        {/* <PortalHost /> */}
-      </Stack>
-    </CustomThemeProvider>
+    <SafeAreaProvider>
+      <CustomThemeProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="app" />
+          {ROUTES.map((route) => (
+            <Stack.Screen key={route.path} name={route.path} />
+          ))}
+          <Stack.Screen name="+not-found" />
+          {/* <PortalHost /> */}
+        </Stack>
+      </CustomThemeProvider>
+    </SafeAreaProvider>
   );
 }

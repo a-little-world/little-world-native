@@ -11,7 +11,7 @@ export const getFormLayoutStyles = ({ theme, windowWidth }: { theme: DefaultThem
     content: {
         display: "flex",
         justifyContent: "center",
-        flex: 1,
+        height: '100%',
         overflow: "hidden",
     }
 })

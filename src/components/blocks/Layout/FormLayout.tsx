@@ -1,19 +1,19 @@
 import { useTheme } from "styled-components/native";
-import { Dimensions, View } from "react-native";
+import { Dimensions, View, SafeAreaView } from "react-native";
 
 import Header from "../Header/Header";
 import { getFormLayoutStyles } from "./FormLayout.styles";
 
-const windowWidth = Dimensions.get("window").width;
-
 const FormLayout = ({ children }: { children: React.ReactNode }) => {
   const theme = useTheme()
+  const windowWidth = Dimensions.get("window").width;
   const styles = getFormLayoutStyles({ theme, windowWidth })
+  
   return (
-    <View style={styles.wrapper}>
-      {/* <Header /> */}
+    <SafeAreaView style={styles.wrapper}>
+      <Header />
       <View style={styles.content}>{children}</View>
-    </View>
+    </SafeAreaView>
   );
 };
 

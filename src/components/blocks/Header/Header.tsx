@@ -38,19 +38,6 @@ const Header = () => {
 
   const theme = useTheme();
 
-  useEffect(() => {
-    console.log("Header mounted");
-    console.log("Current route:", router.getCurrentOptions());
-    console.log("Theme in Header:", theme ? "exists" : "missing");
-    if (theme) {
-      console.log("Theme values:", {
-        spacing: theme.spacing,
-        color: theme.color,
-        breakpoints: theme.breakpoints,
-      });
-    }
-  }, [theme, router]);
-
   const handleLogoPress = () => {
     if (userId) {
       router.navigate(getAppRoute());

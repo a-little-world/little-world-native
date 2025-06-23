@@ -1,65 +1,71 @@
 import {
   Button,
-  ButtonVariations,
 } from '@a-little-world/little-world-design-system-native';
+
 import { useTranslation } from 'react-i18next';
 import i18next from '@/src/i18n'; // DON"T remove! impoant for translations to work!
-import styled, { css } from 'styled-components/native';
+import { useTheme } from 'styled-components/native';
+import { StyleSheet, View } from 'react-native';
 
 import { LANGUAGES } from '@/src/constants';
+import { ButtonVariations } from '@a-little-world/little-world-design-system-core';
 
-const Selector = styled.View`
-  display: flex;
-  align-items: center;
-`;
-
-const LanguageButton = styled(Button)`
-  font-weight: bold;
-  border: none;
-  font-size: 0.875rem;
-  line-height: 1rem;
-  background: ${({ theme }) => theme.color.surface.disabled};
-  color: ${({ theme }) => theme.color.border.moderate};
-  cursor: pointer;
-  text-transform: uppercase;
-  padding: ${({ theme }) => theme.spacing.xxsmall};
-
-  ${({ disabled }) =>
-    disabled &&
-    css`
-      background: ${({ theme }) => theme.color.surface.primary} !important;
-      color: ${({ theme }) => theme.color.text.highlight} !important;
-    `}
-`;
+const getLanguageSelectorStyles = (theme: any) => StyleSheet.create({
+  selector: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  languageButton: {
+    fontWeight: 'bold',
+    fontSize: 14, // 0.875rem equivalent
+    lineHeight: 16, // 1rem equivalent
+    backgroundColor: theme.color.surface.secondary, // fallback since disabled doesn't exist
+    color: theme.color.border.subtle, // fallback since moderate doesn't exist
+    textTransform: 'uppercase',
+    padding: parseInt(theme.spacing.xxsmall, 10),
+  },
+  languageButtonDisabled: {
+    backgroundColor: theme.color.surface.primary,
+    color: theme.color.text.highlight,
+  },
+});
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
+  const theme = useTheme();
+  const styles = getLanguageSelectorStyles(theme);
 
-  const handleChangeLanguage = lang => {
+  const handleChangeLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
     //Cookies.set(COOKIE_LANG, lang);
   };
 
   return (
-    <Selector>
-      <LanguageButton
+    <View style={styles.selector}>
+      <Button
         aria-label="switch language to German"
         variation={ButtonVariations.Inline}
-        onClick={() => handleChangeLanguage(LANGUAGES.de)}
+        onPress={() => handleChangeLanguage(LANGUAGES.de)}
         disabled={i18n.language === LANGUAGES.de}
-        $right
+        style={[
+          styles.languageButton,
+          i18n.language === LANGUAGES.de && styles.languageButtonDisabled
+        ]}
       >
         DE
-      </LanguageButton>
-      <LanguageButton
+      </Button>
+      <Button
         aria-label="switch language to English"
         variation={ButtonVariations.Inline}
-        onClick={() => handleChangeLanguage(LANGUAGES.en)}
-        disabled={i18n.language.includes(LANGUAGES.en)} // multiple en codes e.g. en-GB
+        onPress={() => handleChangeLanguage(LANGUAGES.en)}
+        style={[
+          styles.languageButton,
+          // i18n.language.includes(LANGUAGES.en) && styles.languageButtonDisabled
+        ]}
       >
         EN
-      </LanguageButton>
-    </Selector>
+      </Button>
+    </View>
   );
 };
 
