@@ -1,15 +1,13 @@
 import React from "react";
 import { ROUTES } from "@/src/routes";
-import {
-  CustomThemeProvider,
-  loadFonts,
-} from "@a-little-world/little-world-design-system-native";
+import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { loadFonts } from "@/src/utils/loadFonts";
 
 SplashScreen.preventAutoHideAsync();
 

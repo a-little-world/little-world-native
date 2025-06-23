@@ -20,7 +20,7 @@ import i18next from "@/src/i18n"; // DON"T remove! impoant for translations to w
 import { useTranslation } from "react-i18next";
 
 import { login } from "@/src/api";
-import { onFormError, registerInput } from "@/src/helpers/form";
+import { onFormError, registerInput } from "@/src/utils/form";
 
 import { FORGOT_PASSWORD_ROUTE, SIGN_UP_ROUTE } from "@/src/routes";
 import { StyledCta, StyledForm, Title } from "./shared.styles";
