@@ -1,10 +1,12 @@
 // @ts-nocheck
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { translations } from '@a-little-world/little-world-frontend-shared';
 
 import { LANGUAGES } from './constants';
 import translationDE from './locale/de.json';
 import translationEN from './locale/en.json';
+
 
 /*
 I'm overwriting the seperators here since the backend also uses '.' in the translations!
@@ -16,22 +18,21 @@ i18next
     keySeparator: '::',
     resources: {
       en: {
-        translation: translationEN,
+        translation: {
+          ...translations.en, // Shared translations first (base)
+          ...translationEN, // Local translations override shared ones
+        },
       },
       de: {
-        translation: translationDE,
+        translation: {
+          ...translations.de, // Shared translations first (base)
+          ...translationDE, // Local translations override shared ones
+        },
       },
     },
     languages: [LANGUAGES.en, LANGUAGES.de],
     fallbackLng: LANGUAGES.de,
   });
-
-export const COOKIE_LANG = 'frontendLang';
-/**
-const cookie = Cookies.get(COOKIE_LANG);
-if (cookie !== undefined) {
-  i18next.changeLanguage(cookie);
-} */
 
 // eslint-disable-next-line import/prefer-default-export
 export const updateTranslationResources = ({ apiTranslations }: { apiTranslations: any }) => {
