@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { loadFonts } from "@/src/utils/loadFonts";
+import '@/src/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,7 +48,7 @@ export default function RootLayout() {
             <Stack.Screen key={route.path} name={route.path} />
           ))}
           <Stack.Screen name="+not-found" />
-          {/* <PortalHost /> */}
+          <PortalHost />
         </Stack>
       </CustomThemeProvider>
     </SafeAreaProvider>

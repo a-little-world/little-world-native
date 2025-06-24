@@ -24,10 +24,10 @@ const styles = StyleSheet.create({
 function AppContent() {
   const navigation = useNavigation();
   const theme = useTheme();
-  console.log({ theme });
+  
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <Text>Temporary Home Page to test different app pages</Text>
       <Button onPress={() => navigation.navigate(LOGIN_ROUTE)}>
         <Text>To Login</Text>
       </Button>

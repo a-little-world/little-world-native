@@ -4,6 +4,31 @@ This is the native expo app for Little World.
 
 > This is very much in an MVP state!
 
+## Translations
+
+This app uses i18next for internationalization and merges translations from two sources:
+
+1. **Shared translations** from `@a-little-world/little-world-frontend-shared` package (base translations)
+2. **Local translations** in `src/locale/` (mobile app specific translations)
+
+### Translation Structure
+
+- **Shared translations**: Common translations used across all Little World applications
+  - View existing translations: [@a-little-world/little-world-frontend-shared/translations](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
+  - Add new shared translations to the shared package repository
+
+- **Local translations**: Mobile app specific translations only
+  - Location: `src/locale/de.json` and `src/locale/en.json`
+  - **Only add translations here that are specific to the mobile app**
+  - Local translations override shared translations (local takes precedence)
+
+### Adding Translations
+
+1. **For shared/common translations**: Add them to the [shared package repository](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
+2. **For mobile-specific translations**: Add them to `src/locale/de.json` and `src/locale/en.json`
+
+The translation merging is handled automatically in `src/i18n.ts`.
+
 ### Developing & Fixing Components
 
 ```bash
