@@ -42,7 +42,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <CustomThemeProvider>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#ffffff" } }}>
           <Stack.Screen name="app" />
           {ROUTES.map((route) => (
             <Stack.Screen key={route.path} name={route.path} />

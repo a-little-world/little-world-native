@@ -1,11 +1,11 @@
-import React from "react";
 import {
   Button,
   Popover,
   Text,
 } from "@a-little-world/little-world-design-system-native";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ButtonAppearance } from "@a-little-world/little-world-design-system-core";
 import { useNavigation, useTheme } from "@react-navigation/native";
 import { CALL_SETUP_ROUTE, LOGIN_ROUTE } from "@/src/routes";
@@ -20,12 +20,12 @@ const styles = StyleSheet.create({
   },
 });
 
-function AppContent() {
+function CallSetup() {
   const navigation = useNavigation();
   const theme = useTheme();
-
+  
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text>Temporary Home Page to test different app pages</Text>
       <Button onPress={() => navigation.navigate(LOGIN_ROUTE)}>
         <Text>To Login</Text>
@@ -44,12 +44,10 @@ function AppContent() {
       >
         <Text>This is tooltip text with tooltip styling</Text>
       </Popover>
-    </View>
+    </SafeAreaView>
   );
 }
 
-function App() {
-  return <AppContent />;
-}
 
-export default App;
+
+export default CallSetup;
