@@ -10,13 +10,28 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "bitcode": false,
+      "bundleIdentifier": "com.seanlittleworld.littleworldapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -25,6 +40,8 @@
     },
     "plugins": [
       "expo-router",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
       [
         "expo-splash-screen",
         {
@@ -37,6 +54,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d114c1e1-3b95-463a-b8d4-c24ca29f1d05"
+      }
     }
   }
 }

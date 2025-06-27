@@ -9,6 +9,19 @@ import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { loadFonts } from "@/src/utils/loadFonts";
 import '@/src/i18n';
+import Constants from 'expo-constants';
+
+// Conditionally import LiveKit only when not in Expo Go mode
+const useLiveKit = Constants.expoConfig?.extra?.useLiveKit ?? true;
+
+if (useLiveKit) {
+  try {
+    const { registerGlobals } = require('@livekit/react-native');
+    registerGlobals();
+  } catch (error) {
+    console.warn('LiveKit not available:', error);
+  }
+}
 
 SplashScreen.preventAutoHideAsync();
 

@@ -47,5 +47,6 @@ export const isActiveRoute = (locationPath: string, path: string) =>
 export const ROUTES = [
   { path: BASE_ROUTE, name: 'Home' },
   { path: LOGIN_ROUTE, name: 'Login' },
-  { path: CALL_SETUP_ROUTE, name: 'Call Setup' },
+  { path: 'call-setup/[id]', name: 'Call Setup' },
+  { path: 'call/[id]', name: 'Call' },
 ];
