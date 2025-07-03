@@ -6,7 +6,7 @@ import { isLiveKitEnabled, getDevelopmentModeInfo } from "@/src/config/environme
 
 // Only import CallSetup component when not in Expo Go mode
 const CallSetup = isLiveKitEnabled() 
-  ? require("@/src/components/views/CallSetup").default 
+  ? require("@/src/components/views/CallSetup/CallSetup").default 
   : null;
 
 const styles = StyleSheet.create({
