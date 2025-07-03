@@ -36,3 +36,9 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# iOS
+ios
+
+# Cursor
+.cursorrules

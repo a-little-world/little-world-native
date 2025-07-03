@@ -10,6 +10,7 @@ import {
 } from "@livekit/react-native";
 import { Track } from "livekit-client";
 import { Text } from "@a-little-world/little-world-design-system-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const wsURL = "wss://example.com";
 const token = "your-token-here";
@@ -73,9 +74,9 @@ const RoomView = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text>Video Call</Text>
       <FlatList data={tracks} renderItem={renderTrack} />
-    </View>
+    </SafeAreaView>
   );
 };
