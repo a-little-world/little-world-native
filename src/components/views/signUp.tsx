@@ -5,6 +5,7 @@ import {
     Card,
     Text,
     Checkbox,
+    Label,
 } from "@a-little-world/little-world-design-system-native";
 import {
     ButtonAppearance,
@@ -235,9 +236,9 @@ const SignUp = () => {
                         placeholder={t("sign_up.birth_year_placeholder")}
                         type="tel"
                     />
-                    <Checkbox checked={false} onCheckedChange={function (checked: boolean): void {
-                        throw new Error("Function not implemented.");
-                    }}
+                    <Checkbox checked={false}
+                        onCheckedChange={(value) => console.log({ checked: value })}
+                        label="Hello"
                     >
 
                     </Checkbox>
