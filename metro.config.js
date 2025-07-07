@@ -7,7 +7,19 @@ const defaultConfig = getDefaultConfig(__dirname);
 defaultConfig.transformer = {
   ...defaultConfig.transformer,
   babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+  // Enable Fast Refresh for better development experience
+  unstable_allowRequireContext: true,
 };
+
+// Development-specific optimizations
+if (process.env.NODE_ENV === 'development') {
+  defaultConfig.transformer.minifierConfig = {
+    keep_fnames: true,
+    mangle: {
+      keep_fnames: true,
+    },
+  };
+}
 
 defaultConfig.resolver = {
   ...defaultConfig.resolver,

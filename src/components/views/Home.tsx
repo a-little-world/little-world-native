@@ -5,11 +5,11 @@ import {
   Text,
 } from "@a-little-world/little-world-design-system-native";
 import { StyleSheet, View } from "react-native";
+import { Link, router } from "expo-router";
 
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ButtonAppearance } from "@a-little-world/little-world-design-system-core";
-import { useNavigation, useTheme } from "@react-navigation/native";
-import { LOGIN_ROUTE } from "@/src/routes";
+import { useTheme } from "@react-navigation/native";
+import { getDevelopmentModeInfo } from "@/src/config/environment";
 
 const styles = StyleSheet.create({
   container: {
@@ -18,19 +18,55 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+    padding: 20,
+  },
+  modeInfo: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#2196f3",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
+  modeInfoText: {
+    color: "#1976d2",
+    textAlign: "center",
   },
 });
 
 function AppContent() {
-  const navigation = useNavigation();
   const theme = useTheme();
-  
+  const modeInfo = getDevelopmentModeInfo();
+
   return (
     <View style={styles.container}>
       <Text>Temporary Home Page to test different app pages</Text>
-      <Button onPress={() => navigation.navigate(LOGIN_ROUTE)}>
+      
+      <View style={styles.modeInfo}>
+        <Text style={styles.modeInfoText}>
+          Current Mode: {modeInfo.mode}
+        </Text>
+        <Text style={styles.modeInfoText}>
+          {modeInfo.recommendation}
+        </Text>
+      </View>
+
+      <Button onPress={() => router.push("/login")}>
         <Text>To Login</Text>
       </Button>
+      
+      <Link href="/call-setup/123" asChild>
+        <Button appearance={ButtonAppearance.Secondary}>
+          <Text>To Call Setup</Text>
+        </Button>
+      </Link>
+      
+      <Link href="/call/123" asChild>
+        <Button appearance={ButtonAppearance.Secondary}>
+          <Text>To Video Call</Text>
+        </Button>
+      </Link>
+      
       <Popover
         asToolTip
         showCloseButton={false}
@@ -47,11 +83,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <SafeAreaProvider>
-      <AppContent />
-    </SafeAreaProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;

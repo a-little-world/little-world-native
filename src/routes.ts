@@ -49,4 +49,6 @@ export const ROUTES = [
   { path: LOGIN_ROUTE, name: 'Login' },
   { path: FORGOT_PASSWORD_ROUTE, name: 'ForgotPassword' },
   { path: SIGN_UP_ROUTE, name: 'SignUp' },
+  { path: 'call-setup/[id]', name: 'Call Setup' },
+  { path: 'call/[id]', name: 'Call' },
 ];
