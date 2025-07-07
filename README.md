@@ -4,45 +4,127 @@ This is the native expo app for Little World.
 
 > This is very much in an MVP state!
 
-## Development Flow
+## 🚀 Team Development Setup
 
-This project supports two development modes to accommodate different testing needs:
+### Quick Start for Team Members
+
+**For UI/UX Development (No Login Required):**
+```bash
+# Clone and setup
+git clone <repository-url>
+cd little-world-native
+npm install
+
+# Start with Expo Go (no login required)
+npm run start:expo-go
+```
+
+**For Full Features (Requires Dev Build):**
+```bash
+# Setup as above, then create a dev build
+npm run start:dev-build
+```
 
 ### Development Modes
 
-#### 1. Development Build Mode (Default)
-- **Purpose**: Full feature testing including LiveKit video calls
-- **Features**: All native modules, LiveKit integration, complete functionality
-- **Limitations**: Requires EAS build, slower development cycle
-- **Best for**: Testing LiveKit features, native module integration
-
-#### 2. Expo Go Mode
+#### 1. Expo Go Mode (Recommended for UI/UX work)
 - **Purpose**: UI/UX testing and navigation flow
-- **Features**: Navigation, UI components, basic app flow
-- **Limitations**: No LiveKit, no native modules
+- **Features**: Navigation, UI components, basic app flow, Redux, translations
+- **Limitations**: No LiveKit video calls (shows mock screens)
+- **No login required**: Works for all team members immediately
 - **Best for**: UI development, navigation testing, rapid iteration
 
-### Usage
+#### 2. Development Build Mode (For full features)
+- **Purpose**: Full feature testing including LiveKit video calls
+- **Features**: All native modules, LiveKit integration, complete functionality
+- **Limitations**: Requires dev build creation (see instructions below)
+- **Best for**: Testing LiveKit features, native module integration
 
-#### Development Build Mode (Default)
+### Creating Development Builds
+
+When you need to test LiveKit features or native modules, you'll need to create a development build. Here's how:
+
+#### Prerequisites
+- Expo account (free)
+- EAS CLI installed: `npm install -g @expo/cli`
+- For iOS: Apple Developer account (paid)
+- For Android: Google Play Console account (free)
+
+#### Step 1: Install EAS CLI and Login
 ```bash
-# Start with development build (LiveKit enabled)
-npm run start
-npm run android
-npm run ios
+npm install -g @expo/cli
+eas login
+```
 
-# Or explicitly
+#### Step 2: Configure EAS (First time only)
+```bash
+eas build:configure
+```
+
+#### Step 3: Create Development Build
+
+**For iOS:**
+```bash
+# Create iOS development build
+eas build --platform ios --profile development
+
+# Download and install the build
+eas build:run --platform ios
+```
+
+**For Android:**
+```bash
+# Create Android development build
+eas build --platform android --profile development
+
+# Download and install the build
+eas build:run --platform android
+```
+
+#### Step 4: Start Development Server
+```bash
+# Start the development server
 npm run start:dev-build
+
+# Or for specific platform
 npm run android:dev-build
 npm run ios:dev-build
 ```
 
-#### Expo Go Mode
+### Team Collaboration Solutions
+
+#### Issue 1: Expo Go Login Requirement
+**Solution**: The project is configured with `owner: undefined` in `app.config.ts`, which allows anonymous access. Team members can use `npm run start:expo-go` without any login.
+
+#### Issue 2: EAS Build Permissions
+**Solution**: Each team member needs their own Expo account and must create their own development builds. The project owner should:
+
+1. **Add team members to the Expo project** (if using Expo's team features)
+2. **Or have each member create their own builds** using the steps above
+
+#### Alternative: Shared Development Builds
+If you want to avoid individual builds, you can:
+
+1. **Create shared development builds** and distribute the `.ipa` (iOS) or `.apk` (Android) files
+2. **Use a shared Expo account** for the team (not recommended for security)
+3. **Set up a CI/CD pipeline** to create builds automatically
+
+### Usage
+
+#### Expo Go Mode (No Login Required)
 ```bash
 # Start with Expo Go (LiveKit disabled) - automatically clears cache
 npm run start:expo-go
 npm run android:expo-go
 npm run ios:expo-go
+```
+
+#### Development Build Mode
+```bash
+# Start with development build (LiveKit enabled)
+npm run start:dev-build
+npm run android:dev-build
+npm run ios:dev-build
 ```
 
 ### Environment Configuration
@@ -52,47 +134,23 @@ The mode is controlled by the `EXPO_PUBLIC_USE_EXPO_GO` environment variable:
 - `EXPO_PUBLIC_USE_EXPO_GO=true` → Expo Go mode
 - `EXPO_PUBLIC_USE_EXPO_GO=false` or unset → Development Build mode
 
-### How It Works
-
-#### Configuration
-- `app.config.ts`: Conditionally includes LiveKit plugins based on environment
-- `src/config/environment.ts`: Provides helper functions to check current mode
-- `app/_layout.tsx`: Conditionally imports and registers LiveKit globals
-
-#### Components
-- `CallSetup.tsx` and `Video.tsx`: Show different content based on mode
-- Expo Go mode shows mock screens with clear warnings
-- Development Build mode shows real LiveKit implementation
-
-#### Mock Screens
-When in Expo Go mode, the call screens display:
-- Clear indication of current mode
-- Warning about LiveKit unavailability
-- Mock UI for testing navigation
-- Recommendation to use development build for full features
-
-### Switching Between Modes
-
-1. **Stop the current development server**
-2. **Run the appropriate script** for your desired mode
-3. **Clear Metro cache** if needed: `npx expo start --clear`
-
 ### Troubleshooting
 
-#### LiveKit Not Working
-- Ensure you're using development build mode
-- Check that `EXPO_PUBLIC_USE_EXPO_GO` is not set to `true`
-- Verify EAS build includes LiveKit plugins
+#### Expo Go Issues
+- **"Login required" error**: Make sure you're using `npm run start:expo-go` (not just `npm start`)
+- **Cache issues**: Run `npx expo start --clear` to clear cache
+- **Metro bundler issues**: Try `npm run reset-project`
 
-#### Navigation Issues
-- Both modes support the same navigation structure
-- Mock screens maintain the same routing behavior
-- Use Expo Go mode for rapid navigation testing
+#### Development Build Issues
+- **Build fails**: Check that you're logged into EAS (`eas login`)
+- **Permission denied**: Make sure you have access to the Expo project
+- **iOS build fails**: Verify Apple Developer account and certificates
+- **Android build fails**: Check Google Play Console setup
 
-#### Build Issues
-- Development build mode requires EAS CLI and Apple Developer account
-- Expo Go mode works with standard Expo CLI
-- Clear cache and reinstall dependencies if needed
+#### General Issues
+- **Port conflicts**: Change port in scripts (currently using 9000)
+- **Device not found**: Make sure simulator/emulator is running
+- **Metro bundler stuck**: Kill the process and restart
 
 ## Translations
 

@@ -10,6 +10,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'little-world-app',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
+  // Add anonymous project configuration for team development
+  owner: undefined, // This allows anonymous access
   ios: {
     supportsTablet: true,
     backgroundColor: '#ffffff',
