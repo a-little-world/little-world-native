@@ -37,7 +37,7 @@ npm run start:dev-build
 #### 2. Development Build Mode (For full features)
 - **Purpose**: Full feature testing including LiveKit video calls
 - **Features**: All native modules, LiveKit integration, complete functionality
-- **Limitations**: Requires dev build creation (see instructions below)
+- **Limitations**: Requires dev build creation and login (see instructions below)
 - **Best for**: Testing LiveKit features, native module integration
 
 ### Creating Development Builds
@@ -93,10 +93,13 @@ npm run ios:dev-build
 
 ### Team Collaboration Solutions
 
-#### Issue 1: Expo Go Login Requirement
-**Solution**: The project is configured with `owner: undefined` in `app.config.ts`, which allows anonymous access. Team members can use `npm run start:expo-go` without any login.
+#### Issue 1: Expo Go Login Requirement ✅ SOLVED
+**Solution**: The project is configured with conditional settings. When using `npm run start:expo-go`, the configuration automatically:
+- Sets `owner: undefined` (allows anonymous access)
+- Removes LiveKit plugins (not needed for UI work)
+- Removes EAS projectId (not needed for Expo Go)
 
-#### Issue 2: EAS Build Permissions
+#### Issue 2: EAS Build Permissions ✅ SOLVED
 **Solution**: Each team member needs their own Expo account and must create their own development builds. The project owner should:
 
 1. **Add team members to the Expo project** (if using Expo's team features)
@@ -131,8 +134,8 @@ npm run ios:dev-build
 
 The mode is controlled by the `EXPO_PUBLIC_USE_EXPO_GO` environment variable:
 
-- `EXPO_PUBLIC_USE_EXPO_GO=true` → Expo Go mode
-- `EXPO_PUBLIC_USE_EXPO_GO=false` or unset → Development Build mode
+- `EXPO_PUBLIC_USE_EXPO_GO=true` → Expo Go mode (no login, no LiveKit)
+- `EXPO_PUBLIC_USE_EXPO_GO=false` or unset → Development Build mode (login required, full features)
 
 ### Troubleshooting
 

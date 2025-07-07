@@ -10,8 +10,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'little-world-app',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  // Add anonymous project configuration for team development
-  owner: undefined, // This allows anonymous access
+  // Make owner conditional - undefined for Expo Go, undefined for dev builds
+  owner: undefined,
   ios: {
     supportsTablet: true,
     backgroundColor: '#ffffff',
@@ -66,9 +66,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     router: {
       origin: false
     },
-    eas: {
-      projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05'
-    },
+    // Only include EAS projectId when not in Expo Go mode
+    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true' ? {
+      eas: {
+        projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05'
+      }
+    } : {}),
     // Environment flags
     useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === 'true',
     useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true'
