@@ -26,7 +26,8 @@ import { FORGOT_PASSWORD_ROUTE, SIGN_UP_ROUTE } from "@/src/routes";
 import { StyledCta, StyledForm, Title } from "./shared.styles";
 
 import { useTheme } from "styled-components/native";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const Login = () => {
   // const dispatch = useDispatch();
@@ -36,6 +37,7 @@ const Login = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
+  const navigation = useNavigation();
   const {
     register,
     handleSubmit,
@@ -51,7 +53,7 @@ const Login = () => {
     setFocus("email");
   }, [setFocus]);
 
-  const onError = (e) => {
+  const onError = (e: any) => {
     setIsSubmitting(false);
     onFormError({ e, formFields: getValues(), setError });
   };
@@ -92,60 +94,94 @@ const Login = () => {
   const clickEvent = () => {
     console.log("clickEvent");
   };
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      backgroundColor: '#fff',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    inputField: {
+      paddingVertical: 16,
+      marginBottom: 8,
+    },
+    link: {
+      paddingVertical: 16,
+    },
+    button: {
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 32,
+      marginBottom: 40,
+      fontWeight: 'bold',
+      color: 'black',
+    },
 
+  });
   return (
-    <Card>
-      <Title tag="h2" type={TextTypes.Heading4}>
-        {t("login.title")}
-      </Title>
-      <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
-        <TextInput
-          {...registerInput({
-            register,
-            name: "email",
-            options: { required: "error.required" },
-          })}
-          id="email"
-          label={t("login.email_label")}
-          error={t(errors?.email?.message)}
-          placeholder={t("login.email_placeholder")}
-          toolTipText="test"
-          type="email"
-        />
-        <TextInput
-          {...registerInput({
-            register,
-            name: "password",
-            options: { required: "error.required" },
-          })}
-          id="password"
-          error={t(errors?.password?.message)}
-          label={t("login.password_label")}
-          placeholder={t("login.password_placeholder")}
-          type="password"
-        />
-        <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
-          {t("login.forgot_password")}
-        </Link>
-        <StyledCta
-          type="submit"
-          onClick={clickEvent}
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          size={ButtonSizes.Stretch}
-        >
-          {t("login.submit_btn")}
-        </StyledCta>
-        <Link
-          href={`/${SIGN_UP_ROUTE}`}
-          buttonAppearance={ButtonAppearance.Secondary}
-          buttonSize={ButtonSizes.Stretch}
-        >
-          {t("login.change_location_cta")}
-        </Link>
-      </StyledForm>
-    </Card>
+    <View style={styles.container}>
+      <Card>
+        <Title tag="h2" type={TextTypes.Heading4} style={styles.title}>
+          {t("login.title")}
+        </Title>
+        <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
+          <TextInput style={styles.inputField}
+            {...registerInput({
+              register,
+              name: "email",
+              options: { required: "error.required" },
+            })}
+            id="email"
+            label={t("login.email_label")}
+            error={t(errors?.email?.message)}
+            placeholder={t("login.email_placeholder")}
+            labelTooltip="test"
+            type="text"
+          />
+          <TextInput
+            style={styles.inputField}
+            {...registerInput({
+              register,
+              name: "password",
+              options: { required: "error.required" },
+            })}
+            id="password"
+            error={t(errors?.password?.message)}
+            label={t("login.password_label")}
+            placeholder={t("login.password_placeholder")}
+            type="password"
+          />
+          <Link onClick={() => navigation.navigate(FORGOT_PASSWORD_ROUTE)} style={styles.link}>
+            {t("login.forgot_password")}
+          </Link>
+          <StyledCta
+            style={styles.button}
+            type="submit"
+            onClick={clickEvent}
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            size={ButtonSizes.Stretch}
+          >
+            {t("login.submit_btn")}
+          </StyledCta>
+          <Link style={styles.button}
+            onClick={() => navigation.navigate(SIGN_UP_ROUTE)}
+            buttonAppearance={ButtonAppearance.Secondary}
+            buttonSize={ButtonSizes.Stretch}
+          >
+            {t("login.change_location_cta")}
+          </Link>
+        </StyledForm>
+      </Card>
+    </View>
   );
 };
 
 export default Login;
+
