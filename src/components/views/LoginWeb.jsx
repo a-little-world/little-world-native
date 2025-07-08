@@ -1,5 +1,3 @@
-"use dom";
-
 import { login } from "@/src/api";
 import {
   ButtonSizes,
