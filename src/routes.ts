@@ -1,5 +1,8 @@
-export const BASE_ROUTE = '/';
+import { Href } from 'expo-router';
+
+export const BASE_ROUTE: Href = '/';
 export const APP_ROUTE = 'app';
+export const APP_BASE_ROUTE = '/app';
 export const COMMUNITY_EVENTS_ROUTE = 'events';
 export const OUR_WORLD_ROUTE = 'our-world';
 export const SUPPORT_US_ROUTE = 'our-world/support';
@@ -21,11 +24,11 @@ export const SETTINGS_ROUTE = 'settings';
 export const LOGIN_ROUTE = 'login';
 export const SIGN_UP_ROUTE = 'sign-up';
 export const CHANGE_EMAIL_ROUTE = 'change-email';
-export const VERIFY_EMAIL_ROUTE = 'verify-email';
+export const VERIFY_EMAIL_ROUTE: Href = '/verify-email';
 export const FORGOT_PASSWORD_ROUTE = 'forgot-password';
 export const RESET_PASSWORD_ROUTE = 'reset-password/:userId/:token';
 export const EDIT_FORM_ROUTE = 'edit';
-export const USER_FORM_ROUTE = 'user-form';
+export const USER_FORM_ROUTE: Href = '/user-form';
 export const WP_HOME_ROUTE = 'https://home.little-world.com';
 export const TERMS_ROUTE = 'nutzungsbedingungen';
 export const PRIVACY_ROUTE = 'datenschutz';

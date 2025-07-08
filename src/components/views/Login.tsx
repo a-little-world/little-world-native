@@ -1,54 +1,50 @@
 import {
+  ButtonAppearance,
+  ButtonSizes,
+  TextTypes,
+} from '@a-little-world/little-world-design-system-core';
+import {
+  Card,
   Link,
   TextInput,
-  Button,
-  Card,
-  Text,
-} from "@a-little-world/little-world-design-system-native";
+} from '@a-little-world/little-world-design-system-native';
+
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+
+import { login } from '@/src/api';
+import { onFormError } from '@/src/utils/form';
+
 import {
-  ButtonAppearance,
-  ButtonVariations,
-  ButtonSizes,
-  StatusTypes,
-  TextBaseProps,
-  TextTypes,
-} from "@a-little-world/little-world-design-system-core";
+  BASE_ROUTE,
+  FORGOT_PASSWORD_ROUTE,
+  SIGN_UP_ROUTE,
+  USER_FORM_ROUTE,
+  VERIFY_EMAIL_ROUTE,
+} from '@/src/routes';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTheme } from 'styled-components/native';
+import { StyledCta, StyledForm, Title } from './shared.styles';
 
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import i18next from "@/src/i18n"; // DON"T remove! impoant for translations to work!
-import { useTranslation } from "react-i18next";
-
-import { login } from "@/src/api";
-import { onFormError, registerInput } from "@/src/utils/form";
-
-import { FORGOT_PASSWORD_ROUTE, SIGN_UP_ROUTE } from "@/src/routes";
-import { StyledCta, StyledForm, Title } from "./shared.styles";
-
-import { useTheme } from "styled-components/native";
-import { View } from "react-native";
-
-const Login = () => {
-  // const dispatch = useDispatch();
-  //const { t } = useTranslation();
+function Login() {
   const { t } = useTranslation();
-  // const [searchParams] = useSearchParams();
+  const searchParams = useLocalSearchParams();
+  const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
   const {
-    register,
     handleSubmit,
     getValues,
     formState: { errors },
     setError,
     setFocus,
+    control,
   } = useForm({ shouldUnregister: true });
 
-  //const navigate = useNavigate(); TODO
-
   useEffect(() => {
-    setFocus("email");
+    setFocus('email');
   }, [setFocus]);
 
   const onError = (e) => {
@@ -58,18 +54,20 @@ const Login = () => {
 
   const onFormSubmit = async (data) => {
     setIsSubmitting(true);
+    console.log('onFormSubmit', getValues());
+    console.log(data);
 
     login(data)
       .then((loginData) => {
         //dispatch(initialise(loginData));
         setIsSubmitting(false);
 
-        //passAuthenticationBoundary(); TODO
+        // passAuthenticationBoundary(); TODO
 
         if (!loginData.user.emailVerified) {
-          //navigate(getAppRoute(VERIFY_EMAIL_ROUTE)); TODO
+          router.navigate(VERIFY_EMAIL_ROUTE);
         } else if (!loginData.user.userFormCompleted) {
-          //navigate(getAppRoute(USER_FORM_ROUTE)); TODO
+          router.navigate(USER_FORM_ROUTE);
         } else if (/*searchParams.get('next')*/ false) {
           // users can be redirected from /login?next=<url>
           // consider this route after the requried for entry forms verify-email / user-form
@@ -81,16 +79,10 @@ const Login = () => {
           //);
         } else {
           // per default route to /app on successful login
-          //navigate(getAppRoute()); TODO
+          router.navigate(BASE_ROUTE);
         }
       })
       .catch(onError);
-  };
-
-  const [isActive, setIsActive] = useState(false);
-
-  const clickEvent = () => {
-    console.log("clickEvent");
   };
 
   return (
@@ -98,38 +90,44 @@ const Login = () => {
       <Title tag="h2" type={TextTypes.Heading4}>
         {t("login.title")}
       </Title>
-      <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
-        <TextInput
-          {...registerInput({
-            register,
-            name: "email",
-            options: { required: "error.required" },
-          })}
-          id="email"
-          label={t("login.email_label")}
-          error={t(errors?.email?.message)}
-          placeholder={t("login.email_placeholder")}
-          toolTipText="test"
-          type="email"
+      <StyledForm>
+        <Controller
+          control={control}
+          name="email"
+          rules={{ required: "Email is required" }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder={t("login.email_placeholder")}
+              id="email"
+              label={t("login.email_label")}
+            />
+          )}
         />
-        <TextInput
-          {...registerInput({
-            register,
-            name: "password",
-            options: { required: "error.required" },
-          })}
-          id="password"
-          error={t(errors?.password?.message)}
-          label={t("login.password_label")}
-          placeholder={t("login.password_placeholder")}
-          type="password"
+        <Controller
+          control={control}
+          name="password"
+          rules={{ required: "Password is required" }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder={t("login.password_placeholder")}
+              id="password"
+              label={t("login.password_label")}
+              type="password"
+            />
+          )}
         />
         <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
           {t("login.forgot_password")}
         </Link>
         <StyledCta
           type="submit"
-          onClick={clickEvent}
+          onPress={handleSubmit(onFormSubmit)}
           disabled={isSubmitting}
           loading={isSubmitting}
           size={ButtonSizes.Stretch}
@@ -146,6 +144,6 @@ const Login = () => {
       </StyledForm>
     </Card>
   );
-};
+}
 
 export default Login;
