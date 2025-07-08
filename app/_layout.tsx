@@ -1,14 +1,14 @@
+import '@/src/i18n';
 import { ROUTES } from "@/src/routes";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
 import { PortalHost } from "@rn-primitives/portal";
+import Constants from 'expo-constants';
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-// import '@/src/i18n';
-import Constants from 'expo-constants';
 
 // Conditionally import LiveKit only when not in Expo Go mode
 const useLiveKit = Constants.expoConfig?.extra?.useLiveKit ?? true;
