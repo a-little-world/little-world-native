@@ -1,14 +1,14 @@
-import { API_FIELDS, USER_FIELDS, BACKEND_URL } from '@/src/constants/';
-import { formatApiError } from './helpers';
-import { Cookies } from '@/src/constants/CookieMock';
+import { API_FIELDS, BACKEND_URL, USER_FIELDS } from "@/src/constants/";
+import { Cookies } from "@/src/constants/CookieMock";
+import { formatApiError } from "./helpers";
 
 export const completeForm = async () => {
-  const res = await fetch('/api/profile/completed/', {
-    method: 'GET',
+  const res = await fetch("/api/profile/completed/", {
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'true',
+      "Content-Type": "application/json",
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "true",
     },
   });
 
@@ -31,12 +31,12 @@ export const mutateUserData = async (formData, onSuccess, onFailure) => {
       data = JSON.stringify(formData);
     }
 
-    const response = await fetch('/api/profile/', {
-      method: 'POST',
+    const response = await fetch("/api/profile/", {
+      method: "POST",
       headers: {
-        ...(image ? {} : { 'Content-Type': 'application/json' }),
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        'X-UseTagsOnly': 'true',
+        ...(image ? {} : { "Content-Type": "application/json" }),
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "true",
       },
       body: data,
     });
@@ -46,7 +46,7 @@ export const mutateUserData = async (formData, onSuccess, onFailure) => {
       onSuccess(responseBody);
     } else {
       if (response.status === 413)
-        throw new Error('validation.image_upload_required', {
+        throw new Error("validation.image_upload_required", {
           cause: API_FIELDS.image,
         });
       const responseBody = await response?.json();
@@ -60,12 +60,12 @@ export const mutateUserData = async (formData, onSuccess, onFailure) => {
 
 export const submitHelpForm = async (formData, onSuccess, onFailure) => {
   try {
-    const response = await fetch('/api/help_message/', {
+    const response = await fetch("/api/help_message/", {
       headers: {
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        'X-UseTagsOnly': true,
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": true,
       },
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
 
@@ -74,7 +74,7 @@ export const submitHelpForm = async (formData, onSuccess, onFailure) => {
       onSuccess(responseBody);
     } else {
       if (response.status === 413)
-        throw new Error('validation.image_upload_required');
+        throw new Error("validation.image_upload_required");
       const responseBody = await response?.json();
       const error = formatApiError(responseBody, response);
       throw error;
@@ -86,12 +86,12 @@ export const submitHelpForm = async (formData, onSuccess, onFailure) => {
 
 export const fetchFormData = async ({ handleError }) => {
   try {
-    const response = await fetch('/api/profile/?options=true', {
-      method: 'GET',
+    const response = await fetch("/api/profile/?options=true", {
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        'X-UseTagsOnly': 'true',
+        "Content-Type": "application/json",
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "true",
       },
     });
 
@@ -105,10 +105,10 @@ export const fetchFormData = async ({ handleError }) => {
 
 export const fetchUserMatch = async ({ userId }) => {
   const response = await fetch(`${BACKEND_URL}/api/profile/${userId}/match`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "Content-Type": "application/json",
     },
   });
 
@@ -121,23 +121,23 @@ export const postUserProfileUpdate = (
   updateData,
   onFailure,
   onSuccess,
-  formTag,
+  formTag
 ) => {
   fetch(`${BACKEND_URL}/api/profile/`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-UseTagsOnly': true, // This automaticly requests error tags instead of direct translations!
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-UseTagsOnly": true, // This automaticly requests error tags instead of direct translations!
     },
     body: JSON.stringify(updateData),
-  }).then(response => {
+  }).then((response) => {
     const { status, statusText } = response;
     if (![200, 400].includes(status)) {
-      console.error('server error', status, statusText);
+      console.error("server error", status, statusText);
     } else {
-      response.json().then(report => {
+      response.json().then((report) => {
         if (response.status === 200) {
           return onSuccess();
         }
@@ -149,14 +149,15 @@ export const postUserProfileUpdate = (
 };
 
 export const login = async ({ email, password }) => {
+  console.log("lohin");
   const response = await fetch(`${BACKEND_URL}/api/user/login/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       email,
       password,
@@ -180,12 +181,12 @@ export const signUp = async ({
 }) => {
   const response = await fetch(`${BACKEND_URL}/api/register/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       email,
       password1: password,
@@ -206,12 +207,12 @@ export const signUp = async ({
 export const requestPasswordReset = async ({ email }) => {
   const response = await fetch(`${BACKEND_URL}/api/user/resetpw/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       email,
     }),
@@ -226,12 +227,12 @@ export const requestPasswordReset = async ({ email }) => {
 export const resetPassword = async ({ password, token }) => {
   const response = await fetch(`${BACKEND_URL}/api/user/resetpw/confirm/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       password,
       token,
@@ -248,13 +249,13 @@ export const verifyEmail = async ({ verificationCode }) => {
     `${BACKEND_URL}/api/user/verify/email/${verificationCode}`,
     {
       headers: {
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        'X-UseTagsOnly': 'True',
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "True",
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-      method: 'POST',
-    },
+      method: "POST",
+    }
   );
 
   const responseBody = await response?.json();
@@ -265,12 +266,12 @@ export const verifyEmail = async ({ verificationCode }) => {
 export const resendVerificationEmail = async () => {
   const response = await fetch(`${BACKEND_URL}/api/user/verify/email_resend/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
   });
 
   const responseBody = await response?.json();
@@ -281,12 +282,12 @@ export const resendVerificationEmail = async () => {
 export const setNewEmail = async ({ email }) => {
   const response = await fetch(`${BACKEND_URL}/api/user/change_email/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       email,
     }),
@@ -297,15 +298,15 @@ export const setNewEmail = async ({ email }) => {
   throw formatApiError(responseBody, response);
 };
 
-export const setNewPassword = async data => {
+export const setNewPassword = async (data) => {
   const response = await fetch(`${BACKEND_URL}/api/user/changepw/`, {
     headers: {
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      'X-UseTagsOnly': 'True',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
+      "X-CSRFToken": Cookies.get("csrftoken"),
+      "X-UseTagsOnly": "True",
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(data),
   });
 
