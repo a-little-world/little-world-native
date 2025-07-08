@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect } from "react";
+import { Text } from "react-native";
 
 console.log("React object:", React);
 console.log("useEffect from React:", React.useEffect);
@@ -9,5 +10,5 @@ export default function RootLayout() {
   console.log("RootLayout component rendering");
   console.log("useEffect inside component:", useEffect);
   
-  return <></>;
+  return <><Text>Hello look Mum it's working</Text></>;
 }
