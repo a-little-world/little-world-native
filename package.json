@@ -21,6 +21,7 @@
   "jest": {
     "preset": "jest-expo"
   },
+  "prettier": "@a-little-world/little-world-prettier-config",
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.1.2",
     "@a-little-world/little-world-design-system-native": "^0.1.3",
