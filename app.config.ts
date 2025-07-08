@@ -9,7 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './src/assets/images/icon.png',
   scheme: 'little-world-app',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
+  newArchEnabled: false, // Temporarily disable new architecture
   // Make owner conditional - undefined for Expo Go, undefined for dev builds
   owner: undefined,
   ios: {
@@ -46,7 +46,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     // Only include LiveKit plugins when not in Expo Go mode
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true' ? [
-      '@livekit/react-native-expo-plugin',
       '@config-plugins/react-native-webrtc'
     ] : []),
     [

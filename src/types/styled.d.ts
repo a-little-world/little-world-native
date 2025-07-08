@@ -32,6 +32,11 @@ interface Theme {
     medium: string;
     large: string;
   };
+  radius: {
+    small: number;
+    medium: number;
+    large: number;
+  };
 }
 
 declare module 'styled-components/native' {
