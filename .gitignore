@@ -38,7 +38,10 @@ yarn-error.*
 app-example
 
 # iOS
-ios
+ios/
+
+# Android
+android/
 
 # Cursor
 .cursorrules
