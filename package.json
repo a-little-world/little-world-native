@@ -22,6 +22,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@a-little-world/little-world-design-system": "^1.23.1",
     "@a-little-world/little-world-design-system-core": "^1.1.2",
     "@a-little-world/little-world-design-system-native": "^0.1.3",
     "@a-little-world/little-world-frontend-shared": "^0.1.0",
