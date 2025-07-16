@@ -23,7 +23,7 @@ export const SIGN_UP_ROUTE = 'sign-up';
 export const CHANGE_EMAIL_ROUTE = 'change-email';
 export const VERIFY_EMAIL_ROUTE = 'verify-email';
 export const FORGOT_PASSWORD_ROUTE = 'forgot-password';
-export const RESET_PASSWORD_ROUTE = 'reset-password/:userId/:token';
+export const RESET_PASSWORD_ROUTE = 'reset-password';// /:userId/:token
 export const EDIT_FORM_ROUTE = 'edit';
 export const USER_FORM_ROUTE = 'user-form';
 export const WP_HOME_ROUTE = 'https://home.little-world.com';
@@ -49,6 +49,8 @@ export const ROUTES = [
   { path: LOGIN_ROUTE, name: 'Login' },
   { path: FORGOT_PASSWORD_ROUTE, name: 'ForgotPassword' },
   { path: SIGN_UP_ROUTE, name: 'SignUp' },
+  { path: VERIFY_EMAIL_ROUTE, name: 'verify Email' },
+  { path: RESET_PASSWORD_ROUTE, name: 'reset Password' },
   { path: 'call-setup/[id]', name: 'Call Setup' },
   { path: 'call/[id]', name: 'Call' },
 ];

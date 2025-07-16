@@ -24,12 +24,13 @@ import { useTranslation } from "react-i18next";
 import { login } from "@/src/api";
 import { onFormError, registerInput } from "@/src/utils/form";
 
-import { FORGOT_PASSWORD_ROUTE, SIGN_UP_ROUTE } from "@/src/routes";
+import { SIGN_UP_ROUTE, VERIFY_EMAIL_ROUTE } from "@/src/routes";
 import { StyledCta, StyledForm, Title } from "./shared.styles";
 
 import { useTheme } from "styled-components/native";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView, useWindowDimensions, Linking } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import RenderHTML, { MixedStyleDeclaration } from 'react-native-render-html';
 
 const SignUp = () => {
     // const dispatch = useDispatch();
@@ -92,10 +93,24 @@ const SignUp = () => {
     };
 
     const [isActive, setIsActive] = useState(false);
-
+    const { width } = useWindowDimensions();
     const clickEvent = () => {
         console.log("clickEvent");
     };
+    const renderersProps = {
+        a: {
+            onPress: (_event: any, href: string) => Linking.openURL(href)
+        },
+    }
+    const tagsStyles: Record<string, MixedStyleDeclaration> = {
+        p: {
+            justifyContent: 'flex-start',
+        },
+        a: {
+            color: '#007AFF',
+            textDecorationLine: 'underline',
+        },
+    }
     const styles = StyleSheet.create({
         container: {
             flex: 1,
@@ -104,6 +119,14 @@ const SignUp = () => {
             backgroundColor: '#fff',
             paddingHorizontal: 20,
             paddingVertical: 16,
+        },
+        checkBoxRow: {
+            flexDirection: "row",
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+        },
+        checkBox: {
+
         },
         inputFieldSmall: {
             paddingVertical: 16,
@@ -126,7 +149,11 @@ const SignUp = () => {
             width: '100%',
             justifyContent: 'center',
             alignItems: 'center',
-            marginBottom: 16,
+            marginVertical: 8,
+        },
+        button2: {
+
+            marginBottom: 128,
         },
         title: {
             fontSize: 32,
@@ -148,7 +175,7 @@ const SignUp = () => {
 
     });
     return (
-        <View style={styles.container}>
+        <ScrollView >
             <Card>
                 <Title tag="h1" type={TextTypes.Heading4} style={styles.title}>
                     {t("sign_up.title")}
@@ -158,11 +185,7 @@ const SignUp = () => {
                     <View style={styles.doubleInput}>
                         <View style={styles.test}>
                             <TextInput style={styles.inputFieldSmall}
-                                {...registerInput({
-                                    register,
-                                    name: "email",
-                                    options: { required: "error.required" },
-                                })}
+
                                 id="first_name"
                                 label={t("sign_up.name_label")}
                                 error={t(errors?.email?.message)}
@@ -173,11 +196,7 @@ const SignUp = () => {
                         </View>
                         <TextInput
                             style={styles.inputFieldSmall2}
-                            {...registerInput({
-                                register,
-                                name: "name",
-                                options: { required: "error.required" },
-                            })}
+
                             label=" "
                             id="second_name"
                             error={t(errors?.password?.message)}
@@ -187,11 +206,7 @@ const SignUp = () => {
                     </View>
                     <TextInput
                         style={styles.inputField2}
-                        {...registerInput({
-                            register,
-                            name: "password",
-                            options: { required: "error.required" },
-                        })}
+
                         id="e-mail"
                         error={t(errors?.password?.message)}
                         label={t("sign_up.email_label")}
@@ -200,11 +215,7 @@ const SignUp = () => {
                     />
                     <TextInput
                         style={styles.inputField2}
-                        {...registerInput({
-                            register,
-                            name: "password",
-                            options: { required: "error.required" },
-                        })}
+
                         id="password"
                         error={t(errors?.password?.message)}
                         label={t("sign_up.password_label")}
@@ -213,23 +224,15 @@ const SignUp = () => {
                     />
                     <TextInput
                         style={styles.inputField2}
-                        {...registerInput({
-                            register,
-                            name: "password",
-                            options: { required: "error.required" },
-                        })}
+
                         id="password"
                         error={t(errors?.password?.message)}
-                        label={t("sign_up.password_label")}
+                        label={t("sign_up.confirm_password_label")}
                         type="password"
                     />
                     <TextInput
                         style={styles.inputFieldSmall2}
-                        {...registerInput({
-                            register,
-                            name: "password",
-                            options: { required: "error.required" },
-                        })}
+
                         id="password"
                         error={t(errors?.password?.message)}
                         label={t("sign_up.birth_year_label")}
@@ -238,23 +241,39 @@ const SignUp = () => {
                     />
                     <Checkbox checked={false}
                         onCheckedChange={(value) => console.log({ checked: value })}
-                        label="Hello"
-                    >
-
-                    </Checkbox>
+                        label={t("sign_up.mailing_list_label")}
+                    />
+                    <View style={styles.checkBoxRow}>
+                        <Checkbox checked={false}
+                            onCheckedChange={(value) => console.log({ checked: value })}
+                        />
+                        <RenderHTML
+                            source={{ html: "<p>" + t("sign_up.terms_label") + "</p>" }}
+                            tagsStyles={tagsStyles}
+                            contentWidth={width}
+                            renderersProps={renderersProps}
+                        />
+                    </View>
+                    <RenderHTML
+                        source={{ html: "<p>" + t("sign_up.privacy_policy") + "</p>" }}
+                        tagsStyles={tagsStyles}
+                        contentWidth={width}
+                        renderersProps={renderersProps}
+                    ></RenderHTML>
 
                     <StyledCta
                         style={styles.button}
                         type="submit"
-                        onClick={clickEvent}
+                        onPress={() => navigation.navigate(VERIFY_EMAIL_ROUTE as never)}
                         disabled={isSubmitting}
                         loading={isSubmitting}
                         size={ButtonSizes.Stretch}
                     >
                         {t("sign_up.submit_btn")}
                     </StyledCta>
-                    <Link style={styles.button}
-                        href={`/${SIGN_UP_ROUTE}`}
+
+                    <Link style={[styles.button, styles.button2]}
+                        onClick={() => navigation.navigate(VERIFY_EMAIL_ROUTE as never)}
                         buttonAppearance={ButtonAppearance.Secondary}
                         buttonSize={ButtonSizes.Stretch}
                     >
@@ -262,9 +281,15 @@ const SignUp = () => {
                     </Link>
                 </StyledForm>
             </Card>
-        </View>
+        </ScrollView>
     );
 };
 
 export default SignUp;
 
+/* How to use registerInput
+{...registerInput({
+    register,
+    name: "password",
+    options: { required: "error.required" },
+})}*/
