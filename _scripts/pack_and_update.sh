@@ -19,8 +19,8 @@ echo "New version: $NEW_VERSION"
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
 rm package.json.bak
 
-# Run npm pack
-npm pack
+# Run pnpm pack
+pnpm pack
 
 # Get the generated tarball filename
 TARBALL="a-little-world-little-world-design-system-native-$NEW_VERSION.tgz"
@@ -33,7 +33,7 @@ cd ..
 sed -i.bak "s|\"@a-little-world/little-world-design-system-native\": \"file:./lw_components/a-little-world-little-world-design-system-native-.*\.tgz\"|\"@a-little-world/little-world-design-system-native\": \"file:./lw_components/$TARBALL\"|" package.json
 rm package.json.bak
 
-# Run npm install in root directory
-npm install
+# Run pnpm install in root directory
+pnpm install
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 
