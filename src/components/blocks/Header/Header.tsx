@@ -1,17 +1,17 @@
-import React, { useEffect } from "react";
-import { useRouter } from "expo-router";
 import { TextTypes } from "@a-little-world/little-world-design-system-core";
-import { Text, Link } from "@a-little-world/little-world-design-system-native";
+import { Link } from "@a-little-world/little-world-design-system-native";
+import { useRouter } from "expo-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components/native";
 
-import { useWindowDimensions, Pressable, View } from "react-native";
+import { Pressable, View, useWindowDimensions } from "react-native";
 
 import {
+  BASE_ROUTE,
   PRIVACY_ROUTE,
   TERMS_ROUTE,
   WP_HOME_ROUTE,
-  getAppRoute,
   getHomeRoute,
 } from "@/src/routes";
 import Logo from "../../atoms/Logo";
@@ -40,7 +40,7 @@ const Header = () => {
 
   const handleLogoPress = () => {
     if (userId) {
-      router.navigate(getAppRoute());
+      router.navigate(BASE_ROUTE);
     } else {
       router.navigate(WP_HOME_ROUTE);
     }
