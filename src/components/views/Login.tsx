@@ -5,7 +5,6 @@ import {
 } from '@a-little-world/little-world-design-system-core';
 import {
   Card,
-  Link,
   TextInput,
 } from '@a-little-world/little-world-design-system-native';
 
@@ -23,7 +22,7 @@ import {
   USER_FORM_ROUTE,
   VERIFY_EMAIL_ROUTE,
 } from '@/src/routes';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from 'styled-components/native';
 import { StyledCta, StyledForm, Title } from './shared.styles';
 
@@ -88,43 +87,45 @@ function Login() {
   return (
     <Card>
       <Title tag="h2" type={TextTypes.Heading4}>
-        {t("login.title")}
+        {t('login.title')}
       </Title>
       <StyledForm>
         <Controller
           control={control}
           name="email"
-          rules={{ required: "Email is required" }}
+          rules={{ required: 'Email is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              placeholder={t("login.email_placeholder")}
+              placeholder={t('login.email_placeholder')}
               id="email"
-              label={t("login.email_label")}
+              label={t('login.email_label')}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
           )}
         />
         <Controller
           control={control}
           name="password"
-          rules={{ required: "Password is required" }}
+          rules={{ required: 'Password is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              placeholder={t("login.password_placeholder")}
+              placeholder={t('login.password_placeholder')}
               id="password"
-              label={t("login.password_label")}
+              label={t('login.password_label')}
               type="password"
+              autoCapitalize="none"
+              autoCorrect={false}
             />
           )}
         />
-        <Link href={`/${FORGOT_PASSWORD_ROUTE}/`}>
-          {t("login.forgot_password")}
-        </Link>
+        <Link href={FORGOT_PASSWORD_ROUTE}>{t('login.forgot_password')}</Link>
         <StyledCta
           type="submit"
           onPress={handleSubmit(onFormSubmit)}
@@ -132,14 +133,14 @@ function Login() {
           loading={isSubmitting}
           size={ButtonSizes.Stretch}
         >
-          {t("login.submit_btn")}
+          {t('login.submit_btn')}
         </StyledCta>
         <Link
           href={`/${SIGN_UP_ROUTE}`}
           buttonAppearance={ButtonAppearance.Secondary}
           buttonSize={ButtonSizes.Stretch}
         >
-          {t("login.change_location_cta")}
+          {t('login.change_location_cta')}
         </Link>
       </StyledForm>
     </Card>
