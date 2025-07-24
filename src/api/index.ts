@@ -1,6 +1,6 @@
-import { API_FIELDS, USER_FIELDS, BACKEND_URL } from '@/src/constants/';
-import { formatApiError } from './helpers';
+import { API_FIELDS, BACKEND_URL, USER_FIELDS } from '@/src/constants/';
 import { Cookies } from '@/src/constants/CookieMock';
+import { formatApiError } from './helpers';
 
 export const completeForm = async () => {
   const res = await fetch('/api/profile/completed/', {
@@ -161,6 +161,7 @@ export const login = async ({ email, password }) => {
       email,
       password,
     }),
+    credentials: 'include'
   });
 
   const responseBody = await response?.json();
