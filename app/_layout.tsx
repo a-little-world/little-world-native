@@ -1,5 +1,6 @@
 import "@/src/i18n";
 import { ROUTES } from "@/src/routes";
+import { useFonts } from 'expo-font';
 import { loadFonts } from "@/src/utils/loadFonts";
 import { CustomThemeProvider as WebThemProvider } from "@a-little-world/little-world-design-system";
 import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
@@ -27,6 +28,12 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Signika-Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
+    'Signika Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
+  });
 
   useEffect(() => {
     const prepare = async (): Promise<void> => {
