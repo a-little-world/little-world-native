@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Navigate to lw_components directory
-cd lw_components || exit 1
+cd ../little-world-frontend || exit 1
 
 # Get current version from package.json
 CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -20,20 +20,19 @@ sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" 
 rm package.json.bak
 
 # Run npm pack
-npm pack
+npm run build
 
 # Get the generated tarball filename
-TARBALL="a-little-world-little-world-design-system-native-$NEW_VERSION.tgz"
+TARBALL="littleplanet-$NEW_VERSION.tgz"
 echo "Generated tarball: $TARBALL"
 
 # Navigate back to root directory
-cd ..
+cd ../little-world-native
 
 # Update the dependency reference in root package.json
-sed -i.bak "s|\"@a-little-world/little-world-design-system-native\": \"file:./lw_components/a-little-world-little-world-design-system-native-.*\.tgz\"|\"@a-little-world/little-world-design-system-native\": \"file:./lw_components/$TARBALL\"|" package.json
+sed -i.bak "s|\"littleplanet\": \"file:../little-world-frontend/littleplanet-.*\.tgz\"|\"littleplanet\": \"file:../little-world-frontend/$TARBALL\"|" package.json
 rm package.json.bak
 
-# Run npm install in root directory
-npm install
+pnpm install
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 
