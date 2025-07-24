@@ -35,27 +35,6 @@ export default function RootLayout() {
     'Signika Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
   });
 
-  useEffect(() => {
-    const prepare = async (): Promise<void> => {
-      try {
-        await loadFonts();
-        setFontsLoaded(true);
-      } catch (e) {
-        console.warn("Failed to load fonts:", e);
-      }
-    };
-    prepare();
-  }, []);
-
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   // The Stack component is what Expo Router uses to handle navigation
   // It will automatically render the current route's content

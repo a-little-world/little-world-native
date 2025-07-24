@@ -1,6 +1,7 @@
 import {
   Button,
 } from '@a-little-world/little-world-design-system-native';
+import React from 'react';
 
 import { useTranslation } from 'react-i18next';
 import i18next from '@/src/i18n'; // DON"T remove! impoant for translations to work!

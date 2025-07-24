@@ -11,7 +11,6 @@ const FormLayout = ({ children }: { children: React.ReactNode }) => {
   
   return (
     <SafeAreaView style={styles.wrapper}>
-      <Header />
       <View style={styles.content}>{children}</View>
     </SafeAreaView>
   );
