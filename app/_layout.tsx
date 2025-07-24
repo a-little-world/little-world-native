@@ -1,9 +1,10 @@
-import '@/src/i18n';
+import "@/src/i18n";
 import { ROUTES } from "@/src/routes";
 import { loadFonts } from "@/src/utils/loadFonts";
+import { CustomThemeProvider as WebThemProvider } from "@a-little-world/little-world-design-system";
 import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
 import { PortalHost } from "@rn-primitives/portal";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -15,10 +16,10 @@ const useLiveKit = Constants.expoConfig?.extra?.useLiveKit ?? true;
 
 if (useLiveKit) {
   try {
-    const { registerGlobals } = require('@livekit/react-native');
+    const { registerGlobals } = require("@livekit/react-native");
     registerGlobals();
   } catch (error) {
-    console.warn('LiveKit not available:', error);
+    console.warn("LiveKit not available:", error);
   }
 }
 
@@ -54,14 +55,21 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <CustomThemeProvider>
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#ffffff" } }}>
-          <Stack.Screen name="app" />
-          {ROUTES.map((route) => (
-            <Stack.Screen key={route.path} name={route.path} />
-          ))}
-          <Stack.Screen name="+not-found" />
-          <PortalHost />
-        </Stack>
+        <WebThemProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#ffffff" },
+            }}
+          >
+            <Stack.Screen name="app" />
+            {ROUTES.map((route) => (
+              <Stack.Screen key={route.path} name={route.path} />
+            ))}
+            <Stack.Screen name="+not-found" />
+            <PortalHost />
+          </Stack>
+        </WebThemProvider>
       </CustomThemeProvider>
     </SafeAreaProvider>
   );
