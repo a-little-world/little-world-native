@@ -26,12 +26,12 @@ npx react-native start --reset-cache 2>/dev/null || true
 echo "5. Checking node_modules..."
 if [ ! -d "node_modules" ] || [ ! -f "node_modules/.package-lock.json" ]; then
     echo "   Reinstalling node_modules..."
-    npm install
+    pnpm install
 fi
 
 echo "✅ Troubleshooting complete!"
 echo ""
 echo "Next steps:"
-echo "1. Run: npm run ios:dev-reliable"
-echo "2. Or run: npm run android:dev-reliable"
+echo "1. Run: pnpm run ios:dev-reliable"
+echo "2. Or run: pnpm run android:dev-reliable"
 echo "3. If still having issues, try: eas build:run -p ios" 

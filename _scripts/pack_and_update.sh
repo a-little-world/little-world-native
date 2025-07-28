@@ -19,8 +19,8 @@ echo "New version: $NEW_VERSION"
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
 rm package.json.bak
 
-# Run npm pack
-npm run build
+# Run pnpm pack
+pnpm run build
 
 # Get the generated tarball filename
 TARBALL="littleplanet-$NEW_VERSION.tgz"
