@@ -1,6 +1,7 @@
-import React from "react";
-import Home from "@/src/components/views/Home";
+"use dom";
+
+import { LoginNativeWeb } from "littleplanet";
 
 export default function App() {
-  return <Home />; 
+  return <LoginNativeWeb/>
 }
