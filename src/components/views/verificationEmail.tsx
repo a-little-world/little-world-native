@@ -123,7 +123,7 @@ const VerifyEmail = () => {
                 >
                     {t("verify_email.resend_code")}
                 </Link>
-                <Text children={t("verify_email.help_text")}></Text>
+                <Text >{t("verify_email.help_text")}</Text>
 
                 <View style={styles.buttons}>
                     <StyledCta

@@ -54,7 +54,7 @@ const ForgotPassword = () => {
         onFormError({ e, formFields: getValues(), setError });
     };
 
-    const onFormSubmit = async (data) => {
+    const onFormSubmit = async (data: { email: any; password: any; }) => {
         setIsSubmitting(true);
 
         login(data)
@@ -137,20 +137,14 @@ const ForgotPassword = () => {
                 <Title tag="h2" type={TextTypes.Heading4} style={styles.title}>
                     {t("forgot_password.title")}
                 </Title>
-                <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
+                <StyledForm onSubmit={handleSubmit(onFormSubmit as any)}>
                     <Text children={t("forgot_password.description")}
                         style={styles.text}>
 
                     </Text>
                     <TextInput style={styles.inputField}
-                        {...registerInput({
-                            register,
-                            name: "email",
-                            options: { required: "error.required" },
-                        })}
                         id="email"
                         label={t("forgot_password.email_label")}
-                        error={t(errors?.email?.message)}
                         placeholder={t("forgot_password.email_placeholder")}
                         labelTooltip="test"
                         type="text"

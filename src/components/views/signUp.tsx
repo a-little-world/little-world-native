@@ -61,7 +61,7 @@ const SignUp = () => {
         onFormError({ e, formFields: getValues(), setError });
     };
 
-    const onFormSubmit = async (data) => {
+    const onFormSubmit = async (data: { email: any; password: any; }) => {
         setIsSubmitting(true);
 
         login(data)
@@ -180,7 +180,7 @@ const SignUp = () => {
                 <Title tag="h1" type={TextTypes.Heading4} style={styles.title}>
                     {t("sign_up.title")}
                 </Title>
-                <StyledForm onSubmit={handleSubmit(onFormSubmit)}>
+                <StyledForm onSubmit={handleSubmit(onFormSubmit as any)}>
 
                     <View style={styles.doubleInput}>
                         <View style={styles.test}>
@@ -188,7 +188,6 @@ const SignUp = () => {
 
                                 id="first_name"
                                 label={t("sign_up.name_label")}
-                                error={t(errors?.email?.message)}
                                 placeholder={t("sign_up.first_name_placeholder")}
                                 labelTooltip="test"
                                 type="text"
@@ -199,7 +198,6 @@ const SignUp = () => {
 
                             label=" "
                             id="second_name"
-                            error={t(errors?.password?.message)}
                             placeholder={t("sign_up.second_name_placeholder")}
                             type="text"
                         />
@@ -208,33 +206,26 @@ const SignUp = () => {
                         style={styles.inputField2}
 
                         id="e-mail"
-                        error={t(errors?.password?.message)}
                         label={t("sign_up.email_label")}
                         placeholder={t("sign_up.email_placeholder")}
                         type="text"
                     />
                     <TextInput
                         style={styles.inputField2}
-
                         id="password"
-                        error={t(errors?.password?.message)}
                         label={t("sign_up.password_label")}
                         placeholder={t("sign_up.password_placeholder")}
                         type="password"
                     />
                     <TextInput
                         style={styles.inputField2}
-
                         id="password"
-                        error={t(errors?.password?.message)}
                         label={t("sign_up.confirm_password_label")}
                         type="password"
                     />
                     <TextInput
                         style={styles.inputFieldSmall2}
-
                         id="password"
-                        error={t(errors?.password?.message)}
                         label={t("sign_up.birth_year_label")}
                         placeholder={t("sign_up.birth_year_placeholder")}
                         type="tel"
@@ -245,22 +236,11 @@ const SignUp = () => {
                     />
                     <View style={styles.checkBoxRow}>
                         <Checkbox checked={false}
+                            label={t("sign_up.terms_label")}
                             onCheckedChange={(value) => console.log({ checked: value })}
                         />
-                        <RenderHTML
-                            source={{ html: "<p>" + t("sign_up.terms_label") + "</p>" }}
-                            tagsStyles={tagsStyles}
-                            contentWidth={width}
-                            renderersProps={renderersProps}
-                        />
                     </View>
-                    <RenderHTML
-                        source={{ html: "<p>" + t("sign_up.privacy_policy") + "</p>" }}
-                        tagsStyles={tagsStyles}
-                        contentWidth={width}
-                        renderersProps={renderersProps}
-                    ></RenderHTML>
-
+                    <Text>{t("sign_up.privacy_policy")}</Text>
                     <StyledCta
                         style={styles.button}
                         type="submit"
