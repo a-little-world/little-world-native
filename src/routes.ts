@@ -52,4 +52,16 @@ export const ROUTES = [
   { path: '/app/', name: 'app' },
   { path: '/app/user-form', name: 'user-form' },
   { path: '/app/verify-email', name: 'verify-email' },
+
+  { path: '/app/profile', name: 'profile' },
+  { path: '/app/events', name: 'events' },
+  { path: '/app/resources', name: 'resources' },
+  { path: '/app/resources/trainings', name: 'resources/trainings' },
+  { path: '/app/resources/german', name: 'resources/german' },
+  { path: '/app/resources/beginners', name: 'resources/beginners' },
+  { path: '/app/resources/story', name: 'resources/story' },
+  { path: '/app/resources/partners', name: 'resources/partners' },
+  { path: '/app/help', name: 'help' },
+  { path: '/app/settings', name: 'settings' },
+  { path: '/app/notifications', name: 'notifications' },
 ];
