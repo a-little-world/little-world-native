@@ -45,6 +45,11 @@ export const isActiveRoute = (locationPath: string, path: string) =>
     : false;
 
 export const ROUTES = [
-  { path: '/', name: 'index', useWeb: true },
-  { path: '/login', name: 'login', useWeb: true },
+  { path: '/', name: 'index' },
+  { path: '/login', name: 'login' },
+  { path: '/sign-up', name: 'sign-up' },
+  { path: '/forgot-password', name: 'forgot-password' },
+  { path: '/app/', name: 'app' },
+  { path: '/app/user-form', name: 'user-form' },
+  { path: '/app/verify-email', name: 'verify-email' },
 ];
