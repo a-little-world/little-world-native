@@ -4,177 +4,78 @@ This is the native expo app for Little World.
 
 > This is very much in an MVP state!
 
-## 🚀 Team Development Setup
+## 🚀 Quick Setup
 
-### Quick Start for Team Members
+### Prerequisites
 
-**For UI/UX Development (No Login Required):**
+- Node.js (v18 or higher)
+- pnpm
+- Git
+
+### Installation & Setup
 
 ```bash
-# Clone and setup
-git clone <repository-url>
+# Clone both repositories
+git clone https://github.com/a-little-world/little-world-frontend
+git clone https://github.com/a-little-world/little-world-native
+
+# Navigate to the native app
 cd little-world-native
+
+# Run the pack and update script
+# This basicly packs our little-world-frontend ( from the parent dir ) into a local npm package
+# That package is then installed inside the little-world-native repo
+./_scripts/pack_and_update.sh
+
+# Install dependencies
 pnpm install
 
-# Start with Expo Go (no login required)
-pnpm run start:expo-go
+# Start the development server
+pnpm run start
 ```
 
-**For Full Features (Requires Dev Build):**
+## 🌐 Development Proxy for WebSocket Testing
+
+To test WebSocket functionality, you need to use the development proxy:
 
 ```bash
-# Setup as above, then create a dev build
-pnpm run start:dev-build
+# Start the development proxy
+pnpm run dev:proxy
 ```
 
-### Development Modes
+Then you can access the mobile web version at `localhost:9001` where WebSockets will work properly.
 
-#### 1. Expo Go Mode (Recommended for UI/UX work)
+## 🔧 Creating Development Builds
 
-- **Purpose**: UI/UX testing and navigation flow
-- **Features**: Navigation, UI components, basic app flow, Redux, translations
-- **Limitations**: No LiveKit video calls (shows mock screens)
-- **No login required**: Works for all team members immediately
-- **Best for**: UI development, navigation testing, rapid iteration
+When you need to test LiveKit features or native modules, you'll need to create a development build:
 
-#### 2. Development Build Mode (For full features)
-
-- **Purpose**: Full feature testing including LiveKit video calls
-- **Features**: All native modules, LiveKit integration, complete functionality
-- **Limitations**: Requires dev build creation and login (see instructions below)
-- **Best for**: Testing LiveKit features, native module integration
-
-### Creating Development Builds
-
-When you need to test LiveKit features or native modules, you'll need to create a development build. Here's how:
-
-#### Prerequisites
+### Prerequisites
 
 - Expo account (free)
 - EAS CLI installed: `pnpm install -g @expo/cli`
 - For iOS: Apple Developer account (paid)
 - For Android: Google Play Console account (free)
 
-#### Step 1: Install EAS CLI and Login
+### Setup Steps
 
 ```bash
+# Install EAS CLI and login
 pnpm install -g @expo/cli
 eas login
-```
 
-#### Step 2: Configure EAS (First time only)
-
-```bash
+# Configure EAS (first time only)
 eas build:configure
-```
 
-#### Step 3: Create Development Build
-
-**For iOS:**
-
-```bash
-# Create iOS development build
+# Create development build for iOS
 eas build --platform ios --profile development
-
-# Download and install the build
 eas build:run --platform ios
-```
 
-**For Android:**
-
-```bash
-# Create Android development build
+# Create development build for Android
 eas build --platform android --profile development
-
-# Download and install the build
 eas build:run --platform android
 ```
 
-#### Step 4: Start Development Server
-
-```bash
-# Start the development server
-pnpm run start:dev-build
-
-# Or for specific platform
-pnpm run android:dev-build
-pnpm run ios:dev-build
-```
-
-### Team Collaboration Solutions
-
-#### Issue 1: Expo Go Login Requirement ✅ SOLVED
-
-**Solution**: The project is configured with conditional settings. When using `pnpm run start:expo-go`, the configuration automatically:
-
-- Sets `owner: undefined` (allows anonymous access)
-- Removes LiveKit plugins (not needed for UI work)
-- Removes EAS projectId (not needed for Expo Go)
-
-#### Issue 2: EAS Build Permissions ✅ SOLVED
-
-**Solution**: Each team member needs their own Expo account and must create their own development builds. The project owner should:
-
-1. **Add team members to the Expo project** (if using Expo's team features)
-2. **Or have each member create their own builds** using the steps above
-
-#### Alternative: Shared Development Builds
-
-If you want to avoid individual builds, you can:
-
-1. **Create shared development builds** and distribute the `.ipa` (iOS) or `.apk` (Android) files
-2. **Use a shared Expo account** for the team (not recommended for security)
-3. **Set up a CI/CD pipeline** to create builds automatically
-
-### Usage
-
-#### Expo Go Mode (No Login Required)
-
-```bash
-# Start with Expo Go (LiveKit disabled) - automatically clears cache
-pnpm run start:expo-go
-pnpm run android:expo-go
-pnpm run ios:expo-go
-```
-
-#### Development Build Mode
-
-```bash
-# Start with development build (LiveKit enabled)
-pnpm run start:dev-build
-pnpm run android:dev-build
-pnpm run ios:dev-build
-```
-
-### Environment Configuration
-
-The mode is controlled by the `EXPO_PUBLIC_USE_EXPO_GO` environment variable:
-
-- `EXPO_PUBLIC_USE_EXPO_GO=true` → Expo Go mode (no login, no LiveKit)
-- `EXPO_PUBLIC_USE_EXPO_GO=false` or unset → Development Build mode (login required, full features)
-
-### Troubleshooting
-
-#### Expo Go Issues
-
-- **"Login required" error**: Make sure you're using `pnpm run start:expo-go` (not just `pnpm start`)
-- **Cache issues**: Run `npx expo start --clear` to clear cache
-- **Metro bundler issues**: Try `pnpm run reset-project`
-
-#### Development Build Issues
-
-- **Build fails**: Check that you're logged into EAS (`eas login`)
-- **Permission denied**: Make sure you have access to the Expo project
-- **iOS build fails**: Verify Apple Developer account and certificates
-- **Android build fails**: Check Google Play Console setup
-
-#### General Issues
-
-- **Port conflicts**: Change port in scripts (currently using 9000)
-- **Device not found**: Make sure simulator/emulator is running
-- **Metro bundler stuck**: Kill the process and restart
-
-## Translations
+## 🌍 Translations
 
 This app uses i18next for internationalization and merges translations from two sources:
 
@@ -184,7 +85,6 @@ This app uses i18next for internationalization and merges translations from two 
 ### Translation Structure
 
 - **Shared translations**: Common translations used across all Little World applications
-
   - View existing translations: [@a-little-world/little-world-frontend-shared/translations](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
   - Add new shared translations to the shared package repository
 
@@ -200,72 +100,59 @@ This app uses i18next for internationalization and merges translations from two 
 
 The translation merging is handled automatically in `src/i18n.ts`.
 
-### Developing & Fixing Components
+## 🔄 React Web → React Native Conversion Guide
 
-```bash
-git submodule update --init --recursive # the 'little-world-design-system-native' is cloned in 'lw_components'
-pnpm install
-pnpm run start # starts expo react-native ( for web version )
-./_scripts/pack_and_update.sh # run to update the native components when you've made changes to the 'lw_components'
-```
+### Component Mapping
 
-### ReactWeb -> ReactNative conversion cheatsheet
+- `styled.div` → `styled.View`
+- `styled.span` → `styled.Text`
+- `styled.a` → `styled.TouchableOpacity`
+- `styled.button` → `styled.Button`
+- `styled.input` → `styled.TextInput`
+- `styled.img` → `styled.Image`
+- `styled.form` → `styled.Form`
 
-- `styled.div` -> `styled.View`
-- `styled.span` -> `styled.Text`
-- `styled.a` -> `styled.TouchableOpacity`
-- `styled.button` -> `styled.Button`
-- `styled.input` -> `styled.TextInput`
-- `styled.img` -> `styled.Image`
-- `styled.form` -> `styled.Form`
+### CSS Properties to Avoid
 
-_Also you CAN NOT use the following css properties:_
+**These CSS properties will break the native app with weird errors:**
 
 - `box-shadow`
 - `linear-gradient`
-- `@media(...)` querries
+- `@media(...)` queries
 
-_They will break the native app with weird errors!_
+### Common Issues & Solutions
 
-Other things that can break native:
+#### Style Array Issues
 
-- Don't use arrays in the `style={}` prop!
-
-```CSS2Properties doesn't have an indexed property setter for '0'
-
+**Don't use arrays in the `style={}` prop!** This will cause errors like:
+```
+CSS2Properties doesn't have an indexed property setter for '0'
 ```
 
-### react-native useWindowDimensiions instead of @media -queries
+#### Responsive Design
 
-see `components/blocks/Header.jsx` as an example how.
+Use `useWindowDimensions` instead of `@media` queries. See `components/blocks/Header.jsx` as an example.
 
-### Using SVG's in react native
+#### SVG Usage
 
-- https://stackoverflow.com/questions/38830568/how-to-show-svg-file-on-react-native
+For SVG support in React Native, see: https://stackoverflow.com/questions/38830568/how-to-show-svg-file-on-react-native
 
-This error _almost always originates from wronly merged styles_ e.g.:
+#### Style Merging Best Practices
 
-breaks very fast by accidently setting a css prop twice:
+**❌ Wrong way (breaks easily):**
 
 ```javascript
 const Text = React.forwardRef<any, TextProps>(({
   bold = false,
   center = false,
   children,
-  color,
-  className,
-  disableParser = false,
-  id,
   style,
-  tag = 'p',
-  type = TextTypes.Body5,
   ...restProps
 }, ref) => {
-
   return (
     <StyledElement
       ref={ref}
-      style={style}
+      style={style}  // This can cause conflicts
       $type={type}
       $bold={bold}
       $center={center}
@@ -277,23 +164,16 @@ const Text = React.forwardRef<any, TextProps>(({
 });
 ```
 
-Manages merging text styles:
+**✅ Correct way (manages merging properly):**
 
 ```javascript
 const Text = React.forwardRef<any, TextProps>(({
   bold = false,
   center = false,
   children,
-  color,
-  className,
-  disableParser = false,
-  id,
   style,
-  tag = 'p',
-  type = TextTypes.Body5,
   ...restProps
 }, ref) => {
-
   const textStyles = [
     styles.base,
     type === TextTypes.Heading1 && styles.heading1,
@@ -305,7 +185,7 @@ const Text = React.forwardRef<any, TextProps>(({
   return (
     <StyledElement
       ref={ref}
-      style={[...textStyles, style]}
+      style={[...textStyles, style]}  // Proper style merging
       $type={type}
       $bold={bold}
       $center={center}
@@ -317,11 +197,11 @@ const Text = React.forwardRef<any, TextProps>(({
 });
 ```
 
-- React Native `<Button>` Doesn't accept `{children}` only a `title`, use (`TouchableOpacity`) instead.
+#### Button Component
 
-````
+React Native `<Button>` doesn't accept `{children}` - only a `title`. Use `TouchableOpacity` instead for custom button content.
 
-### Linking Local Design System Package
+## 🔗 Linking Local Design System Package
 
 The app uses a local version of the design system package. To set this up:
 
@@ -331,14 +211,12 @@ The app uses a local version of the design system package. To set this up:
    cd packages/native
    pnpm install
    pnpm run build  # if needed
-````
-
+   ```
 3. In this repository:
    ```bash
    pnpm install
    ```
 4. If you make changes to the design system:
-
    ```bash
    # In the design system repository
    cd packages/native
