@@ -1,7 +1,16 @@
 "use dom";
 
-import { LittleWorldWebNative } from "littleplanet";
+import React, { Suspense, lazy } from "react";
+
+// Dynamic import at component level to avoid hook errors
+const LittleWorldWebNative = lazy(() => import("littleplanet").then(module => ({ 
+  default: module.LittleWorldWebNative 
+})));
 
 export default function Page() {
-  return <LittleWorldWebNative />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LittleWorldWebNative />
+    </Suspense>
+  );
 }

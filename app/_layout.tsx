@@ -1,18 +1,30 @@
 import "@/src/i18n";
 import { ROUTES } from "@/src/routes";
 import { useFonts } from 'expo-font';
-import { loadFonts } from "@/src/utils/loadFonts";
-import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
-import { PortalHost } from "@rn-primitives/portal";
-import Constants from "expo-constants";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import styled, { ThemeContext, StyleSheetManager } from 'styled-components';
+
+console.log('styled-components context:', ThemeContext);
+console.log('styled-components manager:', StyleSheetManager?.toString?.());
+
+export const unstable_settings = {
+  initialRouteName: 'index',
+  ssr: false,
+};
+
 export default function RootLayout() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+
   
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -20,27 +32,10 @@ export default function RootLayout() {
     'Signika Negative': require('../assets/fonts/SignikaNegative-VariableFont_wght.ttf'),
   });
   
-  useEffect(() => {
-    const prepare = async (): Promise<void> => {
-      try {
-        await loadFonts();
-        setFontsLoaded(true);
-      } catch (e) {
-        console.warn("Failed to load fonts:", e);
-      }
-    };
-    prepare();
-  }, []);
-
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-
   // The Stack component is what Expo Router uses to handle navigation
   // It will automatically render the current route's content
+  if (!mounted) return null;
+
   return (
     <SafeAreaProvider>
           <Stack

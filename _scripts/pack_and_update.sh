@@ -25,12 +25,13 @@ pnpm run build
 # Get the generated tarball filename
 TARBALL="littleplanet-$NEW_VERSION.tgz"
 echo "Generated tarball: $TARBALL"
+cp littleplanet-$NEW_VERSION.tgz ../little-world-native/littleplanet-$NEW_VERSION.tgz
 
 # Navigate back to root directory
 cd ../little-world-native
 
 # Update the dependency reference in root package.json
-sed -i.bak "s|\"littleplanet\": \"file:../little-world-frontend/littleplanet-.*\.tgz\"|\"littleplanet\": \"file:../little-world-frontend/$TARBALL\"|" package.json
+sed -i.bak "s|\"littleplanet\": \"file:./littleplanet-.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
 pnpm install

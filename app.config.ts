@@ -9,7 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './src/assets/images/icon.png',
   scheme: 'little-world-app',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
+  newArchEnabled: false,
   // Make owner conditional - undefined for Expo Go, undefined for dev builds
   owner: undefined,
   ios: {
@@ -70,7 +70,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Only include EAS projectId when not in Expo Go mode
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true' ? {
       eas: {
-        projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05'
+        projectId: '93610aa8-629e-4031-ac3c-f622399cca78'
       }
     } : {}),
     // Environment flags

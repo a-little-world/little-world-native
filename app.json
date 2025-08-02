@@ -7,7 +7,7 @@
     "icon": "./src/assets/images/icon.png",
     "scheme": "little-world-app",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "backgroundColor": "#ffffff",
@@ -60,7 +60,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "d114c1e1-3b95-463a-b8d4-c24ca29f1d05"
+        "projectId": "93610aa8-629e-4031-ac3c-f622399cca78"
       }
     }
   }

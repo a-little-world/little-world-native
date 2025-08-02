@@ -5,6 +5,19 @@
         "ios": {
           "simulator": true
         }
+      },
+      "production": {
+        "ios": {
+          "simulator": true
+        }
+      },
+      "preview": {
+        "android": {
+          "buildType": "apk"
+        },
+        "ios": {
+          "simulator": true
+        }
       }
     }
   }
