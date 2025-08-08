@@ -20,7 +20,7 @@ sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" 
 rm package.json.bak
 
 # Run pnpm pack
-pnpm run build
+npm run build
 
 # Get the generated tarball filename
 TARBALL="littleplanet-$NEW_VERSION.tgz"
