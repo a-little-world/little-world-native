@@ -45,3 +45,5 @@ android/
 
 # Cursor
 .cursorrules
+
+builds/
