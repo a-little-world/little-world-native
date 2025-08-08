@@ -1,8 +1,8 @@
-import { ExpoConfig, ConfigContext } from "expo/config";
+import { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "little-world-app",
+  name: "little-world",
   slug: "little-world-app",
   version: "1.0.0",
   orientation: "portrait",
@@ -15,13 +15,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
-    bundleIdentifier: "com.seanlittleworld.littleworldapp",
+    bundleIdentifier: "com.littleworld.littleworldapp",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
-    package: "com.seanlittleworld.littleworldapp",
+    package: "com.littleworld.littleworldapp",
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
