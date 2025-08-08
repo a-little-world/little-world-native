@@ -9,6 +9,9 @@
         "simulator": true
       }
     },
+    "development-device": {
+      "developmentClient": true
+    },
     "preview": {
       "distribution": "internal",
       "android": {
