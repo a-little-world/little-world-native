@@ -40,14 +40,18 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <CustomThemeProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          {ROUTES.map((route) => (
-            <Stack.Screen key={route.path} name={route.name} />
-          ))}
-        </Stack>
-        <PortalHost />
-      </CustomThemeProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#ffffff" },
+        }}
+      >
+        {ROUTES.map((route) => (
+          <Stack.Screen key={route.path} name={route.name} />
+        ))}
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <PortalHost />
     </SafeAreaProvider>
   );
 }
