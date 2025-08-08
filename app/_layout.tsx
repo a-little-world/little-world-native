@@ -2,7 +2,6 @@ import "@/src/i18n";
 import { ROUTES } from "@/src/routes";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { suppressWarnings } from "@/src/utils/suppressWarnings";
-import { CustomThemeProvider } from "@a-little-world/little-world-design-system-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -44,6 +43,8 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: "#ffffff" },
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
         }}
       >
         {ROUTES.map((route) => (
