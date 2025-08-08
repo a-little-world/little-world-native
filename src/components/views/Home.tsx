@@ -51,10 +51,18 @@ function AppContent() {
         </Text>
       </View>
 
-      <Button onPress={() => router.push("/login")}>
+      <Button onPress={() => router.navigate("/login")}>
         <Text>To Login</Text>
       </Button>
-      
+      <Button onPress={() => router.navigate("/signup")}>
+        <Text>To Login</Text>
+      </Button>
+      <Button onPress={() => router.navigate("sign-up")}>
+        <Text>To Login</Text>
+      </Button>
+      <Button onPress={() => router.navigate("/faqs")}>
+        <Text>To Faqs</Text>
+      </Button>
       <Link href="/call-setup/123" asChild>
         <Button appearance={ButtonAppearance.Secondary}>
           <Text>To Call Setup</Text>

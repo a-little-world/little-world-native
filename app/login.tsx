@@ -1,11 +1,7 @@
-import React from "react";
-import Login from "@/src/components/views/Login";
-import FormLayout from "@/src/components/blocks/Layout/FormLayout";
+"use dom";
 
-export default function LoginPage() {
-  return (
-    <FormLayout>
-      <Login />
-    </FormLayout>
-  );
+import { LittleWorldWebNative } from "littleplanet";
+
+export default function Page() {
+  return <LittleWorldWebNative />;
 }

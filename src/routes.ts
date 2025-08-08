@@ -45,8 +45,23 @@ export const isActiveRoute = (locationPath: string, path: string) =>
     : false;
 
 export const ROUTES = [
-  { path: BASE_ROUTE, name: 'Home' },
-  { path: LOGIN_ROUTE, name: 'Login' },
-  { path: 'call-setup/[id]', name: 'Call Setup' },
-  { path: 'call/[id]', name: 'Call' },
+  { path: '/', name: 'index' },
+  { path: '/login', name: 'login' },
+  { path: '/sign-up', name: 'sign-up' },
+  { path: '/forgot-password', name: 'forgot-password' },
+  { path: '/app/', name: 'app/index' },
+  { path: '/app/user-form', name: 'app/user-form' },
+  { path: '/app/verify-email', name: 'app/verify-email' },
+
+  { path: '/app/profile', name: 'app/profile' },
+  { path: '/app/events', name: 'app/events' },
+  { path: '/app/resources', name: 'app/resources' },
+  { path: '/app/resources/trainings', name: 'app/resources/trainings' },
+  { path: '/app/resources/german', name: 'app/resources/german' },
+  { path: '/app/resources/beginners', name: 'app/resources/beginners' },
+  { path: '/app/resources/story', name: 'app/resources/story' },
+  { path: '/app/resources/partners', name: 'app/resources/partners' },
+  { path: '/app/help', name: 'app/help' },
+  { path: '/app/settings', name: 'app/settings' },
+  { path: '/app/notifications', name: 'app/notifications' },
 ];
