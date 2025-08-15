@@ -1,7 +1,7 @@
 "use dom";
 
 import LittleWorldWebLazy from "@/src/components/blocks/LittleWorldWebLazy";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 
 export default function Page() {
   return (
