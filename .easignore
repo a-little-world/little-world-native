@@ -15,7 +15,6 @@ dist/
 web-build/
 
 # Prebuilt packages and archives
-*.tgz
 *.tar.gz
 *.zip
 
