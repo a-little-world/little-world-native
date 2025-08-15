@@ -20,7 +20,7 @@ sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" 
 rm package.json.bak
 
 # Run pnpm pack
-pnpm run build
+npm run build
 
 # Get the generated tarball filename
 TARBALL="littleplanet-$NEW_VERSION.tgz"
@@ -28,9 +28,10 @@ echo "Generated tarball: $TARBALL"
 
 # Navigate back to root directory
 cd ../little-world-native
+mv ../little-world-frontend/$TARBALL .
 
 # Update the dependency reference in root package.json
-sed -i.bak "s|\"littleplanet\": \"file:../little-world-frontend/littleplanet-.*\.tgz\"|\"littleplanet\": \"file:../little-world-frontend/$TARBALL\"|" package.json
+sed -i.bak "s|\"littleplanet\": \"file:./littleplanet-.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
 pnpm install
