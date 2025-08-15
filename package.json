@@ -63,7 +63,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.110.tgz",
+    "littleplanet": "file:./littleplanet-0.1.113.tgz",
     "livekit-client": "^2.13.8",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -90,5 +90,6 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm"
 }

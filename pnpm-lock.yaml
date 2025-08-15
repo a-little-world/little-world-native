@@ -138,8 +138,8 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       littleplanet:
-        specifier: file:../little-world-frontend/littleplanet-0.1.57.tgz
-        version: file:../little-world-frontend/littleplanet-0.1.57.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1))
+        specifier: file:./littleplanet-0.1.113.tgz
+        version: file:littleplanet-0.1.113.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1))
       livekit-client:
         specifier: ^2.13.8
         version: 2.15.3(@types/dom-mediacapture-record@1.0.22)
@@ -5139,9 +5139,9 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  littleplanet@file:../little-world-frontend/littleplanet-0.1.57.tgz:
-    resolution: {integrity: sha512-V0Brov8RVdN7rU12cMB10nJnBQlaJZzsqV85NjPugU35V4DVjpz6dlKfe20TLAruHLxm2WYWK4wZEYdQnMwkkA==, tarball: file:../little-world-frontend/littleplanet-0.1.57.tgz}
-    version: 0.1.57
+  littleplanet@file:littleplanet-0.1.113.tgz:
+    resolution: {integrity: sha512-iUmExUzw6vWMg7Mk97vIGSdFjnxXdq8EAurnuECzG7QrNFj9yPi6Kml9nG1iZn4q+SVWexOQYM+aX1t9RqeR6w==, tarball: file:littleplanet-0.1.113.tgz}
+    version: 0.1.113
 
   livekit-client@2.15.3:
     resolution: {integrity: sha512-MAziO1DxQfLJx/oSAEUczZiqrkZ4/SZNXbNexA4Sna5cQZkCzEwZcKPjRcPVbzhjlhHmyjABzWW+yXtykVhFkg==}
@@ -13521,7 +13521,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  littleplanet@file:../little-world-frontend/littleplanet-0.1.57.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1)):
+  littleplanet@file:littleplanet-0.1.113.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1)):
     dependencies:
       '@a-little-world/little-world-design-system': 2.3.3(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.30.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@babel/core': 7.28.0
