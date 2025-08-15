@@ -1,15 +1,12 @@
 import "@/src/i18n";
 import { ROUTES } from "@/src/routes";
 import { loadFonts } from "@/src/utils/loadFonts";
-import { suppressWarnings } from "@/src/utils/suppressWarnings";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
-suppressWarnings();
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
