@@ -1,19 +1,19 @@
 "use dom";
 
+import LittleWorldWebLazy from "@/src/components/blocks/LittleWorldWebLazy";
 import React, { Suspense } from "react";
-import { Button, Text } from "react-native";
-import { router } from "expo-router";
+
+import { ErrorBoundary } from "@/src/components/ExpoErrorBoundary";
+import { View } from "react-native";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Text>Hello World</Text>
-      <Button
-        title="Go to Login"
-        onPress={() => {
-          router.push("/login");
-        }}
-      />
-    </Suspense>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ErrorBoundary>
+        <Suspense fallback={<div>Loading...</div>}>
+          <LittleWorldWebLazy />
+        </Suspense>
+      </ErrorBoundary>
+    </View>
   );
 }
