@@ -51,7 +51,9 @@ jobs:
           node-version: 18
 
       - name: Install pnpm
-        run: npm i -g pnpm@8
+        run: |
+          npm i -g pnpm@8
+          npm i -g cpx
 
       - name: Pack and update local frontend package
         run: |
