@@ -19,10 +19,10 @@ permissions:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-8-core
     env:
-      GRADLE_OPTS: -Xmx8g
-      NODE_OPTIONS: --max_old_space_size=8128
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
     steps:
       - name: Checkout little-world-native
         uses: actions/checkout@v4
@@ -164,7 +164,7 @@ jobs:
             echo "No APK found" >&2
             exit 1
           fi
-          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "apk_path=./little-world-native/$APK_PATH" >> $GITHUB_OUTPUT
           echo "Found APK at $APK_PATH"
 
       - name: Upload APK artifact
