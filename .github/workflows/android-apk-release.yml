@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-8-core
+    runs-on: ubuntu-latest-16core
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
