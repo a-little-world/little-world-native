@@ -13,6 +13,10 @@ on:
         description: "Mark as prerelease (true/false)"
         required: true
         default: "true"
+      baseUrl:
+        description: "Base URL for backend (e.g., https://api.example.com)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -36,6 +40,19 @@ jobs:
           ref: experimental
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
+
+      - name: Update frontend environment configuration
+        working-directory: little-world-frontend
+        run: |
+          if [ -n "${{ github.event.inputs.baseUrl }}" ]; then
+            echo "Updating backendUrl to: ${{ github.event.inputs.baseUrl }}"
+            # Update the backendUrl in environment.ts
+            sed -i "s|backendUrl: '.*'|backendUrl: '${{ github.event.inputs.baseUrl }}'|" src/environment.ts
+            echo "Updated environment.ts with backendUrl: ${{ github.event.inputs.baseUrl }}"
+            cat src/environment.ts
+          else
+            echo "No baseUrl specified, keeping default configuration"
+          fi
 
       - name: Install base packages (act only)
         if: ${{ env.ACT }}
