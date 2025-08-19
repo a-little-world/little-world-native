@@ -21,8 +21,8 @@ jobs:
   build-android-apk:
     runs-on: ubuntu-native-builds-large
     env:
-      GRADLE_OPTS: -Xmx16g
-      NODE_OPTIONS: --max_old_space_size=16384
+      GRADLE_OPTS: -Xmx32g
+      NODE_OPTIONS: --max_old_space_size=32768
     steps:
       - name: Checkout little-world-native
         uses: actions/checkout@v4
