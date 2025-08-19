@@ -138,8 +138,8 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       littleplanet:
-        specifier: file:./littleplanet-0.1.114.tgz
-        version: file:littleplanet-0.1.114.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1))
+        specifier: file:./littleplanet-0.1.151.tgz
+        version: file:littleplanet-0.1.151.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1))
       livekit-client:
         specifier: ^2.13.8
         version: 2.15.3(@types/dom-mediacapture-record@1.0.22)
@@ -158,6 +158,9 @@ importers:
       react-native:
         specifier: 0.76.9
         version: 0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1)
+      react-native-exception-handler:
+        specifier: ^2.10.10
+        version: 2.10.10(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(react@18.3.1)
       react-native-gesture-handler:
         specifier: ~2.20.2
         version: 2.20.2(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(react@18.3.1)
@@ -5139,9 +5142,9 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  littleplanet@file:littleplanet-0.1.114.tgz:
-    resolution: {integrity: sha512-URcTTUArPN/+HXHUURpaNmjkWEOOvdtN2y5Qj83K/KmfzydK7EqTH4edWaQ83aF9DbJmqdiexootk9ysGy4xhw==, tarball: file:littleplanet-0.1.114.tgz}
-    version: 0.1.114
+  littleplanet@file:littleplanet-0.1.151.tgz:
+    resolution: {integrity: sha512-Vo2ufxQ3uvL1pxQiYMXRQ2lPYgsSIVUkVxtzHktbRa6XqX63AVd28zUw8RpR+TRR27r/KxFiAp4kBITiMGKdyA==, tarball: file:littleplanet-0.1.151.tgz}
+    version: 0.1.151
 
   livekit-client@2.15.3:
     resolution: {integrity: sha512-MAziO1DxQfLJx/oSAEUczZiqrkZ4/SZNXbNexA4Sna5cQZkCzEwZcKPjRcPVbzhjlhHmyjABzWW+yXtykVhFkg==}
@@ -5959,6 +5962,12 @@ packages:
     resolution: {integrity: sha512-5OkcUstqUdd/CNW9+BvLkzm36R2G54RFXWF2mWCH13cUsz5SNo9aB9KzPRbJp2LEVfRL/u+MgikOWRe7/6wKEQ==}
     peerDependencies:
       react: '>16.0.0'
+
+  react-native-exception-handler@2.10.10:
+    resolution: {integrity: sha512-otAXGoZDl1689OoUJWN/rXxVbdoZ3xcmyF1uq/CsizdLwwyZqVGd6d+p/vbYvnF996FfEyAEBnHrdFxulTn51w==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native-gesture-handler@2.20.2:
     resolution: {integrity: sha512-HqzFpFczV4qCnwKlvSAvpzEXisL+Z9fsR08YV5LfJDkzuArMhBu2sOoSPUF/K62PCoAb+ObGlTC83TKHfUd0vg==}
@@ -13521,7 +13530,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  littleplanet@file:littleplanet-0.1.114.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1)):
+  littleplanet@file:littleplanet-0.1.151.tgz(@emotion/is-prop-valid@1.3.1)(@types/dom-mediacapture-record@1.0.22)(immer@10.1.1)(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(tslib@2.8.1)(use-sync-external-store@1.5.0(react@18.3.1)):
     dependencies:
       '@a-little-world/little-world-design-system': 2.3.3(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.30.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@babel/core': 7.28.0
@@ -14443,6 +14452,11 @@ snapshots:
   react-modern-drawer@1.4.0(react@18.3.1):
     dependencies:
       react: 18.3.1
+
+  react-native-exception-handler@2.10.10(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-native: 0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1)
 
   react-native-gesture-handler@2.20.2(react-native@0.76.9(@babel/core@7.28.0)(@babel/preset-env@7.28.0(@babel/core@7.28.0))(@types/react@18.3.23)(react@18.3.1))(react@18.3.1):
     dependencies:

@@ -1,6 +1,8 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
+const proxyRequests = false;
+
 module.exports = (() => {
   const config = getDefaultConfig(__dirname);
 
@@ -17,23 +19,24 @@ module.exports = (() => {
     sourceExts: [...resolver.sourceExts, "svg"],
   };
 
-  // ✅ Correct proxy for http-proxy-middleware v3
-  const apiProxy = createProxyMiddleware({
-    target: "http://localhost:8000",
-    changeOrigin: true
-  });
+  if (proxyRequests) {
+    const apiProxy = createProxyMiddleware({
+      target: "http://localhost:8000",
+      changeOrigin: true
+    });
 
-  config.server = {
-    ...config.server,
-    enhanceMiddleware: (middleware) => {
-      return (req, res, next) => {
-        if (req.url.startsWith("/api") || req.url.startsWith("/media")) {
-          return apiProxy(req, res, next);
-        }
-        return middleware(req, res, next);
+    config.server = {
+      ...config.server,
+      enhanceMiddleware: (middleware) => {
+        return (req, res, next) => {
+          if (req.url.startsWith("/api") || req.url.startsWith("/media")) {
+            return apiProxy(req, res, next);
+          }
+          return middleware(req, res, next);
+        };
+        },
       };
-    },
-  };
+  }
 
   return config;
 })();
