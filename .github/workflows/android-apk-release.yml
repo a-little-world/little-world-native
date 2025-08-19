@@ -1,0 +1,182 @@
+name: Android APK (EAS local) Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g., apk-v1.2.3)"
+        required: true
+      name:
+        description: "Release name (optional)"
+        required: false
+      prerelease:
+        description: "Mark as prerelease (true/false)"
+        required: true
+        default: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Xmx8g
+      NODE_OPTIONS: --max_old_space_size=8128
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+        with:
+          path: little-world-native
+
+      - name: Checkout little-world-frontend (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: a-little-world/little-world-frontend
+          ref: experimental
+          path: little-world-frontend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install base packages (act only)
+        if: ${{ env.ACT }}
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            git curl unzip ca-certificates
+          ls -la
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        run: npm i -g pnpm@8
+
+      - name: Pack and update local frontend package
+        run: |
+          cd little-world-native
+          cat ../little-world-frontend/package.json
+          ./_scripts/pack_and_update.sh
+        
+      - name: Install frontend dependencies
+        run: pnpm install
+        working-directory: little-world-native
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platforms and build tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Prepare Android signing (optional)
+        working-directory: little-world-native
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "Configuring Android signing from secrets"
+            echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > android-release.keystore
+            node -e '
+              const fs = require("fs");
+              const creds = {
+                android: {
+                  keystore: {
+                    keystorePath: "android-release.keystore",
+                    keystorePassword: process.env.ANDROID_KEYSTORE_PASSWORD || "",
+                    keyAlias: process.env.ANDROID_KEY_ALIAS || "",
+                    keyPassword: process.env.ANDROID_KEY_PASSWORD || ""
+                  }
+                }
+              };
+              fs.writeFileSync("credentials.json", JSON.stringify(creds));
+              console.log("Wrote credentials.json");
+            '
+          else
+            echo "ANDROID_KEYSTORE_BASE64 not set. Skipping signing configuration."
+          fi
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Verify toolchain
+        run: |
+          java -version
+          node -v
+          pnpm -v
+          adb --version || true
+
+      - name: Verify EAS auth (whoami)
+        working-directory: little-world-native
+        shell: bash
+        run: |
+          if [ -n "${EXPO_TOKEN:-}" ]; then
+            npx --yes eas-cli@latest whoami || true
+          else
+            echo "EXPO_TOKEN not set; EAS will prompt and fail in CI."
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android APK (EAS local)
+        working-directory: little-world-native
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx --yes eas-cli@latest build --platform android --profile preview --local --non-interactive
+
+      - name: Locate APK
+        id: locate_apk
+        working-directory: little-world-native
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK_PATH=""
+          if ls build-*.apk >/dev/null 2>&1; then
+            APK_PATH=$(ls -t build-*.apk | head -n1)
+          elif ls *.apk >/dev/null 2>&1; then
+            APK_PATH=$(ls -t *.apk | head -n1)
+          else
+            APK_PATH=$(ls -t android/app/build/outputs/apk/**/*.apk 2>/dev/null | head -n1 || true)
+          fi
+          if [ -z "$APK_PATH" ]; then
+            echo "No APK found" >&2
+            exit 1
+          fi
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "Found APK at $APK_PATH"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ${{ steps.locate_apk.outputs.apk_path }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs.name }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: ${{ steps.locate_apk.outputs.apk_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

@@ -1,0 +1,79 @@
+# Dependencies - these are installed during build
+node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Package lock files - EAS will use the appropriate one
+package-lock.json
+
+# Build artifacts and outputs
+build-*.apk
+build-*.aab
+builds/
+dist/
+web-build/
+
+# Prebuilt packages and archives
+*.tar.gz
+*.zip
+
+# Development and temporary files
+.expo/
+.expo-shared/
+*.log
+app.log
+*.orig.*
+
+# Development scripts and tools
+_scripts/
+scripts/
+dev-troubleshoot.sh
+reset-project.js
+
+# Native platform folders (these are generated during build)
+android/
+ios/
+
+# Git and version control
+.git/
+.gitmodules
+.gitignore
+
+# IDE and editor files
+.cursorrules
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment and configuration files
+.env*.local
+.env
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Metro cache
+.metro-health-check*
+
+# Expo environment types
+expo-env.d.ts
+
+# Example and test files
+app-example/
+__tests__/
+*.test.*
+*.spec.*
+
+# Documentation and README (optional - remove if you want these included)
+README.md
+docs/
+
+# Large media files that aren't needed for the app
+assets/images/partners/
+assets/images/coffee.webp 

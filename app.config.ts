@@ -2,7 +2,7 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "little-world",
+  name: "little-world-app",
   slug: "little-world-app",
   version: "1.0.0",
   orientation: "portrait",

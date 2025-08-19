@@ -27,7 +27,7 @@ module.exports = (() => {
     ...config.server,
     enhanceMiddleware: (middleware) => {
       return (req, res, next) => {
-        if (req.url.startsWith("/api")) {
+        if (req.url.startsWith("/api") || req.url.startsWith("/media")) {
           return apiProxy(req, res, next);
         }
         return middleware(req, res, next);

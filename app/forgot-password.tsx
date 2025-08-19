@@ -1,7 +1,12 @@
 "use dom";
 
-import { LittleWorldWebNative } from "littleplanet";
+import LittleWorldWebLazy from "@/src/components/blocks/LittleWorldWebLazy";
+import React, { Suspense } from "react";
 
 export default function Page() {
-  return <LittleWorldWebNative />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LittleWorldWebLazy />
+    </Suspense>
+  );
 }

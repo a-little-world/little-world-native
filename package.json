@@ -63,13 +63,14 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.110.tgz",
+    "littleplanet": "file:./littleplanet-0.1.141.tgz",
     "livekit-client": "^2.13.8",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-hook-form": "^7.54.2",
     "react-i18next": "^15.4.0",
     "react-native": "0.76.9",
+    "react-native-exception-handler": "^2.10.10",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
@@ -90,5 +91,6 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm"
 }
