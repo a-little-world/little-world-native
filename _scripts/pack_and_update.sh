@@ -17,6 +17,8 @@ echo "New version: $NEW_VERSION"
 
 # Update version in package.json
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
+sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
+
 rm package.json.bak
 
 # Run pnpm pack

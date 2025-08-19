@@ -48,7 +48,7 @@ jobs:
             echo "Updating backendUrl to: ${{ github.event.inputs.baseUrl }}"
             # Update the backendUrl in environment.ts
             sed -i "s|backendUrl: '.*'|backendUrl: '${{ github.event.inputs.baseUrl }}'|" src/environment.ts
-            sed -i "s|isNative: '.*'|isNative: true|" src/environment.ts
+            sed -i "s|isNative: .*,|isNative: true,|" src/environment.ts
             echo "Updated environment.ts with backendUrl: ${{ github.event.inputs.baseUrl }}"
             cat src/environment.ts
           else
