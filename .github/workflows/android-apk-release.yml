@@ -35,7 +35,7 @@ jobs:
           repository: a-little-world/little-world-frontend
           ref: experimental
           path: little-world-frontend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.BOT_PAT }}
 
       - name: Install base packages (act only)
         if: ${{ env.ACT }}
@@ -179,4 +179,4 @@ jobs:
           prerelease: ${{ github.event.inputs.prerelease }}
           files: ${{ steps.locate_apk.outputs.apk_path }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          BOT_PAT: ${{ secrets.BOT_PAT }} 
