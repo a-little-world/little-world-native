@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-native-builds-large
+    runs-on: ubuntu-builds-small
     env:
       GRADLE_OPTS: -Xmx32g
       NODE_OPTIONS: --max_old_space_size=32768
