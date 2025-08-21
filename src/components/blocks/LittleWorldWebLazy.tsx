@@ -10,7 +10,7 @@ const LittleWorldWebNative = lazy(() =>
 
 export type NativeResponse = { ok: true; data?: unknown } | { ok: false; error: string };
 export type DomResponse = NativeResponse;
-export type DomAPI = { receive(action: string, payload?: object): Promise<DomResponse> };
+export type DomAPI = { receive(action: string, payload?: object): void };
 
 type Props = {
   sendToReactNative: (action: string, payload?: object) => void;
@@ -26,35 +26,27 @@ export default forwardRef<DomAPI, Props>(function LittleWorldWebLazy(
   // Debug: check which environment we're in
   useEffect(() => {
     console.log("LittleWorldWebLazy component mounted");
-    console.log("window.ReactNativeWebView exists:", typeof (window as any).ReactNativeWebView !== 'undefined');
-    console.log("globalThis._domRefProxy exists:", typeof (globalThis as any)._domRefProxy !== 'undefined');
   }, []);
 
   // Set up imperative handle immediately (not in useEffect)
-  console.log("Setting up imperative handle immediately");
   
-  const receive = async (action: string, payload?: object) => {
-    console.log("RECEIVE called with:", action, payload);
+  const receive = (action: string, payload?: object) => {
+    console.log("DOM: Processing request", action, payload);
     
     // Process the request in the DOM component and send response via sendToReactNative
     let response: DomResponse;
     
     switch (action) {
       case 'PING':
-        console.log("DOM component handling PING request");
-        response = { ok: true, data: 'PONG' };
+        response = { ok: true, data: `PONG window.location: ${window.location.href} originalPayload: ${JSON.stringify(payload)}` };
         break;
       case 'console.log':
-        console.log("DOM component handling console.log request:", payload);
         response = { ok: true, data: { "message": "PONG" } };
         break;
       default:
-        console.log("DOM component unknown action:", action);
         response = { ok: false, error: 'Unknown action' };
         break;
     }
-    
-    console.log("DOM component sending response via sendToReactNative:", response);
     
     // Send response back to native side via the working communication channel
     sendToReactNative('response', {
@@ -62,23 +54,20 @@ export default forwardRef<DomAPI, Props>(function LittleWorldWebLazy(
       originalPayload: payload,
       response: response
     });
-    
-    console.log("Response sent via callback, returning from receive method");
-    
-    // Return the actual response (though native side won't use this return value)
-    return response;
   };
 
-  useDOMImperativeHandle(ref, () => {
-    console.log("Imperative handle factory called");
-    return {
-      receive
-    };
+  useDOMImperativeHandle(ref as any, () => {
+    const factory = {
+      receive: (...args: any[]) => {
+        const [action, payload] = args;
+        receive(action as string, payload as object | undefined);
+      }
+    } as unknown as import('expo/dom').DOMImperativeFactory;
+    return factory;
   }, []);
 
   useEffect(() => { 
-    const respo = onMessage('console.log', { message: `React Native Webview first render\n Window Info: ${JSON.stringify(window.location)}\n Dimensions: ${window.innerWidth}x${window.innerHeight}` });
-    console.log("RESPONSE", respo);
+    onMessage('console.log', { message: `React Native Webview first render\n Window Info: ${JSON.stringify(window.location)}\n Dimensions: ${window.innerWidth}x${window.innerHeight}` });
   }, [onMessage]);
 
   return (

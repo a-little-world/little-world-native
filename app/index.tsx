@@ -1,13 +1,16 @@
 // Page.tsx
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Button } from 'react-native';
+import { View, Button, TextInput, Text } from 'react-native';
 import LittleWorldWebLazy, {
   type DomAPI, type DomResponse
 } from '@/src/components/blocks/LittleWorldWebLazy';
+import { useDomCommunication } from '@/src/hooks/useDomCommunication';
 
 export default function Page() {
   const domRef = useRef<DomAPI>(null);
-  const pendingRequestsRef = useRef<Map<string, { resolve: (value: DomResponse) => void; reject: (reason: any) => void }>>(new Map());
+  const { handleDomResponse, sendToDom } = useDomCommunication();
+  const [inputMessage, setInputMessage] = useState<string>('Hello from React Native');
+  const [lastResponse, setLastResponse] = useState<DomResponse | null>(null);
 
   const handleDomMessage = useCallback(async (action: string, payload?: object): Promise<DomResponse> => {
     console.log("DOM MESSAGE", action, payload);
@@ -15,83 +18,50 @@ export default function Page() {
   }, []);
 
   const sendToReactNative = useCallback((action: string, payload?: object) => {
-    console.log("CALLBACK FUNC", action, payload);
-    
     // Handle response from DOM component
     if (action === 'response') {
-      console.log("Received response from DOM via callback:", payload);
-      const responsePayload = payload as { originalAction: string; originalPayload: object; response: DomResponse };
-      
-      // Find and resolve the pending request
-      const requestKey = `${responsePayload.originalAction}_${JSON.stringify(responsePayload.originalPayload)}`;
-      const pendingRequest = pendingRequestsRef.current.get(requestKey);
-      
-      if (pendingRequest) {
-        console.log("Resolving pending request:", requestKey);
-        pendingRequest.resolve(responsePayload.response);
-        pendingRequestsRef.current.delete(requestKey);
-      } else {
-        console.log("No pending request found for:", requestKey);
-      }
+      handleDomResponse(action, payload);
+    } else {
+      console.log("Message from DOM:", action, payload);
     }
-  }, []);
+  }, [handleDomResponse]);
 
-  const sendToDom = useCallback(async (action: string, payload?: object) => {
-    console.log("Attempting to send to DOM:", action, payload);
-    
-    if (!domRef.current) {
-      console.log("DOM ref not ready");
-      return { ok: false, error: 'DOM not ready' };
-    }
-    
+  const handlePingDom = useCallback(async () => {
     try {
-      // Create a promise that will be resolved when the response comes via callback
-      const responsePromise = new Promise<DomResponse>((resolve, reject) => {
-        const requestKey = `${action}_${JSON.stringify(payload)}`;
-        console.log("Creating pending request:", requestKey);
-        
-        // Store the promise resolvers
-        pendingRequestsRef.current.set(requestKey, { resolve, reject });
-        
-        // Set a timeout to reject the promise if no response comes
-        setTimeout(() => {
-          if (pendingRequestsRef.current.has(requestKey)) {
-            console.log("Request timeout for:", requestKey);
-            pendingRequestsRef.current.delete(requestKey);
-            reject(new Error('Response timeout'));
-          }
-        }, 5000); // 5 second timeout
-      });
-      
-      // Send the request to DOM component (don't await the return value)
-      domRef.current.receive(action, payload);
-      console.log("Request sent to DOM, waiting for response via callback...");
-      
-      // Wait for the response to come via the callback
-      const response = await responsePromise;
-      console.log("Received response from DOM via callback:", response);
-      return response;
-      
+      const response = await sendToDom(domRef, 'PING', { message: inputMessage });
+      setLastResponse(response);
+      console.log('(BRIDGE) PING ->', response);
     } catch (error) {
-      console.error("Error in sendToDom:", error);
-      return { ok: false, error: String(error) };
+      const fallback: DomResponse = { ok: false, error: String(error) };
+      setLastResponse(fallback);
+      console.error('(BRIDGE) Error:', error);
     }
-  }, []);
+  }, [sendToDom, inputMessage]);
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row', gap: 8, padding: 12 }}>
-        <Button
-          title="Ping DOM"
-          onPress={() => {
-            console.log("Button pressed, sending request to DOM...");
-            sendToDom('PING', { message: 'Hello from React Native' }).then((response) => {
-              console.log('(BRIDGE) PING ->', response);
-            }).catch((error) => {
-              console.error('(BRIDGE) Error:', error);
-            });
+      <View style={{ gap: 8, padding: 12 }}>
+        <TextInput
+          value={inputMessage}
+          onChangeText={setInputMessage}
+          placeholder="Message to send to DOM"
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 8
           }}
         />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button
+            title="Ping DOM"
+            onPress={handlePingDom}
+          />
+        </View>
+        <Text style={{ marginTop: 8 }}>
+          {lastResponse ? `Last response: ${JSON.stringify(lastResponse)}` : 'Last response: (none)'}
+        </Text>
       </View>
       <LittleWorldWebLazy 
         ref={domRef}
