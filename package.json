@@ -26,6 +26,7 @@
     "@a-little-world/little-world-frontend-shared": "^0.1.0",
     "@babel/runtime": "^7.27.6",
     "@config-plugins/react-native-webrtc": "^10.0.0",
+    "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "~14.0.4",
     "@livekit/react-native": "^2.7.6",
     "@livekit/react-native-expo-plugin": "^1.0.1",
@@ -55,6 +56,7 @@
     "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.4",
     "expo-router": "~4.0.21",
+    "expo-secure-store": "~14.0.1",
     "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.1",
@@ -63,7 +65,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.151.tgz",
+    "littleplanet": "file:./littleplanet-0.1.189.tgz",
     "livekit-client": "^2.13.8",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -86,11 +88,22 @@
     "@babel/plugin-transform-runtime": "^7.28.0",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
-    "eas-cli": "^16.17.4",
     "react-native-svg-transformer": "^1.5.1",
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
   "private": true,
-  "packageManager": "pnpm"
+  "packageManager": "pnpm",
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@livekit/react-native",
+          "@livekit/react-native-webrtc",
+          "react-native-exception-handler"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  }
 }

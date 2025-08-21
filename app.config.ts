@@ -36,6 +36,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.WAKE_LOCK",
       "android.permission.BLUETOOTH",
     ],
+    // Ensure SecureStore works properly on Android
+    allowBackup: true
   },
   web: {
     bundler: "metro",
@@ -44,6 +46,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    [
+      "expo-secure-store",
+      {
+        configureAndroidBackup: true,
+        faceIDPermission: "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+      }
+    ],
     // Only include LiveKit plugins when not in Expo Go mode
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
       ? [

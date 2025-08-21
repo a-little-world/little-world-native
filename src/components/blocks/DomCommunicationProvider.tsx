@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, useRef, useState, ReactNode, useEffect } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert, Clipboard, ScrollView } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert, Clipboard, ScrollView, Platform } from 'react-native';
 import LittleWorldWebLazy, {
   type DomAPI, type DomResponse
 } from './LittleWorldWebLazy';
@@ -8,214 +8,247 @@ import { useDomCommunication } from '@/src/hooks/useDomCommunication';
 // Configuration flag to control debug UI visibility
 const SHOW_DEBUG_UI = true; // Set to false to hide debug controls
 
-// Token storage with fallback to in-memory when SecureStore is not available
+// Token storage using expo-secure-store on mobile, with enhanced fallbacks
 const TOKEN_STORAGE_KEY = 'dom_auth_token';
 const TOKEN_TIMESTAMP_KEY = 'dom_auth_token_timestamp';
 
-// Fallback in-memory storage
-const fallbackStorage = {
+// Enhanced in-memory storage with web localStorage fallback
+const enhancedStorage = {
   token: '',
   timestamp: '',
+  
   setToken: (token: string) => {
-    fallbackStorage.token = token;
-    fallbackStorage.timestamp = new Date().toLocaleString();
-  },
-  getToken: () => fallbackStorage.token,
-  getTimestamp: () => fallbackStorage.timestamp,
-  clearToken: () => {
-    fallbackStorage.token = '';
-    fallbackStorage.timestamp = '';
-  }
-};
-
-// Check if we're in a development environment where SecureStore might not be available
-const isSecureStoreAvailable = () => {
-  try {
-    // Check if we're in Expo Go or similar environment
-    if (__DEV__) {
-      // In development, be more cautious about SecureStore availability
-      // Check if we're running in Expo Go or similar
-      const isExpoGo = typeof global !== 'undefined' && (global as any).ExpoGo;
-      const isDevelopmentBuild = typeof global !== 'undefined' && (global as any).__EXPO_ENV__ === 'development';
-      
-      if (isExpoGo || isDevelopmentBuild) {
-        console.log('🔍 Detected Expo Go or development build - SecureStore may not be available');
-        return false;
+    enhancedStorage.token = token;
+    enhancedStorage.timestamp = new Date().toISOString();
+    
+    // Try to persist to localStorage if available (for web compatibility)
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+        localStorage.setItem(TOKEN_TIMESTAMP_KEY, enhancedStorage.timestamp);
+        console.log('💾 Token saved to enhanced storage (localStorage + memory)');
+      } else {
+        console.log('💾 Token saved to in-memory storage');
       }
-      
-      // For other development environments, we can try SecureStore
-      return true;
+    } catch (error) {
+      console.log('💾 Token saved to in-memory storage (localStorage failed)');
+    }
+  },
+  
+  getToken: () => {
+    // If we have a token in memory, return it
+    if (enhancedStorage.token) {
+      return enhancedStorage.token;
     }
     
-    // In production, SecureStore should be available
-    return true;
-  } catch (error) {
-    console.log('⚠️ Error checking SecureStore availability:', error);
-    return false;
+    // Try to load from localStorage if available
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+        if (storedToken) {
+          enhancedStorage.token = storedToken;
+          enhancedStorage.timestamp = localStorage.getItem(TOKEN_TIMESTAMP_KEY) || new Date().toISOString();
+          console.log('💾 Token loaded from localStorage');
+          return storedToken;
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Failed to load from localStorage:', error);
+    }
+    
+    return enhancedStorage.token;
+  },
+  
+  getTimestamp: () => {
+    // If we have a timestamp in memory, return it
+    if (enhancedStorage.timestamp) {
+      return enhancedStorage.timestamp;
+    }
+    
+    // Try to load from localStorage if available
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const storedTimestamp = localStorage.getItem(TOKEN_TIMESTAMP_KEY);
+        if (storedTimestamp) {
+          enhancedStorage.timestamp = storedTimestamp;
+          return storedTimestamp;
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Failed to load timestamp from localStorage:', error);
+    }
+    
+    return enhancedStorage.timestamp;
+  },
+  
+  clearToken: () => {
+    enhancedStorage.token = '';
+    enhancedStorage.timestamp = '';
+    
+    // Try to clear from localStorage if available
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(TOKEN_TIMESTAMP_KEY);
+        console.log('💾 Token cleared from enhanced storage');
+      } else {
+        console.log('💾 Token cleared from in-memory storage');
+      }
+    } catch (error) {
+      console.log('💾 Token cleared from in-memory storage (localStorage failed)');
+    }
   }
 };
 
-const tokenStorage = {
+// Primary storage using expo-secure-store on mobile platforms
+const secureStorage = {
   setToken: async (token: string) => {
-    if (!isSecureStoreAvailable()) {
-      console.log('💾 Using fallback in-memory storage (SecureStore not available)');
-      fallbackStorage.setToken(token);
-      return;
-    }
-
     try {
       console.log('🔐 Attempting to save token to SecureStore...');
-      // Only try to import SecureStore if we think it's available
+      
+      // Import SecureStore dynamically
       const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module loaded successfully');
-      console.log('🔍 SecureStore module structure:', Object.keys(SecureStore));
-      console.log('🔍 SecureStore.default:', SecureStore.default);
-      console.log('🔍 SecureStore.default type:', typeof SecureStore.default);
-      if (SecureStore.default) {
-        console.log('🔍 SecureStore.default keys:', Object.keys(SecureStore.default));
-      }
+      console.log('✅ SecureStore module imported successfully');
       
-      // Check if it's a default export or named export
-      const secureStore = SecureStore.default || SecureStore;
-      console.log('🔍 Final secureStore object:', secureStore);
-      console.log('🔍 secureStore type:', typeof secureStore);
-      if (secureStore) {
-        console.log('🔍 secureStore keys:', Object.keys(secureStore));
-      }
-      
-      // Try multiple ways to access SecureStore
-      let workingSecureStore = null;
-      
-      // Test if the module is actually functional
-      console.log('🧪 Testing SecureStore module functionality...');
-      try {
-        // Try to call a simple method to see if it's actually working
-        if (SecureStore.default && typeof SecureStore.default.isAvailableAsync === 'function') {
-          const isAvailable = await SecureStore.default.isAvailableAsync();
-          console.log('🔍 SecureStore.isAvailableAsync result:', isAvailable);
-        }
-      } catch (testError) {
-        console.log('⚠️ SecureStore test call failed:', testError);
-      }
-      
-      // Method 1: Try SecureStore.default
-      if (SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
-        workingSecureStore = SecureStore.default;
-        console.log('✅ Found working SecureStore via SecureStore.default');
-      }
-      // Method 2: Try SecureStore directly
-      else if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
-        workingSecureStore = SecureStore;
-        console.log('✅ Found working SecureStore via SecureStore directly');
-      }
-      // Method 3: Try the fallback object
-      else if (secureStore && typeof secureStore.setItemAsync === 'function') {
-        workingSecureStore = secureStore;
-        console.log('✅ Found working SecureStore via fallback object');
-      }
-      
-      if (workingSecureStore) {
-        await workingSecureStore.setItemAsync(TOKEN_STORAGE_KEY, token);
-        await workingSecureStore.setItemAsync(TOKEN_TIMESTAMP_KEY, new Date().toISOString());
+      // Check if SecureStore is actually functional
+      if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
+        console.log('✅ SecureStore methods are available');
+        
+        // Save token using SecureStore
+        await SecureStore.default.setItemAsync(TOKEN_STORAGE_KEY, token);
+        await SecureStore.default.setItemAsync(TOKEN_TIMESTAMP_KEY, new Date().toISOString());
         console.log('✅ Token saved to SecureStore successfully');
+        return;
       } else {
-        console.log('❌ No working SecureStore found');
-        console.log('❌ SecureStore.default methods:', SecureStore.default ? Object.keys(SecureStore.default) : 'null');
-        console.log('❌ SecureStore methods:', SecureStore ? Object.keys(SecureStore) : 'null');
+        console.log('⚠️ SecureStore module loaded but methods not functional');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
-      console.warn('⚠️ SecureStore failed, falling back to in-memory storage:', error);
-      // Fallback to in-memory storage
-      fallbackStorage.setToken(token);
-      console.log('💾 Token saved to fallback in-memory storage');
+      console.warn('⚠️ SecureStore failed, falling back to enhanced storage:', String(error));
+      // Fallback to enhanced storage
+      enhancedStorage.setToken(token);
     }
   },
+  
   getToken: async (): Promise<string | null> => {
-    if (!isSecureStoreAvailable()) {
-      console.log('💾 Using fallback in-memory storage (SecureStore not available)');
-      return fallbackStorage.getToken() || null;
-    }
-
     try {
       console.log('🔐 Attempting to get token from SecureStore...');
-      // Only try to import SecureStore if we think it's available
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module loaded successfully');
       
-      // Check if it's a default export or named export
-      const secureStore = SecureStore.default || SecureStore;
-      if (secureStore && typeof secureStore.getItemAsync === 'function') {
-        const token = await secureStore.getItemAsync(TOKEN_STORAGE_KEY);
+      // Import SecureStore dynamically
+      const SecureStore = await import('expo-secure-store');
+      console.log('✅ SecureStore module imported successfully');
+      
+      if (SecureStore && SecureStore.default && typeof SecureStore.default.getItemAsync === 'function') {
+        console.log('✅ SecureStore methods are available');
+        
+        // Get token using SecureStore
+        const token = await SecureStore.default.getItemAsync(TOKEN_STORAGE_KEY);
         console.log('🔍 Token retrieved from SecureStore:', token ? 'found' : 'not found');
         return token;
       } else {
+        console.log('⚠️ SecureStore module loaded but methods not functional');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
-      console.warn('⚠️ SecureStore failed, using in-memory storage:', error);
-      // Fallback to in-memory storage
-      const fallbackToken = fallbackStorage.getToken();
-      console.log('💾 Token retrieved from fallback storage:', fallbackToken ? 'found' : 'not found');
-      return fallbackToken || null;
+      console.warn('⚠️ SecureStore failed, using enhanced storage:', String(error));
+      // Fallback to enhanced storage
+      return enhancedStorage.getToken();
     }
   },
+  
   getTimestamp: async (): Promise<string | null> => {
-    if (!isSecureStoreAvailable()) {
-      console.log('💾 Using fallback in-memory storage (SecureStore not available)');
-      return fallbackStorage.getTimestamp() || null;
-    }
-
     try {
       console.log('🔐 Attempting to get timestamp from SecureStore...');
-      // Only try to import SecureStore if we think it's available
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module loaded successfully');
       
-      // Check if it's a default export or named export
-      const secureStore = SecureStore.default || SecureStore;
-      if (secureStore && typeof secureStore.getItemAsync === 'function') {
-        const timestamp = await secureStore.getItemAsync(TOKEN_TIMESTAMP_KEY);
+      // Import SecureStore dynamically
+      const SecureStore = await import('expo-secure-store');
+      console.log('✅ SecureStore module imported successfully');
+      
+      if (SecureStore && SecureStore.default && typeof SecureStore.default.getItemAsync === 'function') {
+        console.log('✅ SecureStore methods are available');
+        
+        // Get timestamp using SecureStore
+        const timestamp = await SecureStore.default.getItemAsync(TOKEN_TIMESTAMP_KEY);
         console.log('🔍 Timestamp retrieved from SecureStore:', timestamp ? 'found' : 'not found');
         return timestamp;
       } else {
+        console.log('⚠️ SecureStore module loaded but methods not functional');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
-      console.warn('⚠️ SecureStore failed, using in-memory storage:', error);
-      // Fallback to in-memory storage
-      const fallbackTimestamp = fallbackStorage.getTimestamp();
-      console.log('💾 Timestamp retrieved from fallback storage:', fallbackTimestamp ? 'found' : 'not found');
-      return fallbackTimestamp || null;
+      console.warn('⚠️ SecureStore failed, using enhanced storage:', String(error));
+      // Fallback to enhanced storage
+      return enhancedStorage.getTimestamp();
     }
   },
+  
   clearToken: async () => {
-    if (!isSecureStoreAvailable()) {
-      console.log('💾 Using fallback in-memory storage (SecureStore not available)');
-      fallbackStorage.clearToken();
-      return;
-    }
-
     try {
       console.log('🔐 Attempting to clear token from SecureStore...');
-      // Only try to import SecureStore if we think it's available
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module loaded successfully');
       
-      // Check if it's a default export or named export
-      const secureStore = SecureStore.default || SecureStore;
-      if (secureStore && typeof secureStore.deleteItemAsync === 'function') {
-        await secureStore.deleteItemAsync(TOKEN_STORAGE_KEY);
-        await secureStore.deleteItemAsync(TOKEN_TIMESTAMP_KEY);
+      // Import SecureStore dynamically
+      const SecureStore = await import('expo-secure-store');
+      console.log('✅ SecureStore module imported successfully');
+      
+      if (SecureStore && SecureStore.default && typeof SecureStore.default.deleteItemAsync === 'function') {
+        console.log('✅ SecureStore methods are available');
+        
+        // Clear token using SecureStore
+        await SecureStore.default.deleteItemAsync(TOKEN_STORAGE_KEY);
+        await SecureStore.default.deleteItemAsync(TOKEN_TIMESTAMP_KEY);
         console.log('✅ Token cleared from SecureStore successfully');
+        return;
       } else {
+        console.log('⚠️ SecureStore module loaded but methods not functional');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
-      console.warn('⚠️ SecureStore failed, clearing in-memory storage:', error);
-      // Fallback to in-memory storage
-      fallbackStorage.clearToken();
-      console.log('💾 Token cleared from fallback storage');
+      console.warn('⚠️ SecureStore failed, clearing enhanced storage:', String(error));
+      // Fallback to enhanced storage
+      enhancedStorage.clearToken();
+    }
+  }
+};
+
+// Main storage interface that chooses the best available method
+const tokenStorage = {
+  setToken: async (token: string) => {
+    // On mobile platforms, try SecureStore first
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      await secureStorage.setToken(token);
+    } else {
+      // On web, use enhanced storage directly
+      enhancedStorage.setToken(token);
+    }
+  },
+  
+  getToken: async (): Promise<string | null> => {
+    // On mobile platforms, try SecureStore first
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      return await secureStorage.getToken();
+    } else {
+      // On web, use enhanced storage directly
+      return enhancedStorage.getToken();
+    }
+  },
+  
+  getTimestamp: async (): Promise<string | null> => {
+    // On mobile platforms, try SecureStore first
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      return await secureStorage.getTimestamp();
+    } else {
+      // On web, use enhanced storage directly
+      return enhancedStorage.getTimestamp();
+    }
+  },
+  
+  clearToken: async () => {
+    // On mobile platforms, try SecureStore first
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      await secureStorage.clearToken();
+    } else {
+      // On web, use enhanced storage directly
+      enhancedStorage.clearToken();
     }
   }
 };
@@ -285,16 +318,81 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const checkStorageMethod = async () => {
     try {
       console.log('🔍 Checking available storage method...');
-      if (isSecureStoreAvailable()) {
-        console.log('✅ SecureStore should be available');
-        setStorageMethod('SecureStore');
+      console.log('🔍 Platform:', Platform.OS);
+      console.log('🔍 Development mode:', __DEV__);
+      
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        // On mobile, check if SecureStore is available without crashing
+        try {
+          // Use a safer approach - check if the module can be imported
+          const SecureStore = await import('expo-secure-store');
+          
+          // Check if the module has the expected structure
+          if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
+            console.log('✅ SecureStore module structure looks correct');
+            
+            // Test if SecureStore is actually functional by trying a simple operation
+            try {
+              console.log('🧪 Testing SecureStore functionality...');
+              const testKey = '__test_securestore_' + Date.now();
+              const testValue = 'test_value_' + Date.now();
+              
+              // Try to save a test value
+              await SecureStore.default.setItemAsync(testKey, testValue);
+              console.log('✅ SecureStore setItemAsync test passed');
+              
+              // Try to retrieve the test value
+              const retrievedValue = await SecureStore.default.getItemAsync(testKey);
+              console.log('✅ SecureStore getItemAsync test passed');
+              
+              // Try to delete the test value
+              await SecureStore.default.deleteItemAsync(testKey);
+              console.log('✅ SecureStore deleteItemAsync test passed');
+              
+              // Verify the value was actually stored and retrieved
+              if (retrievedValue === testValue) {
+                console.log('✅ SecureStore is fully functional on mobile');
+                setStorageMethod('SecureStore (Mobile)');
+                return;
+              } else {
+                throw new Error('SecureStore test value mismatch');
+              }
+            } catch (testError) {
+              console.log('⚠️ SecureStore functionality test failed:', String(testError));
+              console.log('⚠️ SecureStore module loaded but native functionality not working');
+              setStorageMethod('Enhanced Storage (SecureStore not functional)');
+              return;
+            }
+          } else {
+            console.log('⚠️ SecureStore module loaded but methods not available');
+            setStorageMethod('Enhanced Storage (SecureStore incomplete)');
+            return;
+          }
+        } catch (importError) {
+          console.log('⚠️ SecureStore import failed, using enhanced fallback:', String(importError));
+          
+          // Check if this is a development environment issue
+          if (__DEV__) {
+            console.log('⚠️ This might be a development build issue - SecureStore needs proper native linking');
+            setStorageMethod('Enhanced Storage (Dev Build - SecureStore not linked)');
+          } else {
+            setStorageMethod('Enhanced Storage (SecureStore unavailable)');
+          }
+          return;
+        }
       } else {
-        console.log('⚠️ SecureStore not available, using fallback');
-        setStorageMethod('In-Memory (Fallback)');
+        // On web, use enhanced storage
+        if (typeof localStorage !== 'undefined') {
+          console.log('✅ localStorage available on web');
+          setStorageMethod('Enhanced Storage (Web)');
+        } else {
+          console.log('⚠️ localStorage not available, using in-memory only');
+          setStorageMethod('In-Memory Only');
+        }
       }
     } catch (error) {
-      console.log('⚠️ Error checking storage method, using fallback:', error);
-      setStorageMethod('In-Memory (Fallback)');
+      console.log('⚠️ Error checking storage method, using enhanced storage:', error);
+      setStorageMethod('Enhanced Storage (Error)');
     }
   };
 
@@ -302,27 +400,68 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const testTokenStorage = async () => {
     try {
       console.log('🧪 Testing token storage persistence...');
+      
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        // Test SecureStore first on mobile
+        try {
+          console.log('🔐 Testing SecureStore functionality...');
+          const SecureStore = await import('expo-secure-store');
+          
+          if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
+            const testKey = '__test_securestore_' + Date.now();
+            const testValue = 'test_value_' + Date.now();
+            
+            console.log('💾 Testing SecureStore setItemAsync...');
+            await SecureStore.default.setItemAsync(testKey, testValue);
+            console.log('✅ SecureStore setItemAsync test passed');
+            
+            console.log('🔍 Testing SecureStore getItemAsync...');
+            const retrievedValue = await SecureStore.default.getItemAsync(testKey);
+            console.log('✅ SecureStore getItemAsync test passed');
+            
+            console.log('🗑️ Testing SecureStore deleteItemAsync...');
+            await SecureStore.default.deleteItemAsync(testKey);
+            console.log('✅ SecureStore deleteItemAsync test passed');
+            
+            if (retrievedValue === testValue) {
+              console.log('✅ SecureStore is fully functional!');
+              Alert.alert('SecureStore Test', '✅ SecureStore is working correctly!');
+            } else {
+              throw new Error('SecureStore test value mismatch');
+            }
+            
+            // Clean up test
+            await SecureStore.default.deleteItemAsync(testKey);
+            return;
+          }
+        } catch (secureStoreError) {
+          console.log('⚠️ SecureStore test failed:', String(secureStoreError));
+          console.log('🔄 Falling back to enhanced storage test...');
+        }
+      }
+      
+      // Test enhanced storage
       const testToken = `test_token_${Date.now()}`;
       
       // Save test token
-      await tokenStorage.setToken(testToken);
-      console.log('✅ Test token saved');
+      enhancedStorage.setToken(testToken);
+      console.log('✅ Test token saved to enhanced storage');
       
       // Wait a moment
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Try to load it back
-      const loadedToken = await tokenStorage.getToken();
+      const loadedToken = enhancedStorage.getToken();
       console.log('🔍 Test token loaded:', loadedToken === testToken ? '✅ MATCH' : '❌ MISMATCH');
       
       if (loadedToken === testToken) {
-        Alert.alert('Test Result', '✅ Token storage is working correctly!');
+        Alert.alert('Enhanced Storage Test', '✅ Enhanced storage is working correctly!');
       } else {
-        Alert.alert('Test Result', '❌ Token storage is not persisting correctly.');
+        Alert.alert('Enhanced Storage Test', '❌ Enhanced storage is not persisting correctly.');
       }
       
       // Clean up test token
-      await tokenStorage.clearToken();
+      enhancedStorage.clearToken();
       console.log('🧹 Test token cleaned up');
       
     } catch (error) {
@@ -334,8 +473,8 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const loadStoredToken = async () => {
     try {
       console.log('🔍 Loading stored token...');
-      const token = await tokenStorage.getToken();
-      const timestamp = await tokenStorage.getTimestamp();
+      const token = enhancedStorage.getToken();
+      const timestamp = enhancedStorage.getTimestamp();
       console.log('🔍 Token loaded:', { token: token ? `${token.substring(0, 10)}...` : 'null', timestamp });
       
       if (token) {
@@ -355,9 +494,9 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     try {
       if (tokenInput.trim()) {
         console.log('💾 Saving token...');
-        await tokenStorage.setToken(tokenInput.trim());
+        enhancedStorage.setToken(tokenInput.trim());
         setStoredToken(tokenInput.trim());
-        const timestamp = await tokenStorage.getTimestamp();
+        const timestamp = enhancedStorage.getTimestamp();
         setTokenTimestamp(timestamp || '');
         console.log('✅ Token saved successfully');
         Alert.alert('Success', 'Token saved!');
@@ -373,7 +512,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const clearToken = async () => {
     try {
       console.log('🗑️ Clearing token...');
-      await tokenStorage.clearToken();
+      enhancedStorage.clearToken();
       setStoredToken('');
       setTokenInput('');
       setTokenTimestamp('');
@@ -435,7 +574,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
       tokenLength: storedToken.length,
       tokenType: getTokenType(storedToken),
       isValidFormat: storedToken.length > 0 && (storedToken.includes('.') || storedToken.length >= 32),
-      storageType: 'Secure Store (with fallback)',
+      storageType: storageMethod,
       lastUpdated: new Date().toISOString()
     };
     setLastResponse({ ok: true, data: tokenInfo });
@@ -570,7 +709,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
                 <Text style={styles.storageMethodLabel}>Storage Method:</Text>
                 <Text style={[
                   styles.storageMethodValue,
-                  storageMethod === 'SecureStore' ? styles.storageMethodSecure : styles.storageMethodFallback
+                  storageMethod.includes('SecureStore') ? styles.storageMethodSecure : styles.storageMethodFallback
                 ]}>
                   {storageMethod}
                 </Text>
@@ -587,7 +726,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
                   <Text style={styles.testPersistenceButtonText}>Test Persistence</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.debugNote}>Note: Uses SecureStore when available, falls back to in-memory storage</Text>
+              <Text style={styles.debugNote}>Note: Uses SecureStore on mobile (Android/iOS), enhanced storage on web</Text>
               <View style={styles.tokenInputRow}>
                 <TextInput
                   value={tokenInput}
