@@ -3,6 +3,15 @@
 # Navigate to lw_components directory
 cd ../little-world-frontend || exit 1
 
+SETUP_HOST_DOMAIN=false
+HTTP_SCHEME="https"
+HOST_DOMAIN=""
+USE_WSS_WEBSOCKET=false
+FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
+if [ $HTTP_SCHEME = "https" ]; then
+  USE_WSS_WEBSOCKET=true
+fi
+
 # Get current version from package.json
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"
@@ -18,6 +27,14 @@ echo "New version: $NEW_VERSION"
 # Update version in package.json
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
 sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
+if [ "$SETUP_HOST_DOMAIN" = true ]; then
+  sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
+fi
+
+if [ "$USE_WSS_WEBSOCKET" = true ]; then
+  sed -i.bak "s|coreWsScheme: '.*'|coreWsScheme: 'wss://'|" src/environment.ts
+  sed -i.bak "s|websocketHost: '.*'|websocketHost: '$HOST_DOMAIN'|" src/environment.ts
+fi
 
 rm package.json.bak
 
