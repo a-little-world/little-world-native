@@ -22,10 +22,6 @@ export default forwardRef<DomAPI, Props>(function LittleWorldWebLazy(
   { sendToReactNative, onMessage },
   ref
 ) {
-  useEffect(() => {
-    console.log("LittleWorldWebLazy component mounted");
-  }, []);
-
   // Allow inner component to override how actions are handled
   const customHandlerRef = useRef<((action: string, payload?: object) => DomResponse | Promise<DomResponse>) | null>(null);
   const registerReceiveHandler = (handler: (action: string, payload?: object) => DomResponse | Promise<DomResponse>) => {
