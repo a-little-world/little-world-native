@@ -11,13 +11,23 @@ module.exports = (() => {
   config.transformer = {
     ...transformer,
     babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+    // Remove minification config that was causing issues
   };
 
   config.resolver = {
     ...resolver,
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     sourceExts: [...resolver.sourceExts, "svg"],
+    // Fix React resolution issues
+    alias: {
+      'react': require.resolve('react'),
+      'react-native': require.resolve('react-native'),
+    },
+    // Remove problematic blockList that was causing issues
   };
+
+  // Remove experimental serializer that was causing issues
+  // config.serializer = { ... };
 
   if (proxyRequests) {
     const apiProxy = createProxyMiddleware({

@@ -37,7 +37,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.BLUETOOTH",
     ],
     // Ensure SecureStore works properly on Android
-    allowBackup: true
+    allowBackup: true,
+    // Build optimizations will be handled in eas.json
   },
   web: {
     bundler: "metro",
@@ -55,10 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     // Only include LiveKit plugins when not in Expo Go mode
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
-      ? [
-          "@livekit/react-native-expo-plugin",
-          "@config-plugins/react-native-webrtc",
-        ]
+      ? []
       : []),
     [
       "expo-splash-screen",
