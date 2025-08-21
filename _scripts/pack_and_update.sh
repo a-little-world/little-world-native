@@ -3,9 +3,10 @@
 # Navigate to lw_components directory
 cd ../little-world-frontend || exit 1
 
-SETUP_HOST_DOMAIN=false
-HTTP_SCHEME="https"
-HOST_DOMAIN=""
+# Use environment variables if set, otherwise fall back to defaults
+SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
+HTTP_SCHEME=${HTTP_SCHEME:-"https"}
+HOST_DOMAIN=${HOST_DOMAIN:-""}
 USE_WSS_WEBSOCKET=false
 FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
 if [ $HTTP_SCHEME = "https" ]; then
