@@ -63,18 +63,10 @@ jobs:
         run: |
           cd little-world-native
           cat ../little-world-frontend/package.json
-          # Set environment variables for the pack and update script based on baseUrl
-          if [ -n "${{ github.event.inputs.baseUrl }}" ]; then
-            export SETUP_HOST_DOMAIN=true
-            export HTTP_SCHEME="https"
-            export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
-            export USE_WSS_WEBSOCKET=true
-          else
-            export SETUP_HOST_DOMAIN=false
-            export HTTP_SCHEME="https"
-            export HOST_DOMAIN="568b7e6933ac.ngrok-free.app"
-            export USE_WSS_WEBSOCKET=false
-          fi
+          export SETUP_HOST_DOMAIN=true
+          export HTTP_SCHEME="https"
+          export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
+          export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
         
       - name: Install frontend dependencies
