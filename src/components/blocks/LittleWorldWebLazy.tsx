@@ -40,6 +40,9 @@ export default forwardRef<DomAPI, Props>(function LittleWorldWebLazy(
       case 'PING':
         response = { ok: true, data: `PONG window.location: ${window.location.href} originalPayload: ${JSON.stringify(payload)}` };
         break;
+      case 'CUSTOM_ACTION':
+        response = { ok: true, data: `Custom action processed at ${new Date().toISOString()} with payload: ${JSON.stringify(payload)}` };
+        break;
       case 'console.log':
         response = { ok: true, data: { "message": "PONG" } };
         break;
