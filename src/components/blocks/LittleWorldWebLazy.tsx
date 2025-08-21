@@ -1,7 +1,7 @@
 // LittleWorldWebLazy.tsx
 'use dom';
 
-import React, { Suspense, lazy, forwardRef, useEffect, useState, useCallback } from 'react';
+import React, { Suspense, lazy, forwardRef, useEffect, useRef } from 'react';
 import { useDOMImperativeHandle } from 'expo/dom';
 
 const LittleWorldWebNative = lazy(() =>
@@ -22,60 +22,70 @@ export default forwardRef<DomAPI, Props>(function LittleWorldWebLazy(
   { sendToReactNative, onMessage },
   ref
 ) {
-
-  // Debug: check which environment we're in
   useEffect(() => {
     console.log("LittleWorldWebLazy component mounted");
   }, []);
 
-  // Set up imperative handle immediately (not in useEffect)
-  
-  const receive = (action: string, payload?: object) => {
-    console.log("DOM: Processing request", action, payload);
-    
-    // Process the request in the DOM component and send response via sendToReactNative
-    let response: DomResponse;
-    
+  // Allow inner component to override how actions are handled
+  const customHandlerRef = useRef<((action: string, payload?: object) => DomResponse | Promise<DomResponse>) | null>(null);
+  const registerReceiveHandler = (handler: (action: string, payload?: object) => DomResponse | Promise<DomResponse>) => {
+    customHandlerRef.current = handler;
+  };
+
+  const getDefaultResponse = (action: string, payload?: object): DomResponse => {
     switch (action) {
       case 'PING':
-        response = { ok: true, data: `PONG window.location: ${window.location.href} originalPayload: ${JSON.stringify(payload)}` };
-        break;
+        return { ok: true, data: `PONG window.location: ${window.location.href} originalPayload: ${JSON.stringify(payload)}` };
       case 'CUSTOM_ACTION':
-        response = { ok: true, data: `Custom action processed at ${new Date().toISOString()} with payload: ${JSON.stringify(payload)}` };
-        break;
+        return { ok: true, data: `Custom action processed at ${new Date().toISOString()} with payload: ${JSON.stringify(payload)}` };
       case 'console.log':
-        response = { ok: true, data: { "message": "PONG" } };
-        break;
+        return { ok: true, data: { message: 'PONG' } };
       default:
-        response = { ok: false, error: 'Unknown action' };
-        break;
+        return { ok: false, error: 'Unknown action' };
     }
-    
-    // Send response back to native side via the working communication channel
-    sendToReactNative('response', {
-      originalAction: action,
-      originalPayload: payload,
-      response: response
-    });
+  };
+
+  const receive = async (action: string, payload?: object) => {
+    try {
+      const handler = customHandlerRef.current;
+      const result = handler ? await handler(action, payload) : getDefaultResponse(action, payload);
+      sendToReactNative('response', {
+        originalAction: action,
+        originalPayload: payload,
+        response: result,
+      });
+    } catch (error) {
+      sendToReactNative('response', {
+        originalAction: action,
+        originalPayload: payload,
+        response: { ok: false, error: String(error) } as DomResponse,
+      });
+    }
   };
 
   useDOMImperativeHandle(ref as any, () => {
     const factory = {
       receive: (...args: any[]) => {
         const [action, payload] = args;
-        receive(action as string, payload as object | undefined);
-      }
+        void receive(action as string, payload as object | undefined);
+      },
     } as unknown as import('expo/dom').DOMImperativeFactory;
     return factory;
   }, []);
 
-  useEffect(() => { 
+  useEffect(() => {
     onMessage('console.log', { message: `React Native Webview first render\n Window Info: ${JSON.stringify(window.location)}\n Dimensions: ${window.innerWidth}x${window.innerHeight}` });
   }, [onMessage]);
 
+  // Cast to any so we can pass extra helper prop without TS complaining about external component types
+  const LW: any = LittleWorldWebNative;
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <LittleWorldWebNative sendMessageToReactNative={sendToReactNative} />
+      <LW
+        sendMessageToReactNative={sendToReactNative}
+        registerReceiveHandler={registerReceiveHandler}
+      />
     </Suspense>
   );
 });

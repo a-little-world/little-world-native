@@ -42,10 +42,15 @@ export function DomCommunicationProvider() {
     // Handle response from DOM component
     if (action === 'response') {
       handleDomResponse(action, payload);
+    } else if (action === 'action_request') {
+      // Forward action requests to the DOM component via handleDomMessage
+      // This allows LittleWorldWebNative to intercept and handle actions
+      console.log("Forwarding action request to DOM:", payload);
+      handleDomMessage('action_request', payload);
     } else {
       console.log("Message from DOM:", action, payload);
     }
-  }, [handleDomResponse]);
+  }, [handleDomResponse, handleDomMessage]);
 
   const handlePingDom = useCallback(async () => {
     try {
