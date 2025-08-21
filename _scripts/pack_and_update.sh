@@ -4,7 +4,7 @@
 cd ../little-world-frontend || exit 1
 
 # Use environment variables if set, otherwise fall back to defaults
-SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
+SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-false}
 HTTP_SCHEME=${HTTP_SCHEME:-"https"}
 HOST_DOMAIN=${HOST_DOMAIN:-""}
 USE_WSS_WEBSOCKET=false
@@ -12,6 +12,12 @@ FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
 if [ $HTTP_SCHEME = "https" ]; then
   USE_WSS_WEBSOCKET=true
 fi
+
+echo "SETUP_HOST_DOMAIN: $SETUP_HOST_DOMAIN"
+echo "HTTP_SCHEME: $HTTP_SCHEME"
+echo "HOST_DOMAIN: $HOST_DOMAIN"
+echo "USE_WSS_WEBSOCKET: $USE_WSS_WEBSOCKET"
+echo "FULL_HOST_DOMAIN: $FULL_HOST_DOMAIN"
 
 # Get current version from package.json
 CURRENT_VERSION=$(node -p "require('./package.json').version")
