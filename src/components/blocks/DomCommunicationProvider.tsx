@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useCallback, useRef, useState, ReactNode, useEffect } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert, Clipboard, ScrollView, Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import LittleWorldWebLazy, {
   type DomAPI, type DomResponse
 } from './LittleWorldWebLazy';
@@ -106,21 +107,17 @@ const secureStorage = {
     try {
       console.log('🔐 Attempting to save token to SecureStore...');
       
-      // Import SecureStore dynamically
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module imported successfully');
-      
-      // Check if SecureStore is actually functional
-      if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
+      // Check if SecureStore is available and functional
+      if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
         console.log('✅ SecureStore methods are available');
         
         // Save token using SecureStore
-        await SecureStore.default.setItemAsync(TOKEN_STORAGE_KEY, token);
-        await SecureStore.default.setItemAsync(TOKEN_TIMESTAMP_KEY, new Date().toISOString());
+        await SecureStore.setItemAsync(TOKEN_STORAGE_KEY, token);
+        await SecureStore.setItemAsync(TOKEN_TIMESTAMP_KEY, new Date().toISOString());
         console.log('✅ Token saved to SecureStore successfully');
         return;
       } else {
-        console.log('⚠️ SecureStore module loaded but methods not functional');
+        console.log('⚠️ SecureStore methods not available');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
@@ -134,19 +131,15 @@ const secureStorage = {
     try {
       console.log('🔐 Attempting to get token from SecureStore...');
       
-      // Import SecureStore dynamically
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module imported successfully');
-      
-      if (SecureStore && SecureStore.default && typeof SecureStore.default.getItemAsync === 'function') {
+      if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
         console.log('✅ SecureStore methods are available');
         
         // Get token using SecureStore
-        const token = await SecureStore.default.getItemAsync(TOKEN_STORAGE_KEY);
+        const token = await SecureStore.getItemAsync(TOKEN_STORAGE_KEY);
         console.log('🔍 Token retrieved from SecureStore:', token ? 'found' : 'not found');
         return token;
       } else {
-        console.log('⚠️ SecureStore module loaded but methods not functional');
+        console.log('⚠️ SecureStore methods not available');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
@@ -160,19 +153,15 @@ const secureStorage = {
     try {
       console.log('🔐 Attempting to get timestamp from SecureStore...');
       
-      // Import SecureStore dynamically
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module imported successfully');
-      
-      if (SecureStore && SecureStore.default && typeof SecureStore.default.getItemAsync === 'function') {
+      if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
         console.log('✅ SecureStore methods are available');
         
         // Get timestamp using SecureStore
-        const timestamp = await SecureStore.default.getItemAsync(TOKEN_TIMESTAMP_KEY);
+        const timestamp = await SecureStore.getItemAsync(TOKEN_TIMESTAMP_KEY);
         console.log('🔍 Timestamp retrieved from SecureStore:', timestamp ? 'found' : 'not found');
         return timestamp;
       } else {
-        console.log('⚠️ SecureStore module loaded but methods not functional');
+        console.log('⚠️ SecureStore methods not available');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
@@ -186,20 +175,16 @@ const secureStorage = {
     try {
       console.log('🔐 Attempting to clear token from SecureStore...');
       
-      // Import SecureStore dynamically
-      const SecureStore = await import('expo-secure-store');
-      console.log('✅ SecureStore module imported successfully');
-      
-      if (SecureStore && SecureStore.default && typeof SecureStore.default.deleteItemAsync === 'function') {
+      if (SecureStore && typeof SecureStore.deleteItemAsync === 'function') {
         console.log('✅ SecureStore methods are available');
         
         // Clear token using SecureStore
-        await SecureStore.default.deleteItemAsync(TOKEN_STORAGE_KEY);
-        await SecureStore.default.deleteItemAsync(TOKEN_TIMESTAMP_KEY);
+        await SecureStore.deleteItemAsync(TOKEN_STORAGE_KEY);
+        await SecureStore.deleteItemAsync(TOKEN_TIMESTAMP_KEY);
         console.log('✅ Token cleared from SecureStore successfully');
         return;
       } else {
-        console.log('⚠️ SecureStore module loaded but methods not functional');
+        console.log('⚠️ SecureStore methods not available');
         throw new Error('SecureStore methods not available');
       }
     } catch (error) {
@@ -322,14 +307,11 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
       console.log('🔍 Development mode:', __DEV__);
       
       if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        // On mobile, check if SecureStore is available without crashing
+        // On mobile, check if SecureStore is available and functional
         try {
-          // Use a safer approach - check if the module can be imported
-          const SecureStore = await import('expo-secure-store');
-          
-          // Check if the module has the expected structure
-          if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
-            console.log('✅ SecureStore module structure looks correct');
+          // Check if SecureStore has the expected methods
+          if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
+            console.log('✅ SecureStore methods are available');
             
             // Test if SecureStore is actually functional by trying a simple operation
             try {
@@ -338,15 +320,15 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
               const testValue = 'test_value_' + Date.now();
               
               // Try to save a test value
-              await SecureStore.default.setItemAsync(testKey, testValue);
+              await SecureStore.setItemAsync(testKey, testValue);
               console.log('✅ SecureStore setItemAsync test passed');
               
               // Try to retrieve the test value
-              const retrievedValue = await SecureStore.default.getItemAsync(testKey);
+              const retrievedValue = await SecureStore.getItemAsync(testKey);
               console.log('✅ SecureStore getItemAsync test passed');
               
               // Try to delete the test value
-              await SecureStore.default.deleteItemAsync(testKey);
+              await SecureStore.deleteItemAsync(testKey);
               console.log('✅ SecureStore deleteItemAsync test passed');
               
               // Verify the value was actually stored and retrieved
@@ -364,12 +346,12 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
               return;
             }
           } else {
-            console.log('⚠️ SecureStore module loaded but methods not available');
+            console.log('⚠️ SecureStore methods not available');
             setStorageMethod('Enhanced Storage (SecureStore incomplete)');
             return;
           }
-        } catch (importError) {
-          console.log('⚠️ SecureStore import failed, using enhanced fallback:', String(importError));
+        } catch (error) {
+          console.log('⚠️ SecureStore check failed, using enhanced fallback:', String(error));
           
           // Check if this is a development environment issue
           if (__DEV__) {
@@ -405,22 +387,21 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
         // Test SecureStore first on mobile
         try {
           console.log('🔐 Testing SecureStore functionality...');
-          const SecureStore = await import('expo-secure-store');
           
-          if (SecureStore && SecureStore.default && typeof SecureStore.default.setItemAsync === 'function') {
+          if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
             const testKey = '__test_securestore_' + Date.now();
             const testValue = 'test_value_' + Date.now();
             
             console.log('💾 Testing SecureStore setItemAsync...');
-            await SecureStore.default.setItemAsync(testKey, testValue);
+            await SecureStore.setItemAsync(testKey, testValue);
             console.log('✅ SecureStore setItemAsync test passed');
             
             console.log('🔍 Testing SecureStore getItemAsync...');
-            const retrievedValue = await SecureStore.default.getItemAsync(testKey);
+            const retrievedValue = await SecureStore.getItemAsync(testKey);
             console.log('✅ SecureStore getItemAsync test passed');
             
             console.log('🗑️ Testing SecureStore deleteItemAsync...');
-            await SecureStore.default.deleteItemAsync(testKey);
+            await SecureStore.deleteItemAsync(testKey);
             console.log('✅ SecureStore deleteItemAsync test passed');
             
             if (retrievedValue === testValue) {
@@ -431,7 +412,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
             }
             
             // Clean up test
-            await SecureStore.default.deleteItemAsync(testKey);
+            await SecureStore.deleteItemAsync(testKey);
             return;
           }
         } catch (secureStoreError) {
@@ -473,8 +454,8 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const loadStoredToken = async () => {
     try {
       console.log('🔍 Loading stored token...');
-      const token = enhancedStorage.getToken();
-      const timestamp = enhancedStorage.getTimestamp();
+      const token = await tokenStorage.getToken();
+      const timestamp = await tokenStorage.getTimestamp();
       console.log('🔍 Token loaded:', { token: token ? `${token.substring(0, 10)}...` : 'null', timestamp });
       
       if (token) {
@@ -494,9 +475,10 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     try {
       if (tokenInput.trim()) {
         console.log('💾 Saving token...');
-        enhancedStorage.setToken(tokenInput.trim());
+        // Use the proper tokenStorage interface that chooses the best method
+        await tokenStorage.setToken(tokenInput.trim());
         setStoredToken(tokenInput.trim());
-        const timestamp = enhancedStorage.getTimestamp();
+        const timestamp = await tokenStorage.getTimestamp();
         setTokenTimestamp(timestamp || '');
         console.log('✅ Token saved successfully');
         Alert.alert('Success', 'Token saved!');
@@ -512,7 +494,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const clearToken = async () => {
     try {
       console.log('🗑️ Clearing token...');
-      enhancedStorage.clearToken();
+      await tokenStorage.clearToken();
       setStoredToken('');
       setTokenInput('');
       setTokenTimestamp('');
@@ -536,8 +518,11 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
 
   const sendTokenToDom = async () => {
     try {
-      if (storedToken) {
-        const response = await sendToDom(domRef, 'setAuthToken', { token: storedToken });
+      // Get the current token from storage to ensure we have the latest
+      const currentToken = await tokenStorage.getToken();
+      
+      if (currentToken) {
+        const response = await sendToDom(domRef, 'setAuthToken', { token: currentToken });
         setLastResponse(response);
         Alert.alert('Success', 'Token sent to DOM component!');
       } else {
@@ -566,18 +551,27 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     }
   };
 
-  const displayTokenInfo = () => {
-    const tokenInfo = {
-      token: storedToken,
-      timestamp: tokenTimestamp,
-      hasToken: !!storedToken,
-      tokenLength: storedToken.length,
-      tokenType: getTokenType(storedToken),
-      isValidFormat: storedToken.length > 0 && (storedToken.includes('.') || storedToken.length >= 32),
-      storageType: storageMethod,
-      lastUpdated: new Date().toISOString()
-    };
-    setLastResponse({ ok: true, data: tokenInfo });
+  const displayTokenInfo = async () => {
+    try {
+      // Get current token and timestamp from storage to ensure we have the latest info
+      const currentToken = await tokenStorage.getToken();
+      const currentTimestamp = await tokenStorage.getTimestamp();
+      
+      const tokenInfo = {
+        token: currentToken || storedToken,
+        timestamp: currentTimestamp || tokenTimestamp,
+        hasToken: !!currentToken,
+        tokenLength: (currentToken || storedToken).length,
+        tokenType: getTokenType(currentToken || storedToken),
+        isValidFormat: (currentToken || storedToken).length > 0 && ((currentToken || storedToken).includes('.') || (currentToken || storedToken).length >= 32),
+        storageType: storageMethod,
+        lastUpdated: new Date().toISOString()
+      };
+      setLastResponse({ ok: true, data: tokenInfo });
+    } catch (error) {
+      console.error('❌ Failed to get token info:', error);
+      setLastResponse({ ok: false, error: String(error) });
+    }
   };
 
   const handleDomMessage = useCallback(async (action: string, payload?: object): Promise<DomResponse> => {
@@ -807,7 +801,7 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.infoTokenButton}
-                      onPress={displayTokenInfo}
+                      onPress={() => displayTokenInfo()}
                     >
                       <Text style={styles.infoTokenButtonText}>Info</Text>
                     </TouchableOpacity>
