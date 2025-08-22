@@ -285,6 +285,26 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     checkStorageMethod();
   }, []);
 
+  async function setDomToken(token: string) {
+    const response = await sendToDom(domRef, 'setAuthToken', {
+      token,
+    });
+    if (!response.ok) {
+      setTimeout(() => {
+        setDomToken(token);
+      }, 100);
+    } else {
+      console.log('successfully sent token to dom');
+    }
+  }
+
+  useEffect(() => {
+    console.log(`token ${!storedToken ? 'not' : ''} stored`);
+    if (storedToken) {
+      setDomToken(storedToken);
+    }
+  }, [storedToken]);
+
   // Update current time every second when debug panel is visible
   useEffect(() => {
     if (!isDebugVisible) return;
