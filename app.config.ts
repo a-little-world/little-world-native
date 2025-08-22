@@ -18,6 +18,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.littleworld.littleworldapp",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      NSCameraUsageDescription:
+        "Allow camera usage to participate in group video calls",
+      NSMicrophoneUsageDescription:
+        "Allow microphone usage to participate in group calls",
     },
   },
   android: {
@@ -51,13 +55,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "expo-secure-store",
       {
         configureAndroidBackup: true,
-        faceIDPermission: "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
-      }
+        faceIDPermission:
+          "Allow $(PRODUCT_NAME) to access your Face ID biometric data.",
+      },
     ],
     // Only include LiveKit plugins when not in Expo Go mode
-    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
-      ? []
-      : []),
+    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true" ? [] : []),
     [
       "expo-splash-screen",
       {
