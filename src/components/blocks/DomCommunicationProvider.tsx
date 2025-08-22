@@ -378,6 +378,24 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     }
   };
 
+  // New function to save token received from DOM
+  const saveTokenFromDom = async (token: string, timestamp?: string) => {
+    try {
+      console.log('💾 Saving token received from DOM...');
+      await tokenStorage.setToken(token);
+      setStoredToken(token);
+      setTokenInput(token);
+      setTokenTimestamp(timestamp || new Date().toISOString());
+      console.log('✅ Token from DOM saved successfully');
+      
+      // Show success message
+      Alert.alert('Token Updated', 'Token received from DOM component and saved successfully!');
+    } catch (error) {
+      console.error('❌ Failed to save token from DOM:', error);
+      Alert.alert('Error', 'Failed to save token received from DOM component.');
+    }
+  };
+
   // Test token storage persistence
   const testTokenStorage = async () => {
     try {
@@ -582,6 +600,12 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     // Handle response from DOM component
     if (action === 'response') {
       handleDomResponse(action, payload);
+    } else if (action === 'setTokenFromDom') {
+      // Handle token setting from DOM component
+      const { token, timestamp } = payload as { token: string; timestamp?: string };
+      if (token) {
+        saveTokenFromDom(token, timestamp);
+      }
     }
   }, [handleDomResponse]);
 
@@ -721,6 +745,34 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
                 </TouchableOpacity>
               </View>
               <Text style={styles.debugNote}>Note: Uses SecureStore on mobile (Android/iOS), enhanced storage on web</Text>
+              
+              {/* DOM Token Communication Info */}
+              <View style={styles.domTokenInfo}>
+                <Text style={styles.domTokenInfoTitle}>🔐 DOM Token Communication</Text>
+                <Text style={styles.domTokenInfoText}>
+                  DOM components can send tokens using the 'setTokenFromDom' action:
+                </Text>
+                <Text style={styles.domTokenCode}>
+                  {`sendToReactNative('setTokenFromDom', {
+  token: 'your_jwt_token_here',
+  timestamp: '2024-01-01T00:00:00.000Z'
+})`}
+                </Text>
+                <Text style={styles.domTokenInfoText}>
+                  This will automatically save the token to secure storage.
+                </Text>
+                <TouchableOpacity
+                  style={styles.testDomTokenButton}
+                  onPress={() => {
+                    // Simulate receiving a token from DOM
+                    const testToken = `test_dom_token_${Date.now()}`;
+                    const testTimestamp = new Date().toISOString();
+                    saveTokenFromDom(testToken, testTimestamp);
+                  }}
+                >
+                  <Text style={styles.testDomTokenButtonText}>🧪 Test DOM Token</Text>
+                </TouchableOpacity>
+              </View>
               <View style={styles.tokenInputRow}>
                 <TextInput
                   value={tokenInput}
@@ -1330,6 +1382,50 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   testPersistenceButtonText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  domTokenInfo: {
+    backgroundColor: '#e3f2fd',
+    borderRadius: 6,
+    padding: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#bbdefb',
+  },
+  domTokenInfoTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1565c0',
+    marginBottom: 4,
+  },
+  domTokenInfoText: {
+    fontSize: 10,
+    color: '#1976d2',
+    marginBottom: 4,
+    lineHeight: 14,
+  },
+  domTokenCode: {
+    fontSize: 9,
+    color: '#0d47a1',
+    fontFamily: 'monospace',
+    backgroundColor: '#f5f5f5',
+    padding: 6,
+    borderRadius: 4,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  testDomTokenButton: {
+    backgroundColor: '#17a2b8',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  testDomTokenButtonText: {
     color: 'white',
     fontSize: 10,
     fontWeight: '600',

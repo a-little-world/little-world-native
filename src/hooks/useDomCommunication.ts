@@ -6,6 +6,12 @@ export interface DomRequest {
   payload?: object;
 }
 
+// Special action types for token management
+export interface SetTokenFromDomPayload {
+  token: string;
+  timestamp?: string;
+}
+
 export interface DomCommunicationHook {
   handleDomResponse: (action: string, payload?: object) => void;
   sendToDom: (
@@ -32,6 +38,10 @@ export interface DomCommunicationHook {
  * const sendToReactNative = useCallback((action: string, payload?: object) => {
  *   if (action === 'response') {
  *     handleDomResponse(action, payload);
+ *   } else if (action === 'setTokenFromDom') {
+ *     // Handle token setting from DOM component
+ *     const { token, timestamp } = payload as SetTokenFromDomPayload;
+ *     // Your token handling logic here
  *   }
  * }, [handleDomResponse]);
  * 
