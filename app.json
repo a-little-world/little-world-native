@@ -13,8 +13,17 @@
       "backgroundColor": "#ffffff",
       "bitcode": false,
       "bundleIdentifier": "com.littleworld.littleworldapp",
+      "splash": {
+        "image": "./src/assets/images/splash-icon.png",
+        "imageWidth": 200,
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff",
+        "tabletImage": "./src/assets/images/splash-icon.png"
+      },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow camera usage to participate in group video calls",
+        "NSMicrophoneUsageDescription": "Allow microphone usage to participate in group calls"
       }
     },
     "android": {
@@ -38,6 +47,12 @@
       "bundler": "metro",
       "output": "static",
       "favicon": "./src/assets/images/favicon.png"
+    },
+    "splash": {
+      "image": "./src/assets/images/splash-icon.png",
+      "imageWidth": 200,
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "plugins": [
       "expo-router",

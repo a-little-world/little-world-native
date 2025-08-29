@@ -16,6 +16,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: "#ffffff",
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
+    splash: {
+      image: "./src/assets/images/splash-icon.png",
+      imageWidth: 200,
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+      tabletImage: "./src/assets/images/splash-icon.png",
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
@@ -48,6 +55,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundler: "metro",
     output: "static",
     favicon: "./src/assets/images/favicon.png",
+  },
+  splash: {
+    image: "./src/assets/images/splash-icon.png",
+    imageWidth: 200,
+    resizeMode: "contain",
+    backgroundColor: "#ffffff",
+    tabletImage: "./assets/splash-tablet.png",
   },
   plugins: [
     "expo-router",
