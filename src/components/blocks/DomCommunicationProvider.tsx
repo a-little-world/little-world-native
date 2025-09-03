@@ -12,6 +12,9 @@ const SHOW_DEBUG_UI = true; // Set to false to hide debug controls
 // Token storage using expo-secure-store on mobile, with enhanced fallbacks
 const TOKEN_STORAGE_KEY = 'dom_auth_token';
 const TOKEN_TIMESTAMP_KEY = 'dom_auth_token_timestamp';
+// New JWT keys
+const ACCESS_TOKEN_KEY = 'dom_auth_access_token';
+const REFRESH_TOKEN_KEY = 'dom_auth_refresh_token';
 
 // Enhanced in-memory storage with web localStorage fallback
 const enhancedStorage = {
@@ -271,6 +274,51 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const [currentTime, setCurrentTime] = useState<string>('');
   const [storageMethod, setStorageMethod] = useState<string>('Unknown');
 
+  // Helpers for JWT access/refresh tokens (new flow)
+  const saveJwtTokens = useCallback(async (accessToken: string, refreshToken?: string) => {
+    try {
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
+          await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+          if (refreshToken) {
+            await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+          }
+        }
+      } else if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+        if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      }
+    } catch (e) {
+      console.warn('Failed to persist JWT tokens', e);
+    }
+  }, []);
+
+  const getAccessJwtToken = useCallback(async (): Promise<string | null> => {
+    try {
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
+          return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+        }
+      } else if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(ACCESS_TOKEN_KEY);
+      }
+    } catch {}
+    return null;
+  }, []);
+
+  const getRefreshJwtToken = useCallback(async (): Promise<string | null> => {
+    try {
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
+          return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+        }
+      } else if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(REFRESH_TOKEN_KEY);
+      }
+    } catch {}
+    return null;
+  }, []);
+
   const routes = [
     { label: 'Sign Up', value: '/sign-up' },
     { label: 'Login', value: '/login' },
@@ -287,7 +335,8 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
 
   async function setDomToken(token: string) {
     const response = await sendToDom(domRef, 'setAuthToken', {
-      token,
+      accessToken: token,
+      refreshToken: await getRefreshJwtToken() || undefined,
     });
     if (!response.ok) {
       setTimeout(() => {
@@ -557,10 +606,11 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
   const sendTokenToDom = async () => {
     try {
       // Get the current token from storage to ensure we have the latest
-      const currentToken = await tokenStorage.getToken();
+      const currentToken = await getAccessJwtToken();
+      const currentRefresh = await getRefreshJwtToken();
       
       if (currentToken) {
-        const response = await sendToDom(domRef, 'setAuthToken', { token: currentToken });
+        const response = await sendToDom(domRef, 'setAuthToken', { accessToken: currentToken, refreshToken: currentRefresh || undefined });
         setLastResponse(response);
         Alert.alert('Success', 'Token sent to DOM component!');
       } else {
@@ -621,10 +671,15 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
     if (action === 'response') {
       handleDomResponse(action, payload);
     } else if (action === 'setTokenFromDom') {
-      // Handle token setting from DOM component
-      const { token, timestamp } = payload as { token: string; timestamp?: string };
-      if (token) {
-        saveTokenFromDom(token, timestamp);
+      // Handle token setting from DOM component (JWT aware)
+      const p = (payload || {}) as any;
+      const accessToken = p?.accessToken ?? p?.token_access ?? p?.token;
+      const refreshToken = p?.refreshToken ?? p?.token_refresh ?? null;
+      const timestamp = p?.timestamp as string | undefined;
+      if (accessToken) {
+        saveJwtTokens(accessToken, refreshToken || undefined);
+        // Keep legacy single-token behavior for now (store accessToken)
+        saveTokenFromDom(accessToken, timestamp);
       }
     }
   }, [handleDomResponse]);
