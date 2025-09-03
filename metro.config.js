@@ -23,6 +23,10 @@ module.exports = (() => {
       'react': require.resolve('react'),
       'react-native': require.resolve('react-native'),
     },
+    // Add platform-specific resolver to handle DOM components
+    resolverMainFields: ['react-native', 'browser', 'main'],
+    // Add platform-specific extensions to handle DOM components
+    platforms: ['ios', 'android', 'native', 'web'],
     // Remove problematic blockList that was causing issues
   };
 
