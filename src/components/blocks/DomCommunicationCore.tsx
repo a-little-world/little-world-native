@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useDomCommunication } from '@/src/hooks/useDomCommunication';
 import { type DomResponse } from './LittleWorldWebLazy';
+import { computeNativeChallengeProof } from '@/src/messaging/nativeAuth';
 
 const TOKEN_STORAGE_KEY = 'dom_auth_token';
 const TOKEN_TIMESTAMP_KEY = 'dom_auth_token_timestamp';
@@ -228,6 +229,21 @@ export function DomCommunicationProvider({ children }: DomCommunicationProviderP
           } catch {}
         })();
       }
+    } else if (action === 'computeNativeChallengeProof') {
+      console.log('computeNativeChallengeProof', payload);
+      const p = (payload || {}) as any;
+      const challenge = String(p?.challenge || '');
+      const timestamp = String(p?.timestamp || '');
+      const email = String((p?.email || '').toLowerCase());
+
+      void (async () => {
+        try {
+          const proof = await computeNativeChallengeProof(challenge, timestamp, email);
+          await sendToDom(domRef, 'nativeChallengeProof', { challenge, timestamp, email, proof });
+        } catch (e) {
+          await sendToDom(domRef, 'nativeChallengeProof', { challenge, timestamp, email, error: String(e) });
+        }
+      })();
     }
   }, [handleDomResponse, sendToDom]);
 

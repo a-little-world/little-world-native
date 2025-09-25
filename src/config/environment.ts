@@ -1,18 +1,15 @@
 import Constants from 'expo-constants';
 
-// Environment configuration
 export const ENV_CONFIG = {
-  // Set to true to use Expo Go mode (no LiveKit)
-  // Set to false to use development build mode (with LiveKit)
   USE_EXPO_GO: Constants.expoConfig?.extra?.useExpoGo ?? false,
   USE_LIVEKIT: Constants.expoConfig?.extra?.useLiveKit ?? true,
 };
 
-// Helper functions
+export const NATIVE_APP_SECRET = 'jannisduftet';
+
 export const isExpoGoMode = () => ENV_CONFIG.USE_EXPO_GO;
 export const isLiveKitEnabled = () => ENV_CONFIG.USE_LIVEKIT;
 
-// Development mode info
 export const getDevelopmentModeInfo = () => {
   if (isExpoGoMode()) {
     return {
