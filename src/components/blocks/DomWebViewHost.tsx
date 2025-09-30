@@ -1,30 +1,13 @@
-import React, { useEffect } from 'react';
-import LittleWorldWebLazy from './LittleWorldWebLazy';
-import { useDomCommunicationContext } from './DomCommunicationCore';
+import { useDomCommunicationContext } from "./DomCommunicationCore";
+import LittleWorldWebLazy from "./LittleWorldWebLazy";
 
 export default function DomWebViewHost() {
-  const { domRef, onDomMessage, sendToReactNative, getAccessJwtToken, getRefreshJwtToken, sendToDom } = useDomCommunicationContext();
-
-  useEffect(() => {
-    let cancelled = false;
-    const syncToken = async () => {
-      const access = await getAccessJwtToken();
-      const refresh = await getRefreshJwtToken();
-      if (!cancelled && access) {
-        await sendToDom('setAuthToken', { accessToken: access, refreshToken: refresh || undefined });
-      }
-    };
-    void syncToken();
-    return () => { cancelled = true; };
-  }, [getAccessJwtToken, getRefreshJwtToken, sendToDom]);
+  const { sendToReactNative, sendToDom } = useDomCommunicationContext();
 
   return (
     <LittleWorldWebLazy
-      ref={domRef}
-      onMessage={onDomMessage}
+      sendToDom={sendToDom}
       sendToReactNative={sendToReactNative}
     />
   );
 }
-
-

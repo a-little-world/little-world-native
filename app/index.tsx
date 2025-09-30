@@ -1,9 +1,8 @@
 // Page.tsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
-import DomWebViewHost from '@/src/components/blocks/DomWebViewHost';
-import DomDebugPanel from '@/src/components/blocks/DomDebugPanel';
+import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
+import DomDebugPanel from "@/src/components/blocks/DomDebugPanel";
+import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
+import { View } from "react-native";
 
 export default function Page() {
   return (

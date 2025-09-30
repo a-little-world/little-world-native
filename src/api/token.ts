@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/authStore";
 const ACCESS_TOKEN_KEY = "dom_auth_access_token";
 const REFRESH_TOKEN_KEY = "dom_auth_refresh_token";
 
-async function getAccessJwtToken() {
+export async function getAccessJwtToken() {
   try {
     if (Platform.OS === "ios" || Platform.OS === "android") {
       if (SecureStore && typeof SecureStore.getItemAsync === "function") {
@@ -17,7 +17,7 @@ async function getAccessJwtToken() {
   return null;
 }
 
-async function getRefreshJwtToken() {
+export async function getRefreshJwtToken() {
   try {
     if (Platform.OS === "ios" || Platform.OS === "android") {
       if (SecureStore && typeof SecureStore.getItemAsync === "function") {
@@ -26,6 +26,29 @@ async function getRefreshJwtToken() {
     }
   } catch {}
   return null;
+}
+
+export async function saveJwtTokens(
+  accessToken: string | null,
+  refreshToken: string | null
+) {
+  try {
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      if (SecureStore && typeof SecureStore.setItemAsync === "function") {
+        if (accessToken !== null) {
+          await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        } else {
+          await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+        }
+
+        if (refreshToken !== null) {
+          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+        } else {
+          await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+        }
+      }
+    }
+  } catch {}
 }
 
 export async function loadStoredTokensIntoStore() {
