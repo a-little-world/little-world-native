@@ -1,4 +1,3 @@
-import { useDomCommunication } from "@/src/hooks/useDomCommunication";
 import { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
@@ -8,9 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDomCommunicationContext } from "./DomCommunicationCore";
 
 export default function DomDebugPanel() {
-  const { sendMessageToDom } = useDomCommunication();
+  const { sendToDom } = useDomCommunicationContext();
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState("Hello from React Native");
   const [lastResponse, setLastResponse] = useState<any>(null);
@@ -39,7 +39,7 @@ export default function DomDebugPanel() {
 
   const ping = async () => {
     try {
-      const res = await sendMessageToDom({
+      const res = await sendToDom({
         action: "PING",
         payload: {
           message,
@@ -116,7 +116,7 @@ export default function DomDebugPanel() {
                 <TouchableOpacity
                   style={styles.navigateButton}
                   onPress={async () => {
-                    await sendMessageToDom({
+                    await sendToDom({
                       action: "NAVIGATE",
                       payload: { path: selectedRoute },
                     });

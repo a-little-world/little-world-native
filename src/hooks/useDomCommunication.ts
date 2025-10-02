@@ -2,7 +2,7 @@ import {
   DomCommunicationMessage,
   DomCommunicationResponse,
 } from "littleplanet";
-import { useDomCommunicationContext } from "../components/blocks/DomCommunicationCore";
+import { useRef } from "react";
 
 export interface DomCommunicationHook {
   sendMessageToDom: (
@@ -11,7 +11,17 @@ export interface DomCommunicationHook {
 }
 
 export function useDomCommunication(): DomCommunicationHook {
-  const { sendToDom } = useDomCommunicationContext();
+  // const { sendToDom } = useDomCommunicationContext();
+
+  const pendingRequestsRef = useRef<
+    Map<
+      string,
+      {
+        resolve: (value: DomCommunicationResponse) => void;
+        reject: (reason: any) => void;
+      }
+    >
+  >(new Map());
 
   // const sendMessageToDom = useCallback(
   //   async (
@@ -26,13 +36,17 @@ export function useDomCommunication(): DomCommunicationHook {
   //   []
   // );
 
-  const sendMessageToDom = async (message: DomCommunicationMessage) => {
-    console.log("sendMessageToDom", message, sendToDom.current);
-    if (!sendToDom.current) {
-      return { ok: false, error: "DOM not ready" };
-    }
+  // const sendMessageToDom = async (message: DomCommunicationMessage) => {
+  //   console.log("sendMessageToDom", message, sendToDom.current);
+  //   if (!sendToDom.current) {
+  //     return { ok: false, error: "DOM not ready" };
+  //   }
 
-    return sendToDom.current(message);
+  //   return sendToDom.current(message);
+  // };
+
+  const sendMessageToDom = async (message: DomCommunicationMessage) => {
+    return { ok: false, error: "Not implemented" };
   };
 
   return {

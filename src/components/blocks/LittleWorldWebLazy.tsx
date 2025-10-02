@@ -5,15 +5,14 @@ import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";
-import { Suspense, forwardRef, lazy, useRef } from "react";
+import { Ref, Suspense, lazy, useRef } from "react";
 
 import { JSONValue } from "expo/build/dom/dom.types";
-import { useDOMImperativeHandle, type DOMImperativeFactory } from "expo/dom";
+import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
-  test: () => void;
   sendMessageToDom: (...args: JSONValue[]) => void;
-  // sendMessageToDom: DomCommunicationMessageFn;
+  test: () => void;
 }
 
 const LittleWorldWebNative = lazy(() =>
@@ -23,77 +22,61 @@ const LittleWorldWebNative = lazy(() =>
 type Props = {
   sendToReactNative: DomCommunicationMessageFn;
   // sendToDom: RefObject<DomCommunicationMessageFn | null>;
-  setDomReceiveHandler: (handler: DomCommunicationMessageFn | null) => void;
+  // setDomReceiveHandler: (handler: DomCommunicationMessageFn | null) => void;
   // dom?: import("expo/dom").DOMProps;
   // ref: RefObject<LittleWorldDomRef | null>;
 };
 
-export default forwardRef<LittleWorldDomRef, Props>(function LittleWorldWebLazy(
-  {
-    sendToReactNative,
-    // sendToDom,
-    setDomReceiveHandler,
-  },
-  ref
-) {
+export default function LittleWorldWebLazy(props: {
+  sendToReactNative: DomCommunicationMessageFn;
+  ref: Ref<LittleWorldDomRef>;
+  dom?: import("expo/dom").DOMProps;
+}) {
   console.log("weblazy");
 
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
   // Allow inner component to override how actions are handled
   const registerReceiveHandler = (handler: DomCommunicationMessageFn) => {
-    console.log("frontend message handler set", handler);
     // sendToDom.current = handler;
     // sendToDom
 
     // useDomCommunicationContext().sendToDom.current = null;
     // setDomReceiveHandler(handler);
     domReceiveHandlerRef.current = handler;
-
-    handler({
-      action: "TEST",
-      payload: {
-        initial: "Hallo von react native",
-      },
-    }).then((res) => console.log("frontend answered test message", res));
   };
 
-  useDOMImperativeHandle<LittleWorldDomRef>(ref, () => {
-    return {
-      test: () => {},
-      sendMessageToDom: (...args: JSONValue[]) => {
-        if (
-          args.length === 0 ||
-          typeof args[0] === null ||
-          typeof args[0] !== "object"
-        ) {
-          return;
-        }
+  useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
+    sendMessageToDom: (...args: JSONValue[]) => {
+      if (
+        args.length !== 1 ||
+        args[0] === null ||
+        typeof args[0] !== "object"
+      ) {
+        console.log("useDOMImperativeHandle args", args);
+        return;
+      }
 
-        const message: DomCommunicationMessage = args[0];
-      },
-    };
-  });
+      const handler = domReceiveHandlerRef.current;
+      if (!handler) {
+        throw new Error("LittleWorldWebLazy DOM not ready");
+      }
+      const message = args[0] as DomCommunicationMessage;
+      handler(message);
+    },
+    test: () => {},
+  }));
 
   // Cast to any so we can pass extra helper prop without TS complaining about external component types
   const LW: any = LittleWorldWebNative;
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
-      <div>Lazy</div>
       <LW
         dom={{ style: { height: "100%" } }}
-        sendMessageToReactNative={sendToReactNative}
+        sendMessageToReactNative={props.sendToReactNative}
         registerReceiveHandler={registerReceiveHandler}
       />
     </Suspense>
   );
-});
+}
