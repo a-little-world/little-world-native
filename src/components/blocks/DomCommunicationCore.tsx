@@ -1,6 +1,6 @@
 import { saveJwtTokens } from "@/src/api/token";
 import { computeNativeChallengeProof } from "@/src/messaging/nativeAuth";
-import { JSONValue } from "expo/build/dom/dom.types";
+import { useAuthStore } from "@/src/store/authStore";
 import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -12,15 +12,13 @@ import {
   Ref,
   useCallback,
   useContext,
+  useEffect,
   useRef,
 } from "react";
 import uuid from "react-native-uuid";
 import { LittleWorldDomRef } from "./LittleWorldWebLazy";
 
 export interface DomCommunicationContextType {
-  registerDomReceiveFunction: (
-    handler: ((...args: JSONValue[]) => void) | null
-  ) => void;
   sendToDom: DomCommunicationMessageFn;
   sendToReactNative: DomCommunicationMessageFn;
   domRef: Ref<LittleWorldDomRef | null>;
@@ -47,9 +45,6 @@ const REQUEST_TIMEOUT = 5000;
 export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
-  const domReceiveHandler = useRef<((...args: JSONValue[]) => void) | null>(
-    null
-  );
   const domRef = useRef<LittleWorldDomRef | null>(null);
 
   const pendingRequestsRef = useRef<
@@ -66,7 +61,7 @@ export function DomCommunicationProvider({
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
       if (!handler) {
-        throw new Error("DomCommunicationCore DOM not ready");
+        return { ok: false, error: "DomCommunicationCore DOM not ready" };
       }
 
       // Create a promise that will be resolved when the response comes via callback
@@ -94,13 +89,6 @@ export function DomCommunicationProvider({
 
       // Wait for the response to come via the callback
       return responsePromise;
-    },
-    []
-  );
-
-  const registerDomReceiveFunction = useCallback(
-    (handler: ((...args: JSONValue[]) => void) | null) => {
-      domReceiveHandler.current = handler;
     },
     []
   );
@@ -159,11 +147,41 @@ export function DomCommunicationProvider({
   );
 
   const contextValue: DomCommunicationContextType = {
-    registerDomReceiveFunction,
     sendToDom,
     sendToReactNative,
     domRef,
   };
+
+  const authStore = useAuthStore();
+  useEffect(() => {
+    const { accessToken, refreshToken } = authStore;
+    console.log(
+      `accessToken set: ${!!accessToken}. Refresh token set ${!!refreshToken}`
+    );
+
+    if (!accessToken || !refreshToken) {
+      return;
+    }
+
+    let interval: number | undefined = setInterval(() => {
+      try {
+        sendToDom({
+          action: "SET_AUTH_TOKENS",
+          payload: {
+            accessToken,
+            refreshToken,
+          },
+        })
+          .then((res) => {
+            if (res.ok) {
+              clearInterval(interval);
+              interval = undefined;
+            }
+          })
+          .catch(() => {});
+      } catch (_) {}
+    }, 200);
+  }, [authStore]);
 
   return (
     <DomCommunicationContext.Provider value={contextValue}>

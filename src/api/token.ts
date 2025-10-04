@@ -55,7 +55,6 @@ export async function loadStoredTokensIntoStore() {
   const accessToken = (await getAccessJwtToken()) ?? undefined;
   const refreshToken = (await getRefreshJwtToken()) ?? undefined;
 
-  console.log("setting tokens in authStore", accessToken, refreshToken);
   useAuthStore.setState({ accessToken, refreshToken });
 }
 

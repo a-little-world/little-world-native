@@ -43,7 +43,9 @@ export default function LittleWorldWebLazy(props: {
 
       const handler = domReceiveHandlerRef.current;
       if (!handler) {
-        throw new Error("LittleWorldWebLazy DOM not ready");
+        // unfortunately errors thrown here cannot be caught in native since they occur in the webview,
+        // so we just return here and let the requests timeout
+        return;
       }
       const message = args[0] as DomCommunicationMessage;
       handler(message);
