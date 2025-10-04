@@ -64,9 +64,6 @@ export function DomCommunicationProvider({
 
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
-      // const handler = domReceiveHandler.current;
-
-      console.log("DomCommunicationCore handler", domReceiveHandler.current);
       const handler = domRef.current?.sendMessageToDom;
       if (!handler) {
         throw new Error("DomCommunicationCore DOM not ready");
@@ -91,7 +88,6 @@ export function DomCommunicationProvider({
         }
       );
       const messageWithId = { ...message, requestId };
-      console.log(requestId, messageWithId);
 
       // Send the request to DOM component (don't await the return value)
       handler(messageWithId);
@@ -104,7 +100,6 @@ export function DomCommunicationProvider({
 
   const registerDomReceiveFunction = useCallback(
     (handler: ((...args: JSONValue[]) => void) | null) => {
-      console.log("dom receive function registered", handler);
       domReceiveHandler.current = handler;
     },
     []
@@ -133,12 +128,7 @@ export function DomCommunicationProvider({
             return { ok: false, error: e };
           }
         }
-        case "TEST": {
-          return { ok: true, data: "answer from native" };
-        }
         case "RESPONSE": {
-          console.log("got response", message);
-
           const requestId = message.requestId;
 
           const pendingRequest = pendingRequestsRef.current.get(requestId);
