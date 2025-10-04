@@ -38,4 +38,4 @@ export const API_FIELDS = {
   unconfirmed_match_hash: "matchId", // partiallyConfirmMatch
 };
 
-export const BACKEND_URL = "https://little-world.jannistoelle.de";
+export const BACKEND_URL = "http://localhost:8000";
