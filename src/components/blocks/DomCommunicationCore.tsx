@@ -154,14 +154,8 @@ export function DomCommunicationProvider({
 
   const authStore = useAuthStore();
   useEffect(() => {
-    const { accessToken, refreshToken } = authStore;
-    console.log(
-      `accessToken set: ${!!accessToken}. Refresh token set ${!!refreshToken}`
-    );
-
-    if (!accessToken || !refreshToken) {
-      return;
-    }
+    const accessToken = authStore.accessToken ?? null;
+    const refreshToken = authStore.refreshToken ?? null;
 
     let interval: number | undefined = setInterval(() => {
       try {

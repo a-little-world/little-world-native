@@ -89,18 +89,20 @@ export async function apiFetch<T = any>(
 
     return (await response.json()) as T;
   } catch (error) {
-    try {
-      const tokenRefreshed = await refreshAccessTokens();
-      if (tokenRefreshed) {
-        return apiFetch(endpoint, options);
-      } else {
-        // refresh token expired -> navigate to login
-        router.navigate("/");
+    if (error?.status === 403) {
+      try {
+        const tokenRefreshed = await refreshAccessTokens();
+        if (tokenRefreshed) {
+          return apiFetch(endpoint, options);
+        } else {
+          // refresh token expired -> navigate to login
+          router.navigate("/");
+        }
+      } catch (err: any) {
+        const response = err.cause;
+        const errorData = await response.json().catch(() => ({}));
+        throw formatApiError(errorData, response);
       }
-    } catch (err: any) {
-      const response = err.cause;
-      const errorData = await response.json().catch(() => ({}));
-      throw formatApiError(errorData, response);
     }
 
     console.error(`API Fetch Error (${endpoint}):`, error);
