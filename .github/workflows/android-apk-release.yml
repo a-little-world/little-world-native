@@ -17,6 +17,10 @@ on:
         description: "Base URL for backend (e.g., https://api.example.com)"
         required: false
         default: ""
+      COMMIT_REF:
+        description: "Frontend commit SHA or branch to checkout"
+        required: false
+        default: "experimental"
 
 permissions:
   contents: write
@@ -37,7 +41,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
-          ref: experimental
+          ref: ${{ github.event.inputs.COMMIT_REF }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
 
