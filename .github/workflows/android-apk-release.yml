@@ -25,6 +25,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: android-apk-${{ github.workflow }}-${{ inputs.tag }}
+  cancel-in-progress: true
+
 jobs:
   build-android-apk:
     runs-on: ubuntu-builds-small
