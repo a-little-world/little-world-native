@@ -50,7 +50,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.241.tgz",
+    "littleplanet": "file:./littleplanet-0.1.258.tgz",
     "livekit-client": "^2.13.8",
     "react": "19.0.0",
     "react-hook-form": "^7.54.2",
@@ -64,6 +64,7 @@
     "react-native-svg": "15.11.2",
     "react-native-uuid": "^2.0.3",
     "react-native-webview": "13.13.5",
+    "react-native-web": "^0.19.13",
     "styled-components": "^6.1.19",
     "swr": "^2.3.4"
   },
