@@ -1,4 +1,4 @@
-import { NATIVE_APP_SECRET } from "@/src/config/environment";
+import { getNativeSecret } from "@/src/helpers/nativeSecret";
 import { HmacSHA256, enc } from "crypto-js";
 import { NativeModules } from "react-native";
 
@@ -22,7 +22,11 @@ export async function computeNativeChallengeProof(
   if (NativeAuth && typeof NativeAuth.computeProof === "function") {
     return NativeAuth.computeProof(challenge, timestamp, email.toLowerCase());
   }
-  const proofWordArray = HmacSHA256(message, NATIVE_APP_SECRET);
+  const nativeSecret = await getNativeSecret();
+  if (!nativeSecret) {
+    throw new Error("Native secret not found");
+  }
+  const proofWordArray = HmacSHA256(message, nativeSecret);
   const proof = enc.Hex.stringify(proofWordArray);
   return proof.toLowerCase();
 }
