@@ -17,6 +17,18 @@ on:
         description: "Base URL for backend (e.g., https://api.example.com)"
         required: false
         default: ""
+      encryptedAppSecret:
+        description: "Encrypted device secret"
+        required: false
+        default: "LVObrvZAgT/BcObWoRnc5RdYQ/mF3os9:1bfORapXAmhRG2ONi+BHNc8AE6ThyabiV+dCIdBMXSnvx3OBThmgNLWlom0DTfjDlGo7fwn/YbiIwvCgQ+reVngpti/kPjU/yd65yiKdr5AwrQbwk36hngaBPNR32T6sp6gSUDX1/hPK"
+      innerLayerDecryptionKey:
+        description: "Inner layer decryption key"
+        required: false
+        default: "T/MWGCeO/XlhKTbp/wullhh2yG4XMMOpHWH3NQMNBXQ="
+      developmentOnlyOuterLayerDecryptionKey:
+        description: "Development only outer layer decryption key"
+        required: false
+        default: "kEzw1Rd5axcHUj9Mg0UhZv1PRuHAPV0OkKDSiS9h6uU="
       COMMIT_REF:
         description: "Frontend commit SHA or branch to checkout"
         required: false
@@ -155,6 +167,36 @@ jobs:
           fi
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Inject environment values into src/config/environment.ts
+        working-directory: little-world-native
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE="src/config/environment.ts"
+          cp "$FILE" "$FILE.bak"
+
+          # Inputs from workflow_dispatch
+          ENCRYPTED_APP_SECRET='${{ github.event.inputs.encryptedAppSecret }}'
+          INNER_KEY='${{ github.event.inputs.innerLayerDecryptionKey }}'
+          OUTER_DEV_KEY='${{ github.event.inputs.developmentOnlyOuterLayerDecryptionKey }}'
+          BASE_URL='${{ github.event.inputs.baseUrl }}'
+
+          # Only replace when inputs are provided (non-empty)
+          if [ -n "${ENCRYPTED_APP_SECRET}" ]; then
+            sed -i.bak "s|ecryptedNativeSecret: \".*\"|ecryptedNativeSecret: \"${ENCRYPTED_APP_SECRET}\"|" "$FILE"
+          fi
+          if [ -n "${OUTER_DEV_KEY}" ]; then
+            sed -i.bak "s|developmentOnlyOuterLayerDecryptionKey: \".*\"|developmentOnlyOuterLayerDecryptionKey: \"${OUTER_DEV_KEY}\"|" "$FILE"
+          fi
+          if [ -n "${INNER_KEY}" ]; then
+            sed -i.bak "s|localInnerLayerDecryptionKey: \".*\"|localInnerLayerDecryptionKey: \"${INNER_KEY}\"|" "$FILE"
+          fi
+          if [ -n "${BASE_URL}" ]; then
+            # Update backendUrl if present in this config file layout
+            sed -i.bak "s|backendUrl: \".*\"|backendUrl: \"${BASE_URL}\"|" "$FILE" || true
+          fi
+          echo "Injected environment values into $FILE"
 
       - name: Build Android APK (EAS local)
         working-directory: little-world-native
