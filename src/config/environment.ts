@@ -5,7 +5,19 @@ export const ENV_CONFIG = {
   USE_LIVEKIT: Constants.expoConfig?.extra?.useLiveKit ?? true,
 };
 
-export const NATIVE_APP_SECRET = 'jannisduftet';
+export interface Environment {
+  ecryptedNativeSecret: string,
+  developmentOnlyOuterLayerDecryptionKey: string,
+  localInnerLayerDecryptionKey: string
+  production: boolean
+}
+
+export const environment: Environment = {
+  ecryptedNativeSecret: "LVObrvZAgT/BcObWoRnc5RdYQ/mF3os9:1bfORapXAmhRG2ONi+BHNc8AE6ThyabiV+dCIdBMXSnvx3OBThmgNLWlom0DTfjDlGo7fwn/YbiIwvCgQ+reVngpti/kPjU/yd65yiKdr5AwrQbwk36hngaBPNR32T6sp6gSUDX1/hPK",
+  developmentOnlyOuterLayerDecryptionKey: "kEzw1Rd5axcHUj9Mg0UhZv1PRuHAPV0OkKDSiS9h6uU=",
+  localInnerLayerDecryptionKey: "T/MWGCeO/XlhKTbp/wullhh2yG4XMMOpHWH3NQMNBXQ=",
+  production: false
+}
 
 export const isExpoGoMode = () => ENV_CONFIG.USE_EXPO_GO;
 export const isLiveKitEnabled = () => ENV_CONFIG.USE_LIVEKIT;
