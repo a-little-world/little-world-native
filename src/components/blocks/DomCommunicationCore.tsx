@@ -98,12 +98,12 @@ export function DomCommunicationProvider({
       const { action, payload } = message;
       switch (action) {
         case "SET_AUTH_TOKENS": {
-          const { accessToken, refreshToken } = message.payload;
+          const { accessToken, refreshToken } = payload;
           saveJwtTokens(accessToken, refreshToken);
           return { ok: true };
         }
         case "NATIVE_CHALLENGE_PROOF": {
-          const { challenge, email, timestamp } = message.payload;
+          const { challenge, email, timestamp } = payload;
 
           try {
             const proof = await computeNativeChallengeProof(
@@ -122,10 +122,10 @@ export function DomCommunicationProvider({
           const pendingRequest = pendingRequestsRef.current.get(requestId);
 
           if (pendingRequest) {
-            pendingRequest.resolve(message.payload);
+            pendingRequest.resolve(payload);
             pendingRequestsRef.current.delete(requestId);
 
-            return message.payload;
+            return payload;
           } else {
             console.error("Received delayed dom response", message);
             return {
