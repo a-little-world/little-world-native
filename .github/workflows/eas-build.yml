@@ -30,7 +30,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Install dependencies
         run: |
-          cd little-world-native
+          cd little-world-frontend
+          npm ci
+          cd ../little-world-native
           ./_scripts/pack_and_update.sh
       - name: Build on EAS
         run: |
