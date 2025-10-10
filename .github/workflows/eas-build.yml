@@ -7,7 +7,17 @@ jobs:
     name: Install and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+        with:
+          path: little-world-native
+      - name: Checkout little-world-frontend (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: a-little-world/little-world-frontend
+          ref: ${{ github.event.inputs.COMMIT_REF }}
+          path: little-world-frontend
+          token: ${{ secrets.BOT_PAT }}
       - name: Install pnpm
         run: npm install -g pnpm@latest-10
       - uses: actions/setup-node@v4
@@ -20,6 +30,10 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Install dependencies
-        run: ./_scripts/pack_and_update.sh
+        run: |
+          cd little-world-native
+          ./_scripts/pack_and_update.sh
       - name: Build on EAS
-        run: eas build --platform ios --non-interactive --no-wait
+        run: |
+          cd little-world-native
+          eas build --platform ios --non-interactive --no-wait
