@@ -5,7 +5,7 @@ on:
 jobs:
   build-ios:
     name: Install and build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-builds-small
     steps:
       - name: Checkout little-world-native
         uses: actions/checkout@v4
@@ -23,7 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
-          cache: pnpm
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
