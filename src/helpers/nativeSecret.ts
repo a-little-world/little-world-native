@@ -42,10 +42,19 @@ export async function decrypt(encrypted: string, keyBase64: string): Promise<str
   const [nonceB64, cipherB64] = encrypted.split(':');
   if (!nonceB64 || !cipherB64) throw new Error('Invalid encrypted payload format. Expected "nonce:ciphertext"');
 
+  console.log('decrypt: nonceB64 length:', nonceB64.length);
+  console.log('decrypt: cipherB64 length:', cipherB64.length);
+  console.log('decrypt: keyBase64 length:', keyBase64.length);
+
   const key = Sodium.from_base64(keyBase64, Sodium.base64_variants.ORIGINAL);
   const nonce = Sodium.from_base64(nonceB64, Sodium.base64_variants.ORIGINAL);
   const ciphertext = Sodium.from_base64(cipherB64, Sodium.base64_variants.ORIGINAL);
 
+  console.log('decrypt: key type:', typeof key, 'is Uint8Array:', key instanceof Uint8Array);
+  console.log('decrypt: nonce type:', typeof nonce, 'is Uint8Array:', nonce instanceof Uint8Array);
+  console.log('decrypt: ciphertext type:', typeof ciphertext, 'is Uint8Array:', ciphertext instanceof Uint8Array);
+
+  // Pass the raw data directly - react-native-libsodium handles the conversion internally
   const message = Sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
     null,
     ciphertext,
@@ -61,15 +70,19 @@ export async function decrypt(encrypted: string, keyBase64: string): Promise<str
 
 export async function getNativeSecret(): Promise<string | null> {
   try {
+    console.log('getNativeSecret: Starting...');
     let outerLayerDecryptionKey = await SecureStore.getItemAsync(NATIVE_SECRET_OUTER_LAYER_DECRYPTION_KEY_KEY);
 
     if (!outerLayerDecryptionKey) {
+      console.log('getNativeSecret: No outer key found, checking environment...');
       if (!nativeEnv.production) {
+        console.log('getNativeSecret: Development mode, using dev key');
         outerLayerDecryptionKey = nativeEnv.developmentOnlyOuterLayerDecryptionKey;
         if (outerLayerDecryptionKey) {
           await SecureStore.setItemAsync(NATIVE_SECRET_OUTER_LAYER_DECRYPTION_KEY_KEY, outerLayerDecryptionKey);
         }
       } else {
+        console.log('getNativeSecret: Production mode, using app integrity...');
         if (!AppIntegrity.isSupported) {
           throw new Error('App Integrity not supported on this device/build');
         }
@@ -113,11 +126,18 @@ export async function getNativeSecret(): Promise<string | null> {
 
     if (!outerLayerDecryptionKey) return null;
 
+    console.log('getNativeSecret: Decrypting outer layer...');
+    console.log('getNativeSecret: Encrypted secret length:', nativeEnv.ecryptedNativeSecret.length);
+    console.log('getNativeSecret: Outer key length:', outerLayerDecryptionKey.length);
+    
     // 1 - decrypt outer layer
     const innerLayerEncrypted = await decrypt(nativeEnv.ecryptedNativeSecret, outerLayerDecryptionKey);
+    console.log('getNativeSecret: Inner layer decrypted, length:', innerLayerEncrypted.length);
 
     // 2 - decrypt inner layer
+    console.log('getNativeSecret: Decrypting inner layer...');
     const nativeSecret = await decrypt(innerLayerEncrypted, nativeEnv.localInnerLayerDecryptionKey);
+    console.log('getNativeSecret: Success! Secret length:', nativeSecret.length);
 
     return nativeSecret;
   } catch (err) {
