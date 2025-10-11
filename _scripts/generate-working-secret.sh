@@ -5,22 +5,28 @@ set -euo pipefail
 #
 # Usage:
 #   ./_scripts/generate-working-secret.sh "my secret"
+#   ./_scripts/generate-working-secret.sh "my secret" --json
 
 SECRET=${1:-}
+JSON_ONLY=${2:-}
+
 if [ -z "$SECRET" ]; then
-  echo "Usage: ./_scripts/generate-working-secret.sh <plaintext-secret>" >&2
+  echo "Usage: ./_scripts/generate-working-secret.sh <plaintext-secret> [--json]" >&2
   exit 2
 fi
 
 node -e "
 const secret = '$SECRET';
+const jsonOnly = '$JSON_ONLY' === '--json';
 
 // Generate random base64 keys (32 bytes each)
 const outerKey = Buffer.from(require('crypto').randomBytes(32)).toString('base64');
 const innerKey = Buffer.from(require('crypto').randomBytes(32)).toString('base64');
 
-console.log('Outer key:', outerKey);
-console.log('Inner key:', innerKey);
+if (!jsonOnly) {
+  console.log('Outer key:', outerKey);
+  console.log('Inner key:', innerKey);
+}
 
 // Simple approach: encrypt with combined key (outer + inner)
 const combinedKey = Buffer.concat([
@@ -30,7 +36,9 @@ const combinedKey = Buffer.concat([
 
 const encrypted = encrypt(secret, combinedKey);
 
-console.log('Combined encrypted:', encrypted);
+if (!jsonOnly) {
+  console.log('Combined encrypted:', encrypted);
+}
 
 function encrypt(plaintext, keyBase64) {
   const keyBytes = Buffer.from(keyBase64, 'base64');
@@ -53,6 +61,8 @@ const result = {
   encryptedSecret: encrypted
 };
 
-console.log('\\n=== RESULT ===');
+if (!jsonOnly) {
+  console.log('\\n=== RESULT ===');
+}
 console.log(JSON.stringify(result, null, 2));
 "
