@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
+import { supportsAppIntegrity, getBackendUrl, secureStoreContainsDecryptionKey, secureStoreIsAvailable } from "../../helpers/appInfos";
 
 export default function DomDebugPanel() {
   const { sendToDom } = useDomCommunicationContext();
@@ -17,6 +18,8 @@ export default function DomDebugPanel() {
   const [selectedRoute, setSelectedRoute] = useState("/sign-up");
   const [routeOpen, setRouteOpen] = useState(false);
   const [now, setNow] = useState("");
+  const [appInfoExpanded, setAppInfoExpanded] = useState(false);
+  const [secureStoreDecryptionKeyInfo, setSecureStoreDecryptionKeyInfo] = useState<string>("Loading...");
 
   const routes = useMemo(
     () => [
@@ -29,6 +32,16 @@ export default function DomDebugPanel() {
     []
   );
 
+  const appInfoData = useMemo(
+    () => [
+      { key: "supportsAppIntegrity", value: supportsAppIntegrity() },
+      { key: "getBackendUrl", value: getBackendUrl() },
+      { key: "secureStoreIsAvailable", value: secureStoreIsAvailable() },
+      { key: "secureStoreContainsDecryptionKey", value: secureStoreDecryptionKeyInfo },
+    ],
+    [secureStoreDecryptionKeyInfo]
+  );
+
   useEffect(() => {
     if (!visible) return;
     const update = () => setNow(new Date().toLocaleTimeString());
@@ -36,6 +49,19 @@ export default function DomDebugPanel() {
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [visible]);
+
+  // Load async secure store info
+  useEffect(() => {
+    const loadSecureStoreInfo = async () => {
+      try {
+        const info = await secureStoreContainsDecryptionKey();
+        setSecureStoreDecryptionKeyInfo(info);
+      } catch (error) {
+        setSecureStoreDecryptionKeyInfo(`Error: ${error}`);
+      }
+    };
+    loadSecureStoreInfo();
+  }, []);
 
   const ping = async () => {
     try {
@@ -146,6 +172,29 @@ export default function DomDebugPanel() {
                         {route.label}
                       </Text>
                     </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+            <View style={styles.appInfoSection}>
+              <TouchableOpacity
+                style={styles.appInfoHeader}
+                onPress={() => setAppInfoExpanded(!appInfoExpanded)}
+              >
+                <Text style={styles.sectionLabel}>App Info:</Text>
+                <Text style={styles.expandButton}>
+                  {appInfoExpanded ? "▼" : "▶"}
+                </Text>
+              </TouchableOpacity>
+              {appInfoExpanded && (
+                <View style={styles.appInfoContent}>
+                  {appInfoData.map((item, index) => (
+                    <View key={index} style={styles.keyValueRow}>
+                      <Text style={styles.keyText}>{item.key}:</Text>
+                      <Text style={styles.valueText}>
+                        {format(item.value)}
+                      </Text>
+                    </View>
                   ))}
                 </View>
               )}
@@ -316,6 +365,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   navigateButtonText: { color: "white", fontSize: 12, fontWeight: "600" },
+  appInfoSection: { marginBottom: 16 },
+  appInfoHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  expandButton: {
+    fontSize: 12,
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+  appInfoContent: {
+    marginTop: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 6,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  keyValueRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+    alignItems: "flex-start",
+  },
+  keyText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#495057",
+    minWidth: 120,
+    marginRight: 8,
+  },
+  valueText: {
+    fontSize: 11,
+    color: "#6c757d",
+    fontFamily: "monospace",
+    flex: 1,
+  },
   tokenSection: { marginBottom: 16 },
   tokenInputRow: {
     flexDirection: "row",
