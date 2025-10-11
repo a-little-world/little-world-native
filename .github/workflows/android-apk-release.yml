@@ -32,7 +32,7 @@ on:
       COMMIT_REF:
         description: "Frontend commit SHA or branch to checkout"
         required: false
-        default: "experimental"
+        default: "main"
 
 permissions:
   contents: write
