@@ -1,6 +1,5 @@
 import { environment } from "@/environment";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+import * as SecureStore from "../helpers/secureStore";
 import { useAuthStore } from "../store/authStore";
 
 const ACCESS_TOKEN_KEY = "dom_auth_access_token";
@@ -8,10 +7,8 @@ const REFRESH_TOKEN_KEY = "dom_auth_refresh_token";
 
 export async function getAccessJwtToken() {
   try {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      if (SecureStore && typeof SecureStore.getItemAsync === "function") {
-        return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      }
+    if (SecureStore && typeof SecureStore.getItemAsync === "function") {
+      return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
     }
   } catch {}
   return null;
@@ -19,10 +16,8 @@ export async function getAccessJwtToken() {
 
 export async function getRefreshJwtToken() {
   try {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      if (SecureStore && typeof SecureStore.getItemAsync === "function") {
-        return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-      }
+    if (SecureStore && typeof SecureStore.getItemAsync === "function") {
+      return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
     }
   } catch {}
   return null;
@@ -33,19 +28,17 @@ export async function saveJwtTokens(
   refreshToken: string | null
 ) {
   try {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      if (SecureStore && typeof SecureStore.setItemAsync === "function") {
-        if (accessToken !== null) {
-          await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-        } else {
-          await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        }
+    if (SecureStore && typeof SecureStore.setItemAsync === "function") {
+      if (accessToken !== null) {
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+      } else {
+        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      }
 
-        if (refreshToken !== null) {
-          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
-        } else {
-          await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-        }
+      if (refreshToken !== null) {
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+      } else {
+        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
       }
     }
   } catch {}
