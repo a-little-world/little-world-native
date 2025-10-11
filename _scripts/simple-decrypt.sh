@@ -44,7 +44,7 @@ try {
     decrypted[i] = ciphertext[i] ^ keyBytes[i % keyBytes.length];
   }
   
-  console.log('Decrypted:', decrypted.toString('utf8'));
+  console.log('Decrypted (base64):', Buffer.from(decrypted).toString('base64'));
 } catch (error) {
   console.error('Decrypt failed:', error.message);
   process.exit(1);

@@ -16,9 +16,9 @@ if [ -z "$PLAINTEXT" ] || [ -z "$KEY_BASE64" ]; then
   exit 2
 fi
 
-node - <<'NODE'
-const plaintext = process.argv[1];
-const keyBase64 = process.argv[2];
+node -e "
+const plaintext = '$PLAINTEXT';
+const keyBase64 = '$KEY_BASE64';
 
 // Convert key to bytes
 const keyBytes = Buffer.from(keyBase64, 'base64');
@@ -35,4 +35,4 @@ const nonce = keyBytes.slice(0, 12);
 const result = Buffer.concat([nonce, encrypted]);
 
 console.log(result.toString('base64'));
-NODE
+"
