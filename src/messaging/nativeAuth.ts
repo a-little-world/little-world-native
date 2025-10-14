@@ -1,4 +1,3 @@
-import { getNativeSecret } from "@/src/helpers/nativeSecret";
 import { HmacSHA256, enc } from "crypto-js";
 import { NativeModules } from "react-native";
 
