@@ -19,7 +19,7 @@ export interface Environment {
 }
 
 export const environment: Environment = {
-  googleCloudProjectNumber: "106218836766",
+  googleCloudProjectNumber: "601387323189",
   showDebugPanel: true,
   production: frontendEnvironment.production,
 }

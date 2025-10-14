@@ -52,6 +52,20 @@ export default function DomDebugPanel() {
     return () => clearInterval(id);
   }, [visible]);
 
+  
+  const getWindowOrigin = async () => {
+    try {
+      const res = await sendToDom({
+        action: "GET_WINDOW_ORIGIN",
+        payload: {
+          message,
+        },
+      });
+      setLastResponse(res.ok ? res.data?.origin : res.error);
+    } catch (e: any) {
+      setLastResponse({ ok: false, error: String(e) });
+    }
+  };
 
   const ping = async () => {
     try {
@@ -137,6 +151,10 @@ export default function DomDebugPanel() {
                           <TouchableOpacity style={styles.pingButton} onPress={ping}>
                             <Text style={styles.pingButtonText}>Ping</Text>
                           </TouchableOpacity>
+                          <TouchableOpacity style={styles.pingButton} onPress={getWindowOrigin}>
+                            <Text style={styles.pingButtonText}>Get Window Origin</Text>
+                          </TouchableOpacity>
+
                         </View>
 
                         <View style={styles.navigationSection}>
