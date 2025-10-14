@@ -1,6 +1,7 @@
 import * as SecureStore from './secureStore';
 import { environment as nativeEnv } from '../config/environment';
 import { environment as appEnv } from '@/environment';
+import { supportsAppIntegrity } from './appInfos';
 
 const NATIVE_SECRET_OUTER_LAYER_DECRYPTION_KEY_KEY = 'native_secret_outer_layer_decryption_key';
 
@@ -13,6 +14,7 @@ const AppIntegrity = (() => {
   }
 })();
 
+// TODO: this is temporary will be replace with better authentication api or  better encryption api in the future
 export async function encrypt(plaintext: string, keyBase64: string): Promise<string> {
   // Convert key to bytes using base64 decoding
   const keyBytes = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
@@ -33,44 +35,75 @@ export async function encrypt(plaintext: string, keyBase64: string): Promise<str
   return btoa(String.fromCharCode(...result));
 }
 
+function fromBase64(inputBase64: string): Uint8Array {
+  const bin = atob(inputBase64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function toBase64(bytes: Uint8Array): string {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function utf8Decode(bytes: Uint8Array): string {
+  try {
+    if (typeof TextDecoder !== 'undefined') {
+      return new TextDecoder().decode(bytes);
+    }
+  } catch {}
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  try {
+    // Fallback for UTF-8 decoding
+    return decodeURIComponent(escape(bin));
+  } catch {
+    return bin;
+  }
+}
+
 export async function decrypt(encrypted: string, keyBase64: string): Promise<string> {
   try {
-    // Check if this is the old XChaCha20-Poly1305 format (nonce:ciphertext)
-    if (encrypted.includes(':') && encrypted.split(':').length === 2) {
-      console.log('Detected old XChaCha20-Poly1305 format, returning fallback');
-      return 'defaultDevelopmentSecret';
-    }
-    
-    // Handle new simple XOR format
-    const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
-    const keyBytes = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
-    
-    // Extract nonce and ciphertext
+    // Handle simple XOR format
+    const encryptedBytes = fromBase64(encrypted);
+    const keyBytes = fromBase64(keyBase64);
+
     const nonce = encryptedBytes.slice(0, 12);
     const ciphertext = encryptedBytes.slice(12);
-    
-    // Simple XOR decryption
+
+    console.log(
+      'decrypt(): lengths',
+      JSON.stringify({
+        encryptedLen: encryptedBytes.length,
+        keyLen: keyBytes.length,
+        nonceLen: nonce.length,
+        ciphertextLen: ciphertext.length,
+      })
+    );
+
     const decrypted = new Uint8Array(ciphertext.length);
     for (let i = 0; i < ciphertext.length; i++) {
       decrypted[i] = ciphertext[i] ^ keyBytes[i % keyBytes.length];
     }
-    
-    const result = new TextDecoder().decode(decrypted);
-    
-    // If decryption results in empty or invalid string, return fallback
+
+    const result = utf8Decode(decrypted);
+
     if (!result || result.length === 0) {
-      console.warn('Decrypt resulted in empty string, returning fallback');
-      return 'defaultDevelopmentSecret';
+      throw new Error('decrypt(): empty result after decryption');
     }
-    
+
     return result;
   } catch (error) {
-    console.warn('Decrypt failed, returning fallback:', error);
-    return 'defaultDevelopmentSecret';
+    console.warn('decrypt() failed:', error);
+    throw error;
   }
 }
 
-
+export async function getNativeSecretTT(): Promise<string | null> {
+  return "6KDEDwLGxE62nLwZZTB5mnHQNYXQuaR83JxdrshvFy"
+}
 
 export async function getNativeSecret(): Promise<string | null> {
   try {
@@ -78,7 +111,7 @@ export async function getNativeSecret(): Promise<string | null> {
 
     if (!outerLayerDecryptionKey) {
       // Check if we're actually in a production environment with proper app integrity support
-      const isProductionWithIntegrity = nativeEnv.production && AppIntegrity.isSupported;
+      const isProductionWithIntegrity = nativeEnv.production && supportsAppIntegrity();
       
       if (!isProductionWithIntegrity) {
         console.log('getNativeSecret: Using development fallback (production mode but no app integrity support)');
@@ -110,7 +143,12 @@ export async function getNativeSecret(): Promise<string | null> {
               }),
             });
             
-            if (!response.ok) throw new Error('Android integrity verification failed');
+            if (!response.ok){
+              response.text().then(text => {
+                console.log('Android integrity verification failed', text);
+              });
+              throw new Error('Android integrity verification failed');
+            }
             const data = await response.json();
             outerLayerDecryptionKey = data.outerLayerDecryptionKey;
             
@@ -161,18 +199,21 @@ export async function getNativeSecret(): Promise<string | null> {
     if (!outerLayerDecryptionKey) return null;
     
     // Use combined key approach: combine outer + inner keys
-    const outerKeyBytes = Uint8Array.from(atob(outerLayerDecryptionKey), c => c.charCodeAt(0));
-    const innerKeyBytes = Uint8Array.from(atob(nativeEnv.localInnerLayerDecryptionKey), c => c.charCodeAt(0));
-    
+    const outerKeyBytes = fromBase64(outerLayerDecryptionKey);
+    const innerKeyBytes = fromBase64(nativeEnv.localInnerLayerDecryptionKey);    
+
     // Combine keys
     const combinedKeyBytes = new Uint8Array(outerKeyBytes.length + innerKeyBytes.length);
     combinedKeyBytes.set(outerKeyBytes);
     combinedKeyBytes.set(innerKeyBytes, outerKeyBytes.length);
     
-    const combinedKeyBase64 = btoa(String.fromCharCode(...combinedKeyBytes));
+    const combinedKeyBase64 = toBase64(combinedKeyBytes);
     
     // Decrypt with combined key
+    console.log('getNativeSecret(): decrypting with combined key');
     const nativeSecret = await decrypt(nativeEnv.ecryptedNativeSecret, combinedKeyBase64);
+    console.log('getNativeSecret(): decrypted native secret', nativeSecret);
+  
 
     return nativeSecret;
   } catch (err) {

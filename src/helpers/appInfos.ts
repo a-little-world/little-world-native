@@ -4,7 +4,7 @@ import * as SecureStore from './secureStore';
 import { Platform } from 'react-native';
 
 export function supportsAppIntegrity(): boolean {
-  return AppIntegrity.isSupported;
+  return AppIntegrity.isSupported && !(Platform.OS === 'web');
 }
 
 export function secureStoreIsAvailable(): boolean {

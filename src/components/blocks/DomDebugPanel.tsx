@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
+import * as SecureStore from "../../helpers/secureStore";
 import { supportsAppIntegrity, getBackendUrl, secureStoreContainsDecryptionKey, secureStoreIsAvailable } from "../../helpers/appInfos";
 
 export default function DomDebugPanel() {
@@ -19,7 +20,11 @@ export default function DomDebugPanel() {
   const [routeOpen, setRouteOpen] = useState(false);
   const [now, setNow] = useState("");
   const [appInfoExpanded, setAppInfoExpanded] = useState(false);
+  const [actionsExpanded, setActionsExpanded] = useState(false);
   const [secureStoreDecryptionKeyInfo, setSecureStoreDecryptionKeyInfo] = useState<string>("Loading...");
+  const [domActionsExpanded, setDomActionsExpanded] = useState(true);
+  const [deleteKeyExpanded, setDeleteKeyExpanded] = useState(false);
+  const [deleteKeyResult, setDeleteKeyResult] = useState<string | null>(null);
 
   const routes = useMemo(
     () => [
@@ -77,6 +82,18 @@ export default function DomDebugPanel() {
     }
   };
 
+  const deleteOuterLayerDecryptionKey = async () => {
+    try {
+      const KEY = "native_secret_outer_layer_decryption_key";
+      await SecureStore.deleteItemAsync(KEY);
+      setDeleteKeyResult("Deleted successfully");
+      const info = await secureStoreContainsDecryptionKey();
+      setSecureStoreDecryptionKeyInfo(info);
+    } catch (e: any) {
+      setDeleteKeyResult(`Error: ${String(e)}`);
+    }
+  };
+
   const format = (value: any) => {
     try {
       return JSON.stringify(value, null, 2);
@@ -111,68 +128,141 @@ export default function DomDebugPanel() {
             style={styles.debugContent}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.inputRow}>
-              <TextInput
-                value={message}
-                onChangeText={setMessage}
-                placeholder="Message to send to DOM"
-                style={styles.textInput}
-              />
-              <TouchableOpacity style={styles.pingButton} onPress={ping}>
-                <Text style={styles.pingButtonText}>Ping</Text>
+            {/* Actions Panel */}
+            <View style={styles.appInfoSection}>
+              <TouchableOpacity
+                style={styles.appInfoHeader}
+                onPress={() => setActionsExpanded(!actionsExpanded)}
+              >
+                <Text style={styles.sectionLabel}>Actions:</Text>
+                <Text style={styles.expandButton}>
+                  {actionsExpanded ? "▼" : "▶"}
+                </Text>
               </TouchableOpacity>
-            </View>
-            <View style={styles.navigationSection}>
-              <Text style={styles.sectionLabel}>Navigation:</Text>
-              <View style={styles.currentRouteDisplay}>
-                <Text style={styles.currentRouteLabel}>Current Route:</Text>
-                <Text style={styles.currentRouteValue}>{selectedRoute}</Text>
-              </View>
-              <View style={styles.routeSelector}>
-                <TouchableOpacity
-                  style={styles.routeDropdown}
-                  onPress={() => setRouteOpen(!routeOpen)}
-                >
-                  <Text style={styles.routeDropdownText}>
-                    {routes.find((r) => r.value === selectedRoute)?.label ||
-                      "Select Route"}
-                  </Text>
-                  <Text style={styles.dropdownArrow}>▼</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.navigateButton}
-                  onPress={async () => {
-                    await sendToDom({
-                      action: "NAVIGATE",
-                      payload: { path: selectedRoute },
-                    });
-                  }}
-                >
-                  <Text style={styles.navigateButtonText}>Go</Text>
-                </TouchableOpacity>
-              </View>
-              {routeOpen && (
-                <View style={styles.dropdownMenu}>
-                  {routes.map((route) => (
+              {actionsExpanded && (
+                <View style={styles.appInfoContent}>
+                  {/* Dom communication test actions */}
+                  <View style={styles.appInfoSection}>
                     <TouchableOpacity
-                      key={route.value}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setSelectedRoute(route.value);
-                        setRouteOpen(false);
-                      }}
+                      style={styles.appInfoHeader}
+                      onPress={() => setDomActionsExpanded(!domActionsExpanded)}
                     >
-                      <Text
-                        style={[
-                          styles.dropdownItemText,
-                          route.value === selectedRoute &&
-                            styles.dropdownItemTextSelected,
-                        ]}
-                      >
-                        {route.label}
+                      <Text style={styles.sectionLabel}>Dom communication test actions</Text>
+                      <Text style={styles.expandButton}>
+                        {domActionsExpanded ? "▼" : "▶"}
                       </Text>
                     </TouchableOpacity>
-                  ))}
+                    {domActionsExpanded && (
+                      <View style={styles.appInfoContent}>
+                        <View style={styles.inputRow}>
+                          <TextInput
+                            value={message}
+                            onChangeText={setMessage}
+                            placeholder="Message to send to DOM"
+                            style={styles.textInput}
+                          />
+                          <TouchableOpacity style={styles.pingButton} onPress={ping}>
+                            <Text style={styles.pingButtonText}>Ping</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.navigationSection}>
+                          <Text style={styles.sectionLabel}>Navigation:</Text>
+                          <View style={styles.currentRouteDisplay}>
+                            <Text style={styles.currentRouteLabel}>Current Route:</Text>
+                            <Text style={styles.currentRouteValue}>{selectedRoute}</Text>
+                          </View>
+                          <View style={styles.routeSelector}>
+                            <TouchableOpacity
+                              style={styles.routeDropdown}
+                              onPress={() => setRouteOpen(!routeOpen)}
+                            >
+                              <Text style={styles.routeDropdownText}>
+                                {routes.find((r) => r.value === selectedRoute)?.label ||
+                                  "Select Route"}
+                              </Text>
+                              <Text style={styles.dropdownArrow}>▼</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.navigateButton}
+                              onPress={async () => {
+                                await sendToDom({
+                                  action: "NAVIGATE",
+                                  payload: { path: selectedRoute },
+                                });
+                              }}
+                            >
+                              <Text style={styles.navigateButtonText}>Go</Text>
+                            </TouchableOpacity>
+                          </View>
+                          {routeOpen && (
+                            <View style={styles.dropdownMenu}>
+                              {routes.map((route) => (
+                                <TouchableOpacity
+                                  key={route.value}
+                                  style={styles.dropdownItem}
+                                  onPress={() => {
+                                    setSelectedRoute(route.value);
+                                    setRouteOpen(false);
+                                  }}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.dropdownItemText,
+                                      route.value === selectedRoute &&
+                                        styles.dropdownItemTextSelected,
+                                    ]}
+                                  >
+                                    {route.label}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
+                        </View>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.responseContainer}>
+                          <View style={styles.responseHeader}>
+                            <Text style={styles.responseLabel}>Last Response:</Text>
+                            <TouchableOpacity
+                              style={styles.clearResponseButton}
+                              onPress={() => setLastResponse(null)}
+                            >
+                              <Text style={styles.clearResponseButtonText}>Clear</Text>
+                            </TouchableOpacity>
+                          </View>
+                          <Text style={styles.responseText}>
+                            {lastResponse ? format(lastResponse) : "None"}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Delete outer layer decryption key */}
+                  <View style={styles.appInfoSection}>
+                    <TouchableOpacity
+                      style={styles.appInfoHeader}
+                      onPress={() => setDeleteKeyExpanded(!deleteKeyExpanded)}
+                    >
+                      <Text style={styles.sectionLabel}>Delete outer layer decryption key</Text>
+                      <Text style={styles.expandButton}>
+                        {deleteKeyExpanded ? "▼" : "▶"}
+                      </Text>
+                    </TouchableOpacity>
+                    {deleteKeyExpanded && (
+                      <View style={styles.appInfoContent}>
+                        <TouchableOpacity style={styles.navigateButton} onPress={deleteOuterLayerDecryptionKey}>
+                          <Text style={styles.navigateButtonText}>Delete Key</Text>
+                        </TouchableOpacity>
+                        {deleteKeyResult ? (
+                          <Text style={[styles.responseText, { marginTop: 8 }]}>{deleteKeyResult}</Text>
+                        ) : null}
+                      </View>
+                    )}
+                  </View>
                 </View>
               )}
             </View>
