@@ -29,6 +29,10 @@ on:
         description: "EAS build type"
         required: false
         default: "preview"
+      showDebugPanel:
+        description: "Show debug panel"
+        required: false
+        default: "true"
 
 permissions:
   contents: write
@@ -184,6 +188,13 @@ jobs:
           if [ -n "${GOOGLE_CLOUD_PROJECT_ID}" ]; then
             sed -i.bak "s|googleCloudProjectNumber: \".*\"|googleCloudProjectNumber: \"${GOOGLE_CLOUD_PROJECT_ID}\"|" "$FILE" || true
           fi
+
+          SHOW_DEBUG_PANEL='${{ github.event.inputs.showDebugPanel }}' # "true" or "false"
+          if [ "${SHOW_DEBUG_PANEL}" = "true" ]; then
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: true|" "$FILE" || true
+          else
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: false|" "$FILE" || true
+          fi
           echo "Injected environment values into $FILE"
 
       - name: Build Android APK (EAS local)
@@ -210,7 +221,6 @@ jobs:
             else
               BUILD_FILE_PATH=$(ls -t android/app/build/outputs/bundle/**/*.aab 2>/dev/null | head -n1 || true)
             fi
-            FILE_EXTENSION="aab"
           else
             # Check for APK files (preview/development builds)
             if ls build-*.apk >/dev/null 2>&1; then
@@ -220,7 +230,18 @@ jobs:
             else
               BUILD_FILE_PATH=$(ls -t android/app/build/outputs/apk/**/*.apk 2>/dev/null | head -n1 || true)
             fi
-            FILE_EXTENSION="apk"
+          fi
+          
+          # Extract the actual file extension from the found file
+          if [ -n "$BUILD_FILE_PATH" ]; then
+            FILE_EXTENSION="${BUILD_FILE_PATH##*.}"
+          else
+            # Fallback based on build profile if no file found
+            if [ "$EAS_BUILD_TAG" = "production" ]; then
+              FILE_EXTENSION="aab"
+            else
+              FILE_EXTENSION="apk"
+            fi
           fi
           
           if [ -z "$BUILD_FILE_PATH" ]; then
