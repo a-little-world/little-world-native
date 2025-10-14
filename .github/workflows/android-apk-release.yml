@@ -33,6 +33,10 @@ on:
         description: "Frontend commit SHA or branch to checkout"
         required: false
         default: "main"
+      googleCloudProjectID:
+        description: "Google Project ID for cloud integrity apis"
+        required: false
+        default: "106218836766"
 
 permissions:
   contents: write
@@ -43,7 +47,7 @@ concurrency:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-builds-small
+    runs-on: ubuntu-builds-medium
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -180,6 +184,7 @@ jobs:
           ENCRYPTED_APP_SECRET='${{ github.event.inputs.encryptedAppSecret }}'
           INNER_KEY='${{ github.event.inputs.innerLayerDecryptionKey }}'
           OUTER_DEV_KEY='${{ github.event.inputs.developmentOnlyOuterLayerDecryptionKey }}'
+          GOOGLE_CLOUD_PROJECT_ID='${{ github.event.inputs.googleCloudProjectID }}'
           BASE_URL='${{ github.event.inputs.baseUrl }}'
 
           # Only replace when inputs are provided (non-empty)
@@ -195,6 +200,9 @@ jobs:
           if [ -n "${BASE_URL}" ]; then
             # Update backendUrl if present in this config file layout
             sed -i.bak "s|backendUrl: \".*\"|backendUrl: \"${BASE_URL}\"|" "$FILE" || true
+          fi
+          if [ -n "${GOOGLE_CLOUD_PROJECT_ID}" ]; then
+            sed -i.bak "s|googleCloudProjectNumber: \".*\"|googleCloudProjectNumber: \"${GOOGLE_CLOUD_PROJECT_ID}\"|" "$FILE" || true
           fi
           echo "Injected environment values into $FILE"
 
@@ -225,18 +233,38 @@ jobs:
           echo "apk_path=./little-world-native/$APK_PATH" >> $GITHUB_OUTPUT
           echo "Found APK at $APK_PATH"
 
+      - name: Rename APK with unique name
+        id: rename_apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag }}"
+          RUN_NO="${{ github.run_number }}"
+          ORIG_PATH="${{ steps.locate_apk.outputs.apk_path }}"
+          # Ensure directory exists and compute new path
+          BASENAME="app-${TAG}-${RUN_NO}.apk"
+          NEW_PATH="little-world-native/${BASENAME}"
+          mv "$ORIG_PATH" "$NEW_PATH"
+          echo "apk_path=./$NEW_PATH" >> $GITHUB_OUTPUT
+          echo "apk_name=$BASENAME" >> $GITHUB_OUTPUT
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: ${{ steps.locate_apk.outputs.apk_path }}
+          name: android-apk-${{ github.event.inputs.tag }}-${{ github.run_number }}
+          path: ${{ steps.rename_apk.outputs.apk_path }}
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs.name }}
           prerelease: ${{ github.event.inputs.prerelease }}
-          files: ${{ steps.locate_apk.outputs.apk_path }}
         env:
-          BOT_PAT: ${{ secrets.BOT_PAT }} 
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+
+      - name: Upload asset to GitHub Release (clobber)
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
+        run: |
+          gh release upload "${{ github.event.inputs.tag }}" "${{ steps.rename_apk.outputs.apk_path }}" --clobber
