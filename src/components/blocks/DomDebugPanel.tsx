@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
 import * as SecureStore from "../../helpers/secureStore";
-import { supportsAppIntegrity, getBackendUrl, secureStoreContainsDecryptionKey, secureStoreIsAvailable } from "../../helpers/appInfos";
+import { supportsAppIntegrity, getBackendUrl, secureStoreIsAvailable } from "../../helpers/appInfos";
 
 export default function DomDebugPanel() {
   const { sendToDom } = useDomCommunicationContext();
@@ -23,8 +23,6 @@ export default function DomDebugPanel() {
   const [actionsExpanded, setActionsExpanded] = useState(false);
   const [secureStoreDecryptionKeyInfo, setSecureStoreDecryptionKeyInfo] = useState<string>("Loading...");
   const [domActionsExpanded, setDomActionsExpanded] = useState(true);
-  const [deleteKeyExpanded, setDeleteKeyExpanded] = useState(false);
-  const [deleteKeyResult, setDeleteKeyResult] = useState<string | null>(null);
 
   const routes = useMemo(
     () => [
@@ -42,7 +40,6 @@ export default function DomDebugPanel() {
       { key: "supportsAppIntegrity", value: supportsAppIntegrity() },
       { key: "getBackendUrl", value: getBackendUrl() },
       { key: "secureStoreIsAvailable", value: secureStoreIsAvailable() },
-      { key: "secureStoreContainsDecryptionKey", value: secureStoreDecryptionKeyInfo },
     ],
     [secureStoreDecryptionKeyInfo]
   );
@@ -55,18 +52,6 @@ export default function DomDebugPanel() {
     return () => clearInterval(id);
   }, [visible]);
 
-  // Load async secure store info
-  useEffect(() => {
-    const loadSecureStoreInfo = async () => {
-      try {
-        const info = await secureStoreContainsDecryptionKey();
-        setSecureStoreDecryptionKeyInfo(info);
-      } catch (error) {
-        setSecureStoreDecryptionKeyInfo(`Error: ${error}`);
-      }
-    };
-    loadSecureStoreInfo();
-  }, []);
 
   const ping = async () => {
     try {
@@ -79,18 +64,6 @@ export default function DomDebugPanel() {
       setLastResponse(res.ok ? res.data?.message : res.error);
     } catch (e: any) {
       setLastResponse({ ok: false, error: String(e) });
-    }
-  };
-
-  const deleteOuterLayerDecryptionKey = async () => {
-    try {
-      const KEY = "native_secret_outer_layer_decryption_key";
-      await SecureStore.deleteItemAsync(KEY);
-      setDeleteKeyResult("Deleted successfully");
-      const info = await secureStoreContainsDecryptionKey();
-      setSecureStoreDecryptionKeyInfo(info);
-    } catch (e: any) {
-      setDeleteKeyResult(`Error: ${String(e)}`);
     }
   };
 
@@ -237,29 +210,6 @@ export default function DomDebugPanel() {
                             {lastResponse ? format(lastResponse) : "None"}
                           </Text>
                         </View>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Delete outer layer decryption key */}
-                  <View style={styles.appInfoSection}>
-                    <TouchableOpacity
-                      style={styles.appInfoHeader}
-                      onPress={() => setDeleteKeyExpanded(!deleteKeyExpanded)}
-                    >
-                      <Text style={styles.sectionLabel}>Delete outer layer decryption key</Text>
-                      <Text style={styles.expandButton}>
-                        {deleteKeyExpanded ? "▼" : "▶"}
-                      </Text>
-                    </TouchableOpacity>
-                    {deleteKeyExpanded && (
-                      <View style={styles.appInfoContent}>
-                        <TouchableOpacity style={styles.navigateButton} onPress={deleteOuterLayerDecryptionKey}>
-                          <Text style={styles.navigateButtonText}>Delete Key</Text>
-                        </TouchableOpacity>
-                        {deleteKeyResult ? (
-                          <Text style={[styles.responseText, { marginTop: 8 }]}>{deleteKeyResult}</Text>
-                        ) : null}
                       </View>
                     )}
                   </View>

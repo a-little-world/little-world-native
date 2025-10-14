@@ -13,18 +13,12 @@ export function isWebBuild() {
 }
 
 export interface Environment {
-  ecryptedNativeSecret: string,
-  developmentOnlyOuterLayerDecryptionKey: string,
-  localInnerLayerDecryptionKey: string,
   googleCloudProjectNumber: string,
   showDebugPanel: boolean,
   production: boolean,
 }
 
 export const environment: Environment = {
-  ecryptedNativeSecret: "Zn1YJte+GwpzIbRaAhg+R6LSb04WV9E2ciFjdyFeukWVKYNl",
-  developmentOnlyOuterLayerDecryptionKey: "Zn1YJte+GwpzIbRaHVEOEk8q6SD2W+YRO2PKm1sL4vs=",
-  localInnerLayerDecryptionKey: "QYEOWLg8aZIxGLAuw12U8wa5ppEo/9DgEluX9MPICPE=",
   googleCloudProjectNumber: "106218836766",
   showDebugPanel: true,
   production: frontendEnvironment.production,

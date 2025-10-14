@@ -1,6 +1,6 @@
 import { saveJwtTokens } from "@/src/api/token";
-import { computeNativeChallengeProof } from "@/src/messaging/nativeAuth";
 import { useAuthStore } from "@/src/store/authStore";
+import { requestIntegrityCheck } from "@/src/helpers/integrityCheck";
 import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -102,19 +102,12 @@ export function DomCommunicationProvider({
           saveJwtTokens(accessToken, refreshToken);
           return { ok: true };
         }
-        case "NATIVE_CHALLENGE_PROOF": {
-          const { challenge, email, timestamp } = payload;
-
-          try {
-            const proof = await computeNativeChallengeProof(
-              challenge,
-              timestamp,
-              email
-            );
-            return { ok: true, data: { proof } };
-          } catch (e: any) {
-            return { ok: false, error: e };
-          }
+        case "GET_INTEGRITY_TOKEN": {
+          const integrityData = await requestIntegrityCheck();
+          return { ok: true, data: { 
+            "integrityToken": integrityData.integrityToken,
+            "requestHash": integrityData.requestHash,
+          }};
         }
         case "RESPONSE": {
           const requestId = message.requestId;
