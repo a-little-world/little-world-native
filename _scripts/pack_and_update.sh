@@ -4,9 +4,9 @@
 cd ../little-world-frontend || exit 1
 
 # Use environment variables if set, otherwise fall back to defaults
-SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-false}
+SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
 HTTP_SCHEME=${HTTP_SCHEME:-"https"}
-HOST_DOMAIN=${HOST_DOMAIN:-""}
+HOST_DOMAIN=${HOST_DOMAIN:-"56ad3d91246f.ngrok-free.app"}
 USE_WSS_WEBSOCKET=false
 FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
 if [ $HTTP_SCHEME = "https" ]; then
@@ -55,6 +55,7 @@ echo "Generated tarball: $TARBALL"
 # Navigate back to root directory
 cd ../little-world-native
 mv ../little-world-frontend/$TARBALL .
+cp ../little-world-frontend/src/environment.ts ./environment.ts
 
 # Update the dependency reference in root package.json
 sed -i.bak "s|\"littleplanet\": \"file:./littleplanet-.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
