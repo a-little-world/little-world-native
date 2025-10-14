@@ -7,6 +7,7 @@
     "start:expo-go": "EXPO_PUBLIC_USE_EXPO_GO=true expo start --port 9000 --clear --go",
     "start:dev-build": "EXPO_PUBLIC_USE_EXPO_GO=false expo start --port 9000",
     "reset-project": "node ./scripts/reset-project.js",
+    "android-device": "expo run:android -d",
     "troubleshoot": "./scripts/dev-troubleshoot.sh",
     "android": "expo start --android --port 9000",
     "dev:proxy": "./_scripts/schrodingers-nginx.sh",
@@ -28,7 +29,6 @@
     "@expo/app-integrity": "^0.1.8",
     "@expo/metro-runtime": "~5.0.0",
     "@expo/vector-icons": "~14.1.0",
-    "@livekit/react-native-webrtc": "^125.0.10",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@rn-primitives/portal": "^1.3.0",
@@ -36,6 +36,7 @@
     "expo": "~53.0.0",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
+    "expo-crypto": "^15.0.7",
     "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.2",
     "expo-haptics": "~14.1.4",
@@ -51,7 +52,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.258.tgz",
+    "littleplanet": "file:./littleplanet-0.1.276.tgz",
     "livekit-client": "^2.13.8",
     "react": "19.0.0",
     "react-hook-form": "^7.54.2",
@@ -59,7 +60,6 @@
     "react-native": "0.79.5",
     "react-native-exception-handler": "^2.10.10",
     "react-native-gesture-handler": "~2.24.0",
-    "react-native-libsodium": "^1.4.0",
     "react-native-reanimated": "~3.17.5",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
@@ -76,7 +76,6 @@
     "@types/crypto-js": "^4.2.2",
     "@types/react": "~19.0.14",
     "@types/react-test-renderer": "^19.0.0",
-    "libsodium-wrappers": "^0.7.15",
     "metro-minify-terser": "^0.83.1",
     "react-dom": "19.0.0",
     "react-native-svg-transformer": "^1.5.1",
@@ -98,7 +97,6 @@
       "reactNativeDirectoryCheck": {
         "exclude": [
           "@livekit/react-native",
-          "@livekit/react-native-webrtc",
           "react-native-exception-handler"
         ],
         "listUnknownPackages": false

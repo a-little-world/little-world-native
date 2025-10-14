@@ -191,9 +191,9 @@ jobs:
 
           SHOW_DEBUG_PANEL='${{ github.event.inputs.showDebugPanel }}' # "true" or "false"
           if [ "${SHOW_DEBUG_PANEL}" = "true" ]; then
-            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: true|" "$FILE" || true
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: true,|" "$FILE" || true
           else
-            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: false|" "$FILE" || true
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: false,|" "$FILE" || true
           fi
           echo "Injected environment values into $FILE"
 
