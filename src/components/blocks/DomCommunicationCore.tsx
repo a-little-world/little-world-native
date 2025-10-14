@@ -1,4 +1,4 @@
-import { saveJwtTokens } from "@/src/api/token";
+import { saveJwtTokens, clearJwtTokens } from "@/src/api/token";
 import { useAuthStore } from "@/src/store/authStore";
 import { requestIntegrityCheck } from "@/src/helpers/integrityCheck";
 import {
@@ -108,6 +108,10 @@ export function DomCommunicationProvider({
             "integrityToken": integrityData.integrityToken,
             "requestHash": integrityData.requestHash,
           }};
+        }
+        case "CLEAR_AUTH_TOKENS": {
+          clearJwtTokens();
+          return { ok: true };
         }
         case "RESPONSE": {
           const requestId = message.requestId;

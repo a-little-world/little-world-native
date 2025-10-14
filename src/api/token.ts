@@ -44,6 +44,15 @@ export async function saveJwtTokens(
   } catch {}
 }
 
+export async function clearJwtTokens() {
+  try {
+    if (SecureStore && typeof SecureStore.deleteItemAsync === "function") {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    }
+  } catch {}
+}
+
 export async function loadStoredTokensIntoStore() {
   const accessToken = (await getAccessJwtToken()) ?? undefined;
   const refreshToken = (await getRefreshJwtToken()) ?? undefined;
