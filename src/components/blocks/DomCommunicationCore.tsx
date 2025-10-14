@@ -46,6 +46,7 @@ export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
   const domRef = useRef<LittleWorldDomRef | null>(null);
+  const authStore = useAuthStore();
 
   const pendingRequestsRef = useRef<
     Map<
@@ -111,6 +112,8 @@ export function DomCommunicationProvider({
         }
         case "CLEAR_AUTH_TOKENS": {
           clearJwtTokens();
+          authStore.setAccessToken(undefined);
+          authStore.setRefreshToken(undefined);
           return { ok: true };
         }
         case "RESPONSE": {
@@ -149,29 +152,27 @@ export function DomCommunicationProvider({
     domRef,
   };
 
-  const authStore = useAuthStore();
   useEffect(() => {
     const accessToken = authStore.accessToken ?? null;
     const refreshToken = authStore.refreshToken ?? null;
 
-    let interval: number | undefined = setInterval(() => {
-      try {
-        sendToDom({
-          action: "SET_AUTH_TOKENS",
-          payload: {
-            accessToken,
-            refreshToken,
-          },
+    console.log("auth tokens changed", accessToken, refreshToken);
+    if (accessToken && refreshToken) {
+
+      sendToDom({
+        action: "SET_AUTH_TOKENS",
+        payload: {
+          accessToken,
+          refreshToken,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Failed to set auth tokens", res);
+          }
         })
-          .then((res) => {
-            if (res.ok) {
-              clearInterval(interval);
-              interval = undefined;
-            }
-          })
-          .catch(() => {});
-      } catch (_) {}
-    }, 200);
+      .catch(() => {});
+    }
   }, [authStore]);
 
   return (
