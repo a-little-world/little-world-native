@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-builds-medium
+    runs-on: ubuntu-builds-large
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -219,7 +219,7 @@ jobs:
           ORIG_PATH="${{ steps.locate_apk.outputs.apk_path }}"
           # Ensure directory exists and compute new path
           BASENAME="app-${TAG}-${RUN_NO}.apk"
-          NEW_PATH="little-world-native/${BASENAME}"
+          NEW_PATH="${BASENAME}"
           mv "$ORIG_PATH" "$NEW_PATH"
           echo "apk_path=./$NEW_PATH" >> $GITHUB_OUTPUT
           echo "apk_name=$BASENAME" >> $GITHUB_OUTPUT
@@ -236,11 +236,6 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs.name }}
           prerelease: ${{ github.event.inputs.prerelease }}
+          files: ${{ steps.rename_apk.outputs.apk_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
-
-      - name: Upload asset to GitHub Release (clobber)
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
-        run: |
-          gh release upload "${{ github.event.inputs.tag }}" "${{ steps.rename_apk.outputs.apk_path }}" --clobber
