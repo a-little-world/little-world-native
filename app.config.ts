@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
+    versionCode: 3,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -47,9 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "android.permission.WAKE_LOCK",
       "android.permission.BLUETOOTH",
     ],
-    // Ensure SecureStore works properly on Android
     allowBackup: true,
-    // Build optimizations will be handled in eas.json
   },
   web: {
     bundler: "metro",
@@ -75,8 +74,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "Allow $(PRODUCT_NAME) to access your Face ID biometric data.",
       },
     ],
-    // Only include LiveKit plugins when not in Expo Go mode
-    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true" ? [] : []),
     [
       "expo-splash-screen",
       {
@@ -94,7 +91,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     router: {
       origin: false,
     },
-    // Only include EAS projectId when not in Expo Go mode
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
       ? {
           eas: {
@@ -102,7 +98,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         }
       : {}),
-    // Environment flags
     useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === "true",
     useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true",
   },
