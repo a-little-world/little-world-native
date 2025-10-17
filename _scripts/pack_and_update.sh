@@ -61,6 +61,6 @@ cp ../little-world-frontend/src/environment.ts ./environment.ts
 sed -i.bak "s|\"littleplanet\": \"file:./littleplanet-.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
-pnpm install
+pnpm install --no-frozen-lockfile
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 

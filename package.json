@@ -91,7 +91,13 @@
         "react": "19.x",
         "react-dom": "19.x"
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "core-js",
+      "protobufjs",
+      "react-native-libsodium"
+    ]
   },
   "expo": {
     "doctor": {

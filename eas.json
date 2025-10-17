@@ -20,7 +20,11 @@
     },
     "production": {
       "android": {
+        "image": "latest",
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "image": "latest"
       }
     }
   },
