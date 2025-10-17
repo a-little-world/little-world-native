@@ -1,6 +1,17 @@
 name: EAS Build
 on:
   workflow_dispatch:
+    inputs:
+      profile:
+        description: "Build profile"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - development-device
+          - preview
+          - production
 
 jobs:
   build-ios:
@@ -37,4 +48,4 @@ jobs:
       - name: Build on EAS
         run: |
           cd little-world-native
-          eas build --platform ios --non-interactive --no-wait
+          eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait
