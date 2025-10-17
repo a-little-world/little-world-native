@@ -24,6 +24,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Allow camera usage to participate in group video calls",
         "NSMicrophoneUsageDescription": "Allow microphone usage to participate in group calls"
+      },
+      "entitlements": {
+        "com.apple.developer.devicecheck.appattest-environment": "development"
       }
     },
     "android": {

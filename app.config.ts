@@ -30,6 +30,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSMicrophoneUsageDescription:
         "Allow microphone usage to participate in group calls",
     },
+    entitlements: {
+      "com.apple.developer.devicecheck.appattest-environment": "development", //TODO: set to "production" in prod environments
+    },
   },
   android: {
     package: "com.littleworld.littleworldapp",
