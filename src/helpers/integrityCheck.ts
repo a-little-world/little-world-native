@@ -5,6 +5,7 @@ import {
   IntegrityCheckIOS,
 } from "littleplanet";
 import { Platform } from "react-native";
+import { apiFetch } from "../api/helpers";
 import { environment } from "../config/environment";
 import PlatformSecureStore from "./secureStore";
 
@@ -36,7 +37,6 @@ async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
 }
 
 async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
-  const challenge = `native-secret-${Date.now()}-${Math.random()}`;
   if (!AppIntegrity.isSupported) {
     throw new Error("Integrity check not supported on device");
   }
@@ -47,6 +47,11 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
 
     await PlatformSecureStore.setItemAsync(APP_INTEGRITY_KEY_ID_KEY, keyId);
   }
+
+  const { challenge } = await apiFetch("/api/integrity/challenge", {
+    method: "POST",
+    body: { keyId },
+  });
 
   try {
     const attestationObject = await AppIntegrity.attestKey(keyId, challenge);
