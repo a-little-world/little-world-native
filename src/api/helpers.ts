@@ -89,7 +89,7 @@ export async function apiFetch<T = any>(
 
     return (await response.json()) as T;
   } catch (error) {
-    if (error?.status === 403) {
+    if (error?.status === 401) {
       try {
         const tokenRefreshed = await refreshAccessTokens();
         if (tokenRefreshed) {
