@@ -1,10 +1,10 @@
-name: Android APK (EAS local) Release
+name: Android Build (EAS local) Release
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g., apk-v1.2.3)"
+        description: "Release tag (e.g., v1.2.3)"
         required: true
       name:
         description: "Release name (optional)"
@@ -25,6 +25,14 @@ on:
         description: "Google Project ID for cloud integrity apis"
         required: false
         default: "106218836766"
+      easBuildTag:
+        description: "EAS build type"
+        required: false
+        default: "preview"
+      showDebugPanel:
+        description: "Show debug panel"
+        required: false
+        default: "true"
 
 permissions:
   contents: write
@@ -35,7 +43,7 @@ concurrency:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-builds-medium
+    runs-on: ubuntu-native-builds-large
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -180,55 +188,91 @@ jobs:
           if [ -n "${GOOGLE_CLOUD_PROJECT_ID}" ]; then
             sed -i.bak "s|googleCloudProjectNumber: \".*\"|googleCloudProjectNumber: \"${GOOGLE_CLOUD_PROJECT_ID}\"|" "$FILE" || true
           fi
+
+          SHOW_DEBUG_PANEL='${{ github.event.inputs.showDebugPanel }}' # "true" or "false"
+          if [ "${SHOW_DEBUG_PANEL}" = "true" ]; then
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: true,|" "$FILE" || true
+          else
+            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: false,|" "$FILE" || true
+          fi
           echo "Injected environment values into $FILE"
 
       - name: Build Android APK (EAS local)
         working-directory: little-world-native
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx --yes eas-cli@latest build --platform android --profile preview --local --non-interactive
+        run: npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --local --non-interactive
 
-      - name: Locate APK
-        id: locate_apk
+      - name: Locate Android Build File
+        id: locate_build_file
         working-directory: little-world-native
         shell: bash
         run: |
           set -euo pipefail
-          APK_PATH=""
-          if ls build-*.apk >/dev/null 2>&1; then
-            APK_PATH=$(ls -t build-*.apk | head -n1)
-          elif ls *.apk >/dev/null 2>&1; then
-            APK_PATH=$(ls -t *.apk | head -n1)
+          BUILD_FILE_PATH=""
+          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
+          
+          # Check for AAB files first (production builds)
+          if [ "$EAS_BUILD_TAG" = "production" ]; then
+            if ls build-*.aab >/dev/null 2>&1; then
+              BUILD_FILE_PATH=$(ls -t build-*.aab | head -n1)
+            elif ls *.aab >/dev/null 2>&1; then
+              BUILD_FILE_PATH=$(ls -t *.aab | head -n1)
+            else
+              BUILD_FILE_PATH=$(ls -t android/app/build/outputs/bundle/**/*.aab 2>/dev/null | head -n1 || true)
+            fi
           else
-            APK_PATH=$(ls -t android/app/build/outputs/apk/**/*.apk 2>/dev/null | head -n1 || true)
+            # Check for APK files (preview/development builds)
+            if ls build-*.apk >/dev/null 2>&1; then
+              BUILD_FILE_PATH=$(ls -t build-*.apk | head -n1)
+            elif ls *.apk >/dev/null 2>&1; then
+              BUILD_FILE_PATH=$(ls -t *.apk | head -n1)
+            else
+              BUILD_FILE_PATH=$(ls -t android/app/build/outputs/apk/**/*.apk 2>/dev/null | head -n1 || true)
+            fi
           fi
-          if [ -z "$APK_PATH" ]; then
-            echo "No APK found" >&2
+          
+          # Extract the actual file extension from the found file
+          if [ -n "$BUILD_FILE_PATH" ]; then
+            FILE_EXTENSION="${BUILD_FILE_PATH##*.}"
+          else
+            # Fallback based on build profile if no file found
+            if [ "$EAS_BUILD_TAG" = "production" ]; then
+              FILE_EXTENSION="aab"
+            else
+              FILE_EXTENSION="apk"
+            fi
+          fi
+          
+          if [ -z "$BUILD_FILE_PATH" ]; then
+            echo "No $FILE_EXTENSION file found for $EAS_BUILD_TAG build" >&2
             exit 1
           fi
-          echo "apk_path=./little-world-native/$APK_PATH" >> $GITHUB_OUTPUT
-          echo "Found APK at $APK_PATH"
+          echo "build_file_path=./little-world-native/$BUILD_FILE_PATH" >> $GITHUB_OUTPUT
+          echo "file_extension=$FILE_EXTENSION" >> $GITHUB_OUTPUT
+          echo "Found $FILE_EXTENSION at $BUILD_FILE_PATH"
 
-      - name: Rename APK with unique name
-        id: rename_apk
+      - name: Rename Android Build File with unique name
+        id: rename_build_file
         shell: bash
         run: |
           set -euo pipefail
           TAG="${{ github.event.inputs.tag }}"
           RUN_NO="${{ github.run_number }}"
-          ORIG_PATH="${{ steps.locate_apk.outputs.apk_path }}"
+          ORIG_PATH="${{ steps.locate_build_file.outputs.build_file_path }}"
+          FILE_EXT="${{ steps.locate_build_file.outputs.file_extension }}"
           # Ensure directory exists and compute new path
-          BASENAME="app-${TAG}-${RUN_NO}.apk"
-          NEW_PATH="little-world-native/${BASENAME}"
+          BASENAME="app-${TAG}-${RUN_NO}.${FILE_EXT}"
+          NEW_PATH="${BASENAME}"
           mv "$ORIG_PATH" "$NEW_PATH"
-          echo "apk_path=./$NEW_PATH" >> $GITHUB_OUTPUT
-          echo "apk_name=$BASENAME" >> $GITHUB_OUTPUT
+          echo "build_file_path=./$NEW_PATH" >> $GITHUB_OUTPUT
+          echo "build_file_name=$BASENAME" >> $GITHUB_OUTPUT
 
-      - name: Upload APK artifact
+      - name: Upload Android Build File artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ github.event.inputs.tag }}-${{ github.run_number }}
-          path: ${{ steps.rename_apk.outputs.apk_path }}
+          name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ github.event.inputs.tag }}-${{ github.run_number }}
+          path: ${{ steps.rename_build_file.outputs.build_file_path }}
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -236,11 +280,6 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs.name }}
           prerelease: ${{ github.event.inputs.prerelease }}
+          files: ${{ steps.rename_build_file.outputs.build_file_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
-
-      - name: Upload asset to GitHub Release (clobber)
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
-        run: |
-          gh release upload "${{ github.event.inputs.tag }}" "${{ steps.rename_apk.outputs.apk_path }}" --clobber
