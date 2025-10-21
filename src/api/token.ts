@@ -1,4 +1,5 @@
 import { environment } from "@/environment";
+import { requestIntegrityCheck } from "../helpers/integrityCheck";
 import * as SecureStore from "../helpers/secureStore";
 import { useAuthStore } from "../store/authStore";
 
@@ -77,11 +78,15 @@ export async function refreshAccessTokens(): Promise<boolean> {
   const authHeaders = {
     "X-CSRF-Bypass-Token": "abc",
   } as Record<string, string>;
+
+  const integrityData = await requestIntegrityCheck();
+
   const fetchOptions: RequestInit = {
     method: "POST",
     headers: { ...defaultHeaders, ...authHeaders },
     body: JSON.stringify({
       refresh: refreshToken,
+      ...integrityData,
     }),
   };
 
@@ -90,7 +95,7 @@ export async function refreshAccessTokens(): Promise<boolean> {
   }
 
   accessTokenRefresh = fetch(
-    `${environment.backendUrl}/api/token/refresh`,
+    `${environment.backendUrl}/api/token/refresh${integrityData.platform}`,
     fetchOptions
   )
     .then(async (res) => {
