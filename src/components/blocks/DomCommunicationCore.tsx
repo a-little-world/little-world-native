@@ -1,6 +1,6 @@
-import { saveJwtTokens, clearJwtTokens } from "@/src/api/token";
-import { useAuthStore } from "@/src/store/authStore";
+import { clearJwtTokens, saveJwtTokens } from "@/src/api/token";
 import { requestIntegrityCheck } from "@/src/helpers/integrityCheck";
+import { useAuthStore } from "@/src/store/authStore";
 import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -104,10 +104,12 @@ export function DomCommunicationProvider({
         }
         case "GET_INTEGRITY_TOKEN": {
           const integrityData = await requestIntegrityCheck();
-          return { ok: true, data: { 
-            "integrityToken": integrityData.integrityToken,
-            "requestHash": integrityData.requestHash,
-          }};
+          return {
+            ok: true,
+            data: {
+              ...integrityData,
+            },
+          };
         }
         case "CLEAR_AUTH_TOKENS": {
           clearJwtTokens();
