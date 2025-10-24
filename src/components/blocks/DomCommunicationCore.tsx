@@ -57,7 +57,29 @@ export function DomCommunicationProvider({
       }
     >
   >(new Map());
+  
+  const transferAccessTokenIfPresent = () => {
+    const accessToken = authStore.accessToken ?? null;
+    const refreshToken = authStore.refreshToken ?? null;
 
+    console.log("auth tokens changed", accessToken, refreshToken);
+    if (accessToken && refreshToken) {
+
+      sendToDom({
+        action: "SET_AUTH_TOKENS",
+        payload: {
+          accessToken,
+          refreshToken,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Failed to set auth tokens", res);
+          }
+        })
+      .catch(() => {});
+    }
+  }
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
@@ -118,6 +140,10 @@ export function DomCommunicationProvider({
           authStore.setRefreshToken(undefined);
           return { ok: true };
         }
+        case "WEBVIEW_READY": {
+          transferAccessTokenIfPresent();
+          return { ok: true };
+        }
         case "RESPONSE": {
           const requestId = message.requestId;
 
@@ -153,29 +179,6 @@ export function DomCommunicationProvider({
     sendToReactNative,
     domRef,
   };
-
-  useEffect(() => {
-    const accessToken = authStore.accessToken ?? null;
-    const refreshToken = authStore.refreshToken ?? null;
-
-    console.log("auth tokens changed", accessToken, refreshToken);
-    if (accessToken && refreshToken) {
-
-      sendToDom({
-        action: "SET_AUTH_TOKENS",
-        payload: {
-          accessToken,
-          refreshToken,
-        },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            console.error("Failed to set auth tokens", res);
-          }
-        })
-      .catch(() => {});
-    }
-  }, [authStore]);
 
   return (
     <DomCommunicationContext.Provider value={contextValue}>
