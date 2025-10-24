@@ -8,7 +8,7 @@ import { View } from "react-native";
 export default function Page() {
   return (
     <DomCommunicationProvider>
-      <View style={{ flex: 1, height: 800 }}>
+      <View style={{ height: "100%", width: "100%", display: "block" }}>
         <DomWebViewHost />
         {environment.showDebugPanel && <DomDebugPanel />}
       </View>
