@@ -52,16 +52,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <View style={{ height: "100%", width: "100%"}} onLayout={onLayoutRootView}>
         {/* 3) Let expo-router register screens automatically. */}
         <NativeThemeProvider>
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: {
-                // backgroundColor: "#fff",
-                flex: 1,
-              },
               gestureEnabled: true,
               fullScreenGestureEnabled: true,
             }}
