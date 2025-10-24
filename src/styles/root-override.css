@@ -1,0 +1,10 @@
+/* Override #root display property to block instead of flex */
+#root {
+  display: block !important;
+}
+
+/* Ensure the root element takes full height and width */
+#root {
+  height: 100% !important;
+  width: 100% !important;
+}

@@ -5,10 +5,11 @@ import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";
-import { Ref, Suspense, lazy, useRef } from "react";
+import { Ref, Suspense, lazy, useRef, useEffect } from "react";
 
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
+import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -29,6 +30,11 @@ export default function LittleWorldWebLazy(props: {
   const registerReceiveHandler = (handler: DomCommunicationMessageFn) => {
     domReceiveHandlerRef.current = handler;
   };
+
+  // Inject CSS to override #root display property
+  useEffect(() => {
+    return applyRootDisplayOverrideWithRetry();
+  }, []);
 
   useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
     sendMessageToDom: (...args: JSONValue[]) => {
@@ -58,7 +64,7 @@ export default function LittleWorldWebLazy(props: {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <LW
-        dom={{ style: { height: "100%" } }}
+        dom={{ matchContent: true }}
         sendMessageToReactNative={props.sendToReactNative}
         registerReceiveHandler={registerReceiveHandler}
       />
