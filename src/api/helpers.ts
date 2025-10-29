@@ -1,5 +1,6 @@
+import { environment } from "@/environment";
 import { router } from "expo-router";
-import { API_FIELDS, BACKEND_URL } from "../constants";
+import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";
 import { refreshAccessTokens } from "./token";
 
@@ -80,7 +81,10 @@ export async function apiFetch<T = any>(
   }
 
   try {
-    const response = await fetch(`${BACKEND_URL}${endpoint}`, fetchOptions);
+    const response = await fetch(
+      `${environment.backendUrl}${endpoint}`,
+      fetchOptions
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
