@@ -1,4 +1,5 @@
-import { API_FIELDS, BACKEND_URL, USER_FIELDS } from "@/src/constants/";
+import { environment } from "@/environment";
+import { API_FIELDS, USER_FIELDS } from "@/src/constants/";
 import { Cookies } from "@/src/constants/CookieMock";
 import { formatApiError } from "./helpers";
 
@@ -104,13 +105,16 @@ export const fetchFormData = async ({ handleError }) => {
 };
 
 export const fetchUserMatch = async ({ userId }) => {
-  const response = await fetch(`${BACKEND_URL}/api/profile/${userId}/match`, {
-    method: "GET",
-    headers: {
-      "X-CSRFToken": Cookies.get("csrftoken"),
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `${environment.backendUrl}/api/profile/${userId}/match`,
+    {
+      method: "GET",
+      headers: {
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   const responseBody = await response?.json();
   if (response.ok) return responseBody;
@@ -123,7 +127,7 @@ export const postUserProfileUpdate = (
   onSuccess,
   formTag
 ) => {
-  fetch(`${BACKEND_URL}/api/profile/`, {
+  fetch(`${environment.backendUrl}/api/profile/`, {
     method: "POST",
     headers: {
       "X-CSRFToken": Cookies.get("csrftoken"),
@@ -150,7 +154,7 @@ export const postUserProfileUpdate = (
 
 export const login = async ({ email, password }) => {
   console.log("lohin");
-  const response = await fetch(`${BACKEND_URL}/api/user/login/`, {
+  const response = await fetch(`${environment.backendUrl}/api/user/login/`, {
     headers: {
       "X-CSRFToken": Cookies.get("csrftoken"),
       "X-UseTagsOnly": "True",
@@ -179,7 +183,7 @@ export const signUp = async ({
   mailingList,
   company = null,
 }) => {
-  const response = await fetch(`${BACKEND_URL}/api/register/`, {
+  const response = await fetch(`${environment.backendUrl}/api/register/`, {
     headers: {
       "X-CSRFToken": Cookies.get("csrftoken"),
       "X-UseTagsOnly": "True",
@@ -205,7 +209,7 @@ export const signUp = async ({
 };
 
 export const requestPasswordReset = async ({ email }) => {
-  const response = await fetch(`${BACKEND_URL}/api/user/resetpw/`, {
+  const response = await fetch(`${environment.backendUrl}/api/user/resetpw/`, {
     headers: {
       "X-CSRFToken": Cookies.get("csrftoken"),
       "X-UseTagsOnly": "True",
@@ -225,19 +229,22 @@ export const requestPasswordReset = async ({ email }) => {
 };
 
 export const resetPassword = async ({ password, token }) => {
-  const response = await fetch(`${BACKEND_URL}/api/user/resetpw/confirm/`, {
-    headers: {
-      "X-CSRFToken": Cookies.get("csrftoken"),
-      "X-UseTagsOnly": "True",
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: JSON.stringify({
-      password,
-      token,
-    }),
-  });
+  const response = await fetch(
+    `${environment.backendUrl}/api/user/resetpw/confirm/`,
+    {
+      headers: {
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "True",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        password,
+        token,
+      }),
+    }
+  );
 
   const responseBody = await response?.json();
   if (response.ok) return responseBody;
@@ -246,7 +253,7 @@ export const resetPassword = async ({ password, token }) => {
 
 export const verifyEmail = async ({ verificationCode }) => {
   const response = await fetch(
-    `${BACKEND_URL}/api/user/verify/email/${verificationCode}`,
+    `${environment.backendUrl}/api/user/verify/email/${verificationCode}`,
     {
       headers: {
         "X-CSRFToken": Cookies.get("csrftoken"),
@@ -264,15 +271,18 @@ export const verifyEmail = async ({ verificationCode }) => {
 };
 
 export const resendVerificationEmail = async () => {
-  const response = await fetch(`${BACKEND_URL}/api/user/verify/email_resend/`, {
-    headers: {
-      "X-CSRFToken": Cookies.get("csrftoken"),
-      "X-UseTagsOnly": "True",
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  const response = await fetch(
+    `${environment.backendUrl}/api/user/verify/email_resend/`,
+    {
+      headers: {
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "True",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    }
+  );
 
   const responseBody = await response?.json();
   if (response.ok) return responseBody;
@@ -280,18 +290,21 @@ export const resendVerificationEmail = async () => {
 };
 
 export const setNewEmail = async ({ email }) => {
-  const response = await fetch(`${BACKEND_URL}/api/user/change_email/`, {
-    headers: {
-      "X-CSRFToken": Cookies.get("csrftoken"),
-      "X-UseTagsOnly": "True",
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: JSON.stringify({
-      email,
-    }),
-  });
+  const response = await fetch(
+    `${environment.backendUrl}/api/user/change_email/`,
+    {
+      headers: {
+        "X-CSRFToken": Cookies.get("csrftoken"),
+        "X-UseTagsOnly": "True",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        email,
+      }),
+    }
+  );
 
   const responseBody = await response?.json();
   if (response.ok) return responseBody;
@@ -299,7 +312,7 @@ export const setNewEmail = async ({ email }) => {
 };
 
 export const setNewPassword = async (data) => {
-  const response = await fetch(`${BACKEND_URL}/api/user/changepw/`, {
+  const response = await fetch(`${environment.backendUrl}/api/user/changepw/`, {
     headers: {
       "X-CSRFToken": Cookies.get("csrftoken"),
       "X-UseTagsOnly": "True",

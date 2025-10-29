@@ -37,5 +37,3 @@ export const API_FIELDS = {
   confirm: "acceptDeny", // partiallyConfirmMatch
   unconfirmed_match_hash: "matchId", // partiallyConfirmMatch
 };
-
-export const BACKEND_URL = "http://localhost:8000";
