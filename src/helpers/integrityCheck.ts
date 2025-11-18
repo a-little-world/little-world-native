@@ -5,8 +5,10 @@ import {
   IntegrityCheckIOS,
 } from "littleplanet";
 import { Platform } from "react-native";
+import uuid from "react-native-uuid";
 import { apiFetch } from "../api/helpers";
 import { environment } from "../config/environment";
+
 import PlatformSecureStore from "./secureStore";
 
 const APP_INTEGRITY_KEY_ID_KEY = "APP_INTEGRITY_KEY_ID";
@@ -28,12 +30,17 @@ export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
 }
 
 async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
-  const requestHash = `native-secret-${Date.now()}-${Math.random()}`;
+  const keyId = uuid.v4();
+
+  const { challenge } = await apiFetch("/api/integrity/challenge", {
+    method: "POST",
+    body: { keyId },
+  });
   const cloudProjectNumber = environment.googleCloudProjectNumber;
   await AppIntegrity.prepareIntegrityTokenProvider(cloudProjectNumber);
-  const integrityToken = await AppIntegrity.requestIntegrityCheck(requestHash);
+  const integrityToken = await AppIntegrity.requestIntegrityCheck(challenge);
 
-  return { platform: "android", integrityToken, requestHash };
+  return { platform: "android", integrityToken, keyId };
 }
 
 async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
@@ -57,11 +64,8 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     const attestationObject = await AppIntegrity.attestKey(keyId, challenge);
     return { platform: "ios", attestationObject, keyId };
   } catch (error) {
-    if (error === "ERR_APP_INTEGRITY_SERVER_UNAVAILABLE") {
-      // wait and try again later with same key
-    } else {
+    if (error !== "ERR_APP_INTEGRITY_SERVER_UNAVAILABLE") {
       await PlatformSecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
-      // try again
     }
     throw new Error("Integrity check failed", { cause: error });
   }
