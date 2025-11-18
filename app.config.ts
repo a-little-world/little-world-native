@@ -17,6 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: "#ffffff",
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
+    appleTeamId: "3Z662F5MW8",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
