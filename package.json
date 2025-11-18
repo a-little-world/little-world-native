@@ -53,7 +53,7 @@
     "js-cookie": "^3.0.5",
     "littleplanet": "file:./littleplanet-0.1.249.tgz",
     "livekit-client": "^2.13.8",
-    "react": "19.1.0",
+    "react": "^19.1.0",
     "react-hook-form": "^7.54.2",
     "react-i18next": "^15.4.0",
     "react-native": "0.81.5",
