@@ -12,7 +12,6 @@ import {
   Ref,
   useCallback,
   useContext,
-  useEffect,
   useRef,
 } from "react";
 import uuid from "react-native-uuid";
@@ -57,14 +56,13 @@ export function DomCommunicationProvider({
       }
     >
   >(new Map());
-  
+
   const transferAccessTokenIfPresent = () => {
     const accessToken = authStore.accessToken ?? null;
     const refreshToken = authStore.refreshToken ?? null;
 
     console.log("auth tokens changed", accessToken, refreshToken);
     if (accessToken && refreshToken) {
-
       sendToDom({
         action: "SET_AUTH_TOKENS",
         payload: {
@@ -77,9 +75,9 @@ export function DomCommunicationProvider({
             console.error("Failed to set auth tokens", res);
           }
         })
-      .catch(() => {});
+        .catch(() => {});
     }
-  }
+  };
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
@@ -162,6 +160,14 @@ export function DomCommunicationProvider({
               message,
             };
           }
+        }
+        case "CONSOLE_LOG": {
+          console.log(
+            "console log from frontend",
+            message.payload.message,
+            ...(message.payload.params ?? [])
+          );
+          return { ok: true };
         }
         default: {
           return {

@@ -1,3 +1,4 @@
+import { saveJwtTokens } from "@/src/api/token";
 import { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
@@ -7,9 +8,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  getBackendUrl,
+  secureStoreIsAvailable,
+  supportsAppIntegrity,
+} from "../../helpers/appInfos";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
-import * as SecureStore from "../../helpers/secureStore";
-import { supportsAppIntegrity, getBackendUrl, secureStoreIsAvailable } from "../../helpers/appInfos";
 
 export default function DomDebugPanel() {
   const { sendToDom } = useDomCommunicationContext();
@@ -21,7 +25,8 @@ export default function DomDebugPanel() {
   const [now, setNow] = useState("");
   const [appInfoExpanded, setAppInfoExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
-  const [secureStoreDecryptionKeyInfo, setSecureStoreDecryptionKeyInfo] = useState<string>("Loading...");
+  const [secureStoreDecryptionKeyInfo, setSecureStoreDecryptionKeyInfo] =
+    useState<string>("Loading...");
   const [domActionsExpanded, setDomActionsExpanded] = useState(true);
 
   const routes = useMemo(
@@ -52,7 +57,6 @@ export default function DomDebugPanel() {
     return () => clearInterval(id);
   }, [visible]);
 
-  
   const getWindowOrigin = async () => {
     try {
       const res = await sendToDom({
@@ -62,6 +66,32 @@ export default function DomDebugPanel() {
         },
       });
       setLastResponse(res.ok ? res.data?.origin : res.error);
+    } catch (e: any) {
+      setLastResponse({ ok: false, error: String(e) });
+    }
+  };
+
+  const clearTokens = async () => {
+    try {
+      await saveJwtTokens(null, null);
+      const res = await sendToDom({
+        action: "SET_AUTH_TOKENS",
+        payload: {
+          accessToken: null,
+          refreshToken: null,
+        },
+      });
+
+      if (res.ok) {
+        await sendToDom({
+          action: "NAVIGATE",
+          payload: {
+            path: "/login",
+          },
+        });
+      }
+
+      setLastResponse(res.ok ? "Tokens cleared" : res.error);
     } catch (e: any) {
       setLastResponse({ ok: false, error: String(e) });
     }
@@ -134,7 +164,9 @@ export default function DomDebugPanel() {
                       style={styles.appInfoHeader}
                       onPress={() => setDomActionsExpanded(!domActionsExpanded)}
                     >
-                      <Text style={styles.sectionLabel}>Dom communication test actions</Text>
+                      <Text style={styles.sectionLabel}>
+                        Dom communication test actions
+                      </Text>
                       <Text style={styles.expandButton}>
                         {domActionsExpanded ? "▼" : "▶"}
                       </Text>
@@ -148,20 +180,39 @@ export default function DomDebugPanel() {
                             placeholder="Message to send to DOM"
                             style={styles.textInput}
                           />
-                          <TouchableOpacity style={styles.pingButton} onPress={ping}>
+                          <TouchableOpacity
+                            style={styles.pingButton}
+                            onPress={ping}
+                          >
                             <Text style={styles.pingButtonText}>Ping</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity style={styles.pingButton} onPress={getWindowOrigin}>
-                            <Text style={styles.pingButtonText}>Get Window Origin</Text>
+                          <TouchableOpacity
+                            style={styles.pingButton}
+                            onPress={getWindowOrigin}
+                          >
+                            <Text style={styles.pingButtonText}>
+                              Get Window Origin
+                            </Text>
                           </TouchableOpacity>
-
+                          <TouchableOpacity
+                            style={styles.clearTokenButton}
+                            onPress={clearTokens}
+                          >
+                            <Text style={styles.clearTokenButtonText}>
+                              Clear tokens
+                            </Text>
+                          </TouchableOpacity>
                         </View>
 
                         <View style={styles.navigationSection}>
                           <Text style={styles.sectionLabel}>Navigation:</Text>
                           <View style={styles.currentRouteDisplay}>
-                            <Text style={styles.currentRouteLabel}>Current Route:</Text>
-                            <Text style={styles.currentRouteValue}>{selectedRoute}</Text>
+                            <Text style={styles.currentRouteLabel}>
+                              Current Route:
+                            </Text>
+                            <Text style={styles.currentRouteValue}>
+                              {selectedRoute}
+                            </Text>
                           </View>
                           <View style={styles.routeSelector}>
                             <TouchableOpacity
@@ -169,8 +220,8 @@ export default function DomDebugPanel() {
                               onPress={() => setRouteOpen(!routeOpen)}
                             >
                               <Text style={styles.routeDropdownText}>
-                                {routes.find((r) => r.value === selectedRoute)?.label ||
-                                  "Select Route"}
+                                {routes.find((r) => r.value === selectedRoute)
+                                  ?.label || "Select Route"}
                               </Text>
                               <Text style={styles.dropdownArrow}>▼</Text>
                             </TouchableOpacity>
@@ -216,12 +267,16 @@ export default function DomDebugPanel() {
 
                         <View style={styles.responseContainer}>
                           <View style={styles.responseHeader}>
-                            <Text style={styles.responseLabel}>Last Response:</Text>
+                            <Text style={styles.responseLabel}>
+                              Last Response:
+                            </Text>
                             <TouchableOpacity
                               style={styles.clearResponseButton}
                               onPress={() => setLastResponse(null)}
                             >
-                              <Text style={styles.clearResponseButtonText}>Clear</Text>
+                              <Text style={styles.clearResponseButtonText}>
+                                Clear
+                              </Text>
                             </TouchableOpacity>
                           </View>
                           <Text style={styles.responseText}>
@@ -249,9 +304,7 @@ export default function DomDebugPanel() {
                   {appInfoData.map((item, index) => (
                     <View key={index} style={styles.keyValueRow}>
                       <Text style={styles.keyText}>{item.key}:</Text>
-                      <Text style={styles.valueText}>
-                        {format(item.value)}
-                      </Text>
+                      <Text style={styles.valueText}>{format(item.value)}</Text>
                     </View>
                   ))}
                 </View>
