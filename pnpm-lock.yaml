@@ -149,6 +149,9 @@ importers:
       swr:
         specifier: ^2.3.4
         version: 2.3.4(react@19.0.0)
+      zustand:
+        specifier: ^5.0.8
+        version: 5.0.8(@types/react@19.0.14)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
     devDependencies:
       '@babel/core':
         specifier: ^7.25.2
@@ -4032,7 +4035,7 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
   littleplanet@file:littleplanet-0.1.248.tgz:
-    resolution: {integrity: sha512-IoWgla5tgVdETjqpgmWxugcAJyneMkQbr3WK9mhsDxIOJsy57RNWuzj5YBHjJCNroCTj4ympfUknA5W0lh7BIA==, tarball: file:littleplanet-0.1.248.tgz}
+    resolution: {integrity: sha512-yuOZ1UVe0LY7kJ3J/tMSdmfc31FCH2A1s7QC9EdWTRNDCgvdU4/3SL0/rVMkvVH/MH8evNGmnnlLcwDT5F3Flw==, tarball: file:littleplanet-0.1.248.tgz}
     version: 0.1.248
 
   livekit-client@2.15.3:
@@ -5547,8 +5550,8 @@ packages:
     resolution: {integrity: sha512-AyeEbWOu/TAXdxlV9wmGcR0+yh2j3vYPGOECcIj2S7MkrLyC7ne+oye2BKTItt0ii2PHk4cDy+95+LshzbXnGg==}
     engines: {node: '>=12.20'}
 
-  zustand@5.0.6:
-    resolution: {integrity: sha512-ihAqNeUVhe0MAD+X8M5UzqyZ9k3FFZLBTtqo6JLPwV53cbRB/mJwBI0PxcIgqhBBHlEs8G45OTDTMq3gNcLq3A==}
+  zustand@5.0.8:
+    resolution: {integrity: sha512-gyPKpIaxY9XcO2vSMrLbiER7QMAMGOQZVRdJ6Zi782jkbzZygq5GI9nG8g+sMgitRtndwaBSl7uiqC49o1SSiw==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -8666,7 +8669,7 @@ snapshots:
   '@rn-primitives/portal@1.3.0(@types/react@19.0.14)(immer@10.1.1)(react-native-web@0.20.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-native@0.79.6(@babel/core@7.28.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))':
     dependencies:
       react: 19.0.0
-      zustand: 5.0.6(@types/react@19.0.14)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
+      zustand: 5.0.8(@types/react@19.0.14)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
     optionalDependencies:
       react-native: 0.79.6(@babel/core@7.28.0)(@types/react@19.0.14)(react@19.0.0)
       react-native-web: 0.20.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -10865,7 +10868,7 @@ snapshots:
       uuid: 13.0.0
       web-vitals: 2.1.4
       webpack: 5.100.2
-      zustand: 5.0.6(@types/react@19.0.0)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
+      zustand: 5.0.8(@types/react@19.0.0)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
     transitivePeerDependencies:
       - '@emotion/is-prop-valid'
       - '@livekit/krisp-noise-filter'
@@ -12510,14 +12513,14 @@ snapshots:
 
   yocto-queue@1.2.1: {}
 
-  zustand@5.0.6(@types/react@19.0.0)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0)):
+  zustand@5.0.8(@types/react@19.0.0)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0)):
     optionalDependencies:
       '@types/react': 19.0.0
       immer: 10.1.1
       react: 19.0.0
       use-sync-external-store: 1.5.0(react@19.0.0)
 
-  zustand@5.0.6(@types/react@19.0.14)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0)):
+  zustand@5.0.8(@types/react@19.0.14)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0)):
     optionalDependencies:
       '@types/react': 19.0.14
       immer: 10.1.1

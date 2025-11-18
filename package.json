@@ -67,7 +67,8 @@
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
     "styled-components": "^6.1.19",
-    "swr": "^2.3.4"
+    "swr": "^2.3.4",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
