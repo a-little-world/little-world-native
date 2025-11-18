@@ -2,13 +2,14 @@
   "expo": {
     "name": "little-world-app",
     "slug": "little-world-app",
-    "version": "1.0.0",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
     "scheme": "little-world-app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "buildNumber": "1.0.7.3",
       "supportsTablet": true,
       "backgroundColor": "#ffffff",
       "bitcode": false,
