@@ -37,8 +37,10 @@ async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
     body: { keyId },
   });
   const cloudProjectNumber = environment.googleCloudProjectNumber;
-  await AppIntegrity.prepareIntegrityTokenProvider(cloudProjectNumber);
-  const integrityToken = await AppIntegrity.requestIntegrityCheck(challenge);
+  await AppIntegrity.prepareIntegrityTokenProviderAsync(cloudProjectNumber);
+  const integrityToken = await AppIntegrity.requestIntegrityCheckAsync(
+    challenge
+  );
 
   return { platform: "android", integrityToken, keyId };
 }
@@ -50,7 +52,7 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
 
   let keyId = await PlatformSecureStore.getItemAsync(APP_INTEGRITY_KEY_ID_KEY);
   if (!keyId) {
-    keyId = await AppIntegrity.generateKey();
+    keyId = await AppIntegrity.generateKeyAsync();
 
     await PlatformSecureStore.setItemAsync(APP_INTEGRITY_KEY_ID_KEY, keyId);
   }
@@ -61,7 +63,10 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
   });
 
   try {
-    const attestationObject = await AppIntegrity.attestKey(keyId, challenge);
+    const attestationObject = await AppIntegrity.attestKeyAsync(
+      keyId,
+      challenge
+    );
     return { platform: "ios", attestationObject, keyId };
   } catch (error) {
     if (error !== "ERR_APP_INTEGRITY_SERVER_UNAVAILABLE") {

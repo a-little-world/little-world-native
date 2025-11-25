@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 16.17.4"
+    "version": ">= 16.17.4",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -10,7 +11,8 @@
       }
     },
     "development-device": {
-      "developmentClient": true
+      "developmentClient": true,
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal",

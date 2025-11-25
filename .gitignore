@@ -47,3 +47,6 @@ android/
 .cursorrules
 
 builds/
+
+# NPM/PNPM
+.npmrc
