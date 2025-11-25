@@ -75,6 +75,14 @@ eas build --platform android --profile development
 eas build:run --platform android
 ```
 
+### Expo doctor
+
+To automatically check the project for any expo warnings run:
+
+```bash
+pnpm dlx expo-doctor@latest
+```
+
 ## 🌍 Translations
 
 This app uses i18next for internationalization and merges translations from two sources:
@@ -85,6 +93,7 @@ This app uses i18next for internationalization and merges translations from two 
 ### Translation Structure
 
 - **Shared translations**: Common translations used across all Little World applications
+
   - View existing translations: [@a-little-world/little-world-frontend-shared/translations](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
   - Add new shared translations to the shared package repository
 
@@ -125,6 +134,7 @@ The translation merging is handled automatically in `src/i18n.ts`.
 #### Style Array Issues
 
 **Don't use arrays in the `style={}` prop!** This will cause errors like:
+
 ```
 CSS2Properties doesn't have an indexed property setter for '0'
 ```
@@ -217,6 +227,7 @@ The app uses a local version of the design system package. To set this up:
    pnpm install
    ```
 4. If you make changes to the design system:
+
    ```bash
    # In the design system repository
    cd packages/native
