@@ -161,6 +161,10 @@ export function DomCommunicationProvider({
             };
           }
         }
+        case "NAVIGATE": {
+          const path = message.payload.path;
+          return sendToDom({ action: "NAVIGATE", payload: { path } });
+        }
         case "CONSOLE_LOG": {
           console.log(
             "console log from frontend",
