@@ -1,5 +1,6 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const path = require("path");
 
 const proxyRequests = false;
 
@@ -22,16 +23,24 @@ module.exports = (() => {
     alias: {
       'react': require.resolve('react'),
       'react-native': require.resolve('react-native'),
+      // Add path alias support for @/ imports
+      '@': path.resolve(__dirname),
     },
     // Add platform-specific resolver to handle DOM components
     resolverMainFields: ['react-native', 'browser', 'main'],
     // Add platform-specific extensions to handle DOM components
     platforms: ['ios', 'android', 'native', 'web'],
+    // Ensure project root is properly resolved for DOM components
+    projectRoot: __dirname,
     // Remove problematic blockList that was causing issues
   };
 
-  // Remove experimental serializer that was causing issues
-  // config.serializer = { ... };
+  // Configure serializer to handle DOM components better
+  config.serializer = {
+    ...config.serializer,
+    // Ensure custom serializer handles path resolution correctly
+    customSerializer: config.serializer?.customSerializer,
+  };
 
   if (proxyRequests) {
     const apiProxy = createProxyMiddleware({
