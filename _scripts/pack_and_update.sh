@@ -65,7 +65,7 @@ mv ../little-world-frontend/$TARBALL .
 cp ../little-world-frontend/src/environment.ts ./environment.ts
 
 # Update the dependency reference in root package.json
-sed -i.bak "s|\"littleplanet\": \"file:./littleplanet-.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
+sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
 pnpm install --no-frozen-lockfile
