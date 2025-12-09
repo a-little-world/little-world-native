@@ -48,4 +48,5 @@ jobs:
       - name: Build on EAS
         run: |
           cd little-world-native
+          mv eas.ci.json eas.json
           eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait
