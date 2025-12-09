@@ -7,7 +7,7 @@ import {
 import { Platform } from "react-native";
 import uuid from "react-native-uuid";
 import { apiFetch } from "../api/helpers";
-import { environment } from "../config/environment";
+import { environment } from "../config/environment-native";
 
 import PlatformSecureStore from "./secureStore";
 
