@@ -24,6 +24,10 @@ on:
         options:
           - development
           - production
+      frontendCommitRef:
+        description: "Fronted commit ref"
+        required: true
+        default: "main"
 
 jobs:
   build-ios:
