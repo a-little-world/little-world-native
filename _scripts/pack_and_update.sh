@@ -34,6 +34,13 @@ echo "New version: $NEW_VERSION"
 # Update version in package.json
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
 sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
+if [[ -n "$HOST_DOMAIN" && "$HOST_DOMAIN" == *ngrok* ]]; then
+  echo "Host domain contains 'ngrok', allowing ngrok headers"
+  sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" src/environment.ts
+else
+  echo "Host domain does not contain 'ngrok', disallowing ngrok headers"
+  sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" src/environment.ts
+fi
 if [ "$SETUP_HOST_DOMAIN" = true ]; then
   sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
 fi

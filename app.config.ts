@@ -1,4 +1,5 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
+import { environment } from "./src/config/environment-native";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -33,7 +34,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "Allow microphone usage to participate in group calls",
     },
     entitlements: {
-      "com.apple.developer.devicecheck.appattest-environment": "development", //TODO: set to "production" in prod environments
+      "com.apple.developer.devicecheck.appattest-environment":
+        environment.appleAppattestEnvironment,
     },
   },
   android: {

@@ -168,12 +168,12 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Inject environment values into src/config/environment.ts
+      - name: Inject environment values into src/config/environment-native.ts
         working-directory: little-world-native
         shell: bash
         run: |
           set -euo pipefail
-          FILE="src/config/environment.ts"
+          FILE="src/config/environment-native.ts"
           cp "$FILE" "$FILE.bak"
 
           # Inputs from workflow_dispatch

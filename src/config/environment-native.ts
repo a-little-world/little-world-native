@@ -16,12 +16,16 @@ export interface EnvironmentNative {
   googleCloudProjectNumber: string;
   showDebugPanel: boolean;
   production: boolean;
+  appleAppattestEnvironment: "development" | "production";
 }
 
 export const environment: EnvironmentNative = {
   googleCloudProjectNumber: "601387323189",
   showDebugPanel: true,
   production: frontendEnvironment.production,
+  appleAppattestEnvironment: frontendEnvironment.production
+    ? "production"
+    : "development",
 };
 
 export const isExpoGoMode = () => ENV_CONFIG.USE_EXPO_GO;
