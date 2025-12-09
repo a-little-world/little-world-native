@@ -50,3 +50,6 @@ builds/
 
 # NPM/PNPM
 .npmrc
+
+fastlane/
+credentials.json
