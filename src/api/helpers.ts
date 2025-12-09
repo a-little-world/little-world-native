@@ -59,6 +59,9 @@ export async function apiFetch<T = any>(
     "Content-Type": "application/json",
     "X-CSRFToken": Cookies.get("csrftoken") || "",
   };
+  if (environment.allowNgrokRequests) {
+    defaultHeaders["ngrok-skip-browser-warning"] = "69420";
+  }
 
   if (useTagsOnly) {
     defaultHeaders["X-UseTagsOnly"] = "true";

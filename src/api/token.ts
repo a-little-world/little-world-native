@@ -73,8 +73,10 @@ export async function refreshAccessTokens(): Promise<boolean> {
   const defaultHeaders: Record<string, string> = {
     Accept: "application/json",
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "69420", // use for development only!
   };
+  if (environment.allowNgrokRequests) {
+    defaultHeaders["ngrok-skip-browser-warning"] = "69420";
+  }
   const authHeaders = {
     "X-CSRF-Bypass-Token": "abc",
   } as Record<string, string>;
