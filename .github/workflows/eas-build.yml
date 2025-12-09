@@ -12,6 +12,18 @@ on:
           - development-device
           - preview
           - production
+      baseUrl:
+        description: "Base URL for backend (e.g., https://little-world.com)"
+        required: true
+        default: "https://little-world.com"
+      appleAppattestEnvironment:
+        description: "Apple Appattest environment"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - development
+          - production
 
 jobs:
   build-ios:
@@ -44,6 +56,11 @@ jobs:
           cd little-world-frontend
           npm ci
           cd ../little-world-native
+          export SETUP_HOST_DOMAIN=true
+          export HTTP_SCHEME="https"
+          export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
+          export USE_WSS_WEBSOCKET=true
+          export APPLE_APPATTEST_ENVIRONMENT=${{ inputs.appleAppattestEnvironment }}
           ./_scripts/pack_and_update.sh
       - name: Build on EAS
         run: |

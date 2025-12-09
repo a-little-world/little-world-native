@@ -1,5 +1,4 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
-import { environment } from "./src/config/environment-native";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -35,7 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     entitlements: {
       "com.apple.developer.devicecheck.appattest-environment":
-        environment.appleAppattestEnvironment,
+        process.env.APPLE_APPATTEST_ENVIRONMENT ?? "development",
     },
   },
   android: {
