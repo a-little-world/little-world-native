@@ -1,27 +1,19 @@
 import * as Font from "expo-font";
-import {
-  fontFiles,
-  fontFamilies,
-} from "@a-little-world/little-world-design-system-core";
+import { fontFiles } from "@a-little-world/little-world-design-system-core";
 
 export const loadFonts = async (): Promise<void> => {
   try {
-    // Map the fontFiles to use the correct font family names
-    // TODO: fix this in the DS and then remove this mapping
-    const fontsToLoad: { [key: string]: any } = {};
+    // fontFiles already has the correct font family names as keys
+    // e.g. { 'Signika Negative': require(...), 'Work Sans': require(...) }
+    if (!fontFiles) {
+      console.warn("fontFiles is undefined, skipping font loading");
+      return;
+    }
 
-    // Use the fontFamilies mapping to get the correct names
-    Object.entries(fontFiles).forEach(([key, fontFile]) => {
-      const fontFamilyName = fontFamilies[key as keyof typeof fontFamilies];
-      if (fontFamilyName) {
-        fontsToLoad[fontFamilyName] = fontFile;
-      }
-    });
-
-    await Font.loadAsync(fontsToLoad);
+    await Font.loadAsync(fontFiles);
     console.log(
       "Fonts loaded successfully with family names:",
-      Object.keys(fontsToLoad)
+      Object.keys(fontFiles)
     );
   } catch (error) {
     console.error("Error loading fonts:", error);

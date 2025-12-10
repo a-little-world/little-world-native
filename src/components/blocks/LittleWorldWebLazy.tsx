@@ -10,6 +10,8 @@ import { Ref, Suspense, lazy, useRef, useEffect } from "react";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
+import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
+import LoadingScreen from "../atoms/LoadingScreen";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -31,9 +33,15 @@ export default function LittleWorldWebLazy(props: {
     domReceiveHandlerRef.current = handler;
   };
 
-  // Inject CSS to override #root display property
+  // Inject CSS to override #root display property and fonts
   useEffect(() => {
-    return applyRootDisplayOverrideWithRetry();
+    const cleanupRoot = applyRootDisplayOverrideWithRetry();
+    const cleanupFonts = applyFontInjectionWithRetry();
+
+    return () => {
+      cleanupRoot();
+      cleanupFonts();
+    };
   }, []);
 
   useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
@@ -62,7 +70,7 @@ export default function LittleWorldWebLazy(props: {
   const LW: any = LittleWorldWebNative;
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingScreen />}>
       <LW
         dom={{ matchContent: true }}
         sendMessageToReactNative={props.sendToReactNative}

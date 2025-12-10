@@ -11,16 +11,17 @@ import { loadStoredTokensIntoStore } from "@/src/api/token";
 import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+// import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import LoadingScreen from "@/src/components/atoms/LoadingScreen";
 
-// 1) Prevent auto hide *before* rendering anything.
-SplashScreen.preventAutoHideAsync().catch((e) => {
-  console.log("SPLASH ERROR", e);
-});
+// // 1) Prevent auto hide *before* rendering anything.
+// SplashScreen.preventAutoHideAsync().catch((e) => {
+//   console.log("SPLASH ERROR", e);
+// });
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -41,27 +42,28 @@ export default function RootLayout() {
   // 2) Hide only after the root view has laid out.
   const onLayoutRootView = useCallback(async () => {
     if (ready) {
-      await SplashScreen.hideAsync();
+      // await SplashScreen.hideAsync();
     }
   }, [ready]);
 
-  if (!ready) {
-    // Keep returning null while preparing; splash stays up.
-    return null;
-  }
-
   return (
     <SafeAreaProvider>
-      <View style={{ height: "100%", width: "100%"}} onLayout={onLayoutRootView}>
-        {/* 3) Let expo-router register screens automatically. */}
+      <View
+        style={{ height: "100%", width: "100%" }}
+        onLayout={onLayoutRootView}
+      >
         <NativeThemeProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              gestureEnabled: true,
-              fullScreenGestureEnabled: true,
-            }}
-          />
+          {!ready ? (
+            <LoadingScreen />
+          ) : (
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                fullScreenGestureEnabled: true,
+              }}
+            />
+          )}
         </NativeThemeProvider>
       </View>
     </SafeAreaProvider>
