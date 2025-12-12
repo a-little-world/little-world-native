@@ -69,7 +69,7 @@ export async function apiFetch<T = any>(
 
   const fetchOptions: RequestInit = {
     method,
-    headers: { ...defaultHeaders, ...headers },
+    headers: { ...defaultHeaders, ...headers, ...authHeaders },
     credentials,
   };
 
@@ -94,7 +94,11 @@ export async function apiFetch<T = any>(
       throw formatApiError(errorData, response);
     }
 
-    return (await response.json()) as T;
+    try {
+      return (await response.json()) as T;
+    } catch (_e) {
+      return null as T;
+    }
   } catch (error) {
     if (error?.status === 401) {
       try {

@@ -12,11 +12,11 @@ import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
+import LoadingScreen from "@/src/components/atoms/LoadingScreen";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import LoadingScreen from "@/src/components/atoms/LoadingScreen";
 
 // // 1) Prevent auto hide *before* rendering anything.
 // SplashScreen.preventAutoHideAsync().catch((e) => {

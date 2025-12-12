@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
+    googleServicesFile: "./GoogleService-Info.plist",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
@@ -31,8 +32,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "Allow camera usage to participate in group video calls",
       NSMicrophoneUsageDescription:
         "Allow microphone usage to participate in group calls",
+      UIBackgroundModes: ["remote-notification", "fetch"],
     },
     entitlements: {
+      // TODO: make dependant on build
+      "aps-environment": "development",
+      "com.apple.developer.aps-environment": "development",
       "com.apple.developer.devicecheck.appattest-environment":
         process.env.APPLE_APPATTEST_ENVIRONMENT ?? "development",
     },
@@ -40,6 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.littleworld.littleworldapp",
     versionCode: 11,
+    googleServicesFile: "./GoogleService-Info.plist",
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -66,7 +72,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     imageWidth: 200,
     resizeMode: "contain",
     backgroundColor: "#ffffff",
-    tabletImage: "./assets/splash-tablet.png",
+    tabletImage: "./src/assets/images/splash-icon.png",
+  },
+  notification: {
+    icon: "./src/assets/images/splash-icon.png",
+    color: "#ffffff",
   },
   plugins: [
     "expo-router",
@@ -87,6 +97,30 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+        },
+      },
+    ],
+    [
+      "@react-native-firebase/app",
+      {
+        ios: {
+          googleServicesFile: "./GoogleService-Info.plist",
+        },
+      },
+    ],
+    [
+      "@react-native-firebase/messaging",
+      {
+        ios: {
+          backgroundModes: ["remote-notification", "fetch"],
+        },
       },
     ],
   ],
