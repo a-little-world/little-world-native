@@ -89,10 +89,6 @@ jobs:
           export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
 
-      - name: Install frontend dependencies
-        run: pnpm install
-        working-directory: little-world-native
-
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
