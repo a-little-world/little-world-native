@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
-    googleServicesFile: "./GoogleService-Info.plist",
+    googleServicesFile: "./certs/google/GoogleService-Info.plist",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.littleworld.littleworldapp",
     versionCode: 11,
-    googleServicesFile: "./GoogleService-Info.plist",
+    googleServicesFile: "./certs/google/GoogleService-Info.plist",
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -111,7 +111,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "@react-native-firebase/app",
       {
         ios: {
-          googleServicesFile: "./GoogleService-Info.plist",
+          googleServicesFile: "./certs/google/GoogleService-Info.plist",
         },
       },
     ],
