@@ -43,7 +43,7 @@ concurrency:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-native-builds-large
+    runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -76,7 +76,7 @@ jobs:
 
       - name: Install pnpm
         run: |
-          npm i -g pnpm@8
+          npm i -g pnpm@10
           npm i -g cpx
 
       - name: Pack and update local frontend package
@@ -88,34 +88,6 @@ jobs:
           export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
           export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
-
-      - name: Install frontend dependencies
-        run: pnpm install
-        working-directory: little-world-native
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android platforms and build tools
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
 
       - name: Prepare Android signing (optional)
         working-directory: little-world-native
@@ -197,13 +169,36 @@ jobs:
           fi
           echo "Injected environment values into $FILE"
 
-      - name: Build Android APK (EAS local)
+      - name: Build Android APK (EAS Cloud)
         working-directory: little-world-native
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           mv eas.ci.json eas.json
-          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --local --non-interactive
+
+          # Run build and capture output
+          set -o pipefail
+          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive | tee build_output.txt
+
+          # Extract URL
+          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(apk|aab)' build_output.txt | tail -n1)
+
+          if [ -z "$URL" ]; then
+            echo "Error: Could not find artifact URL in build output."
+            exit 1
+          fi
+
+          echo "Found artifact URL: $URL"
+
+          # Determine extension and download
+          EXT="${URL##*.}"
+          FILENAME="build-artifact.$EXT"
+
+          echo "Downloading to $FILENAME..."
+          curl -L -o "$FILENAME" "$URL"
+
+          echo "Download complete."
+          ls -lh "$FILENAME"
 
       - name: Locate Android Build File
         id: locate_build_file

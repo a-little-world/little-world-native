@@ -52,7 +52,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.269.tgz",
+    "littleplanet": "file:./littleplanet-0.1.272.tgz",
     "livekit-client": "^2.13.8",
     "react": "19.1.0",
     "react-hook-form": "^7.54.2",
