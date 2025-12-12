@@ -76,7 +76,7 @@ jobs:
 
       - name: Install pnpm
         run: |
-          npm i -g pnpm@8
+          npm i -g pnpm@10
           npm i -g cpx
 
       - name: Pack and update local frontend package
