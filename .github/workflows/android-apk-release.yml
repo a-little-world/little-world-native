@@ -43,7 +43,7 @@ concurrency:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-native-builds-large
+    runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -203,7 +203,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           mv eas.ci.json eas.json
-          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --local --non-interactive
+          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive
 
       - name: Locate Android Build File
         id: locate_build_file
