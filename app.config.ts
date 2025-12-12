@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.7",
+  version: "1.0.11",
   orientation: "portrait",
   icon: "./src/assets/images/icon.png",
   scheme: "little-world-app",
@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.7.3",
+    buildNumber: "1.0.7.4",
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
@@ -33,12 +33,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "Allow microphone usage to participate in group calls",
     },
     entitlements: {
-      "com.apple.developer.devicecheck.appattest-environment": "development", //TODO: set to "production" in prod environments
+      "com.apple.developer.devicecheck.appattest-environment":
+        process.env.APPLE_APPATTEST_ENVIRONMENT ?? "development",
     },
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 7,
+    versionCode: 11,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",

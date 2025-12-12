@@ -1,5 +1,6 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const path = require("path");
 
 const proxyRequests = false;
 
@@ -10,6 +11,9 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
+    // fixes metro cache errors
+    // Unable to resolve module ./../../../../../46f05506-791f-4df0-a080-6e421c03dd79/build/src/components/blocks/LittleWorldWebLazy.tsx from /private/var/folders/8h/0jk2h57s643fvbdqgf3c4f980000gn/T/eas-build-local-nodejs/f7b072aa-4517-4501-b910-de2d32db5e2f/build/node_modules/expo/dom/entry.js
+    cacheVersion: new Date().getTime().toString(),
     babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
     // Remove minification config that was causing issues
   };
@@ -20,23 +24,31 @@ module.exports = (() => {
     sourceExts: [...resolver.sourceExts, "svg"],
     // Fix React resolution issues
     alias: {
-      'react': require.resolve('react'),
-      'react-native': require.resolve('react-native'),
+      react: require.resolve("react"),
+      "react-native": require.resolve("react-native"),
+      // Add path alias support for @/ imports
+      "@": path.resolve(__dirname),
     },
     // Add platform-specific resolver to handle DOM components
-    resolverMainFields: ['react-native', 'browser', 'main'],
+    resolverMainFields: ["react-native", "browser", "main"],
     // Add platform-specific extensions to handle DOM components
-    platforms: ['ios', 'android', 'native', 'web'],
+    platforms: ["ios", "android", "native", "web"],
+    // Ensure project root is properly resolved for DOM components
+    projectRoot: __dirname,
     // Remove problematic blockList that was causing issues
   };
 
-  // Remove experimental serializer that was causing issues
-  // config.serializer = { ... };
+  // Configure serializer to handle DOM components better
+  config.serializer = {
+    ...config.serializer,
+    // Ensure custom serializer handles path resolution correctly
+    customSerializer: config.serializer?.customSerializer,
+  };
 
   if (proxyRequests) {
     const apiProxy = createProxyMiddleware({
       target: "http://localhost:8000",
-      changeOrigin: true
+      changeOrigin: true,
     });
 
     config.server = {
@@ -48,8 +60,8 @@ module.exports = (() => {
           }
           return middleware(req, res, next);
         };
-        },
-      };
+      },
+    };
   }
 
   return config;

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start --port 9000",
+    "start:tunnel": "expo start --port 9000 --tunnel",
     "start:expo-go": "EXPO_PUBLIC_USE_EXPO_GO=true expo start --port 9000 --clear --go",
     "start:dev-build": "EXPO_PUBLIC_USE_EXPO_GO=false expo start --port 9000",
     "reset-project": "node ./scripts/reset-project.js",
@@ -50,7 +51,7 @@
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
-    "littleplanet": "file:./littleplanet-0.1.260.tgz",
+    "littleplanet": "file:./littleplanet-0.1.283.tgz",
     "livekit-client": "^2.13.8",
     "react": "19.1.0",
     "react-hook-form": "^7.54.2",

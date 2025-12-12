@@ -12,6 +12,19 @@ on:
           - development-device
           - preview
           - production
+      baseUrl:
+        description: "Base URL for backend (e.g., https://little-world.com)"
+        required: true
+        default: "https://little-world.com"
+      production:
+        description: "production"
+        required: true
+        default: true
+        type: boolean
+      frontendCommitRef:
+        description: "Fronted commit ref"
+        required: true
+        default: "main"
 
 jobs:
   build-ios:
@@ -26,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
-          ref: ${{ github.event.inputs.COMMIT_REF }}
+          ref: ${{ inputs.frontendCommitRef }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
       - name: Install pnpm
@@ -44,8 +57,19 @@ jobs:
           cd little-world-frontend
           npm ci
           cd ../little-world-native
+          export PRODUCTION=${{ inputs.production }}
+          export SETUP_HOST_DOMAIN=true
+          export HTTP_SCHEME="https"
+          export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
+          export USE_WSS_WEBSOCKET=true
+          if [[ "${{ inputs.production }}" == "true" ]]; then
+            export APPLE_APPATTEST_ENVIRONMENT=production
+          else
+            export APPLE_APPATTEST_ENVIRONMENT=development
+          fi
           ./_scripts/pack_and_update.sh
       - name: Build on EAS
         run: |
           cd little-world-native
+          mv eas.ci.json eas.json
           eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait
