@@ -2,7 +2,7 @@
 import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
 import DomDebugPanel from "@/src/components/blocks/DomDebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
-import { environment } from "@/src/config/environment";
+import { environment } from "@/src/config/environment-native";
 import { View } from "react-native";
 
 export default function Page() {

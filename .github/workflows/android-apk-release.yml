@@ -88,7 +88,7 @@ jobs:
           export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
           export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
-        
+
       - name: Install frontend dependencies
         run: pnpm install
         working-directory: little-world-native
@@ -168,12 +168,12 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Inject environment values into src/config/environment.ts
+      - name: Inject environment values into src/config/environment-native.ts
         working-directory: little-world-native
         shell: bash
         run: |
           set -euo pipefail
-          FILE="src/config/environment.ts"
+          FILE="src/config/environment-native.ts"
           cp "$FILE" "$FILE.bak"
 
           # Inputs from workflow_dispatch
@@ -201,7 +201,9 @@ jobs:
         working-directory: little-world-native
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --local --non-interactive
+        run: |
+          mv eas.ci.json eas.json
+          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --local --non-interactive
 
       - name: Locate Android Build File
         id: locate_build_file
@@ -211,7 +213,7 @@ jobs:
           set -euo pipefail
           BUILD_FILE_PATH=""
           EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
-          
+
           # Check for AAB files first (production builds)
           if [ "$EAS_BUILD_TAG" = "production" ]; then
             if ls build-*.aab >/dev/null 2>&1; then
@@ -231,7 +233,7 @@ jobs:
               BUILD_FILE_PATH=$(ls -t android/app/build/outputs/apk/**/*.apk 2>/dev/null | head -n1 || true)
             fi
           fi
-          
+
           # Extract the actual file extension from the found file
           if [ -n "$BUILD_FILE_PATH" ]; then
             FILE_EXTENSION="${BUILD_FILE_PATH##*.}"
@@ -243,7 +245,7 @@ jobs:
               FILE_EXTENSION="apk"
             fi
           fi
-          
+
           if [ -z "$BUILD_FILE_PATH" ]; then
             echo "No $FILE_EXTENSION file found for $EAS_BUILD_TAG build" >&2
             exit 1

@@ -1,5 +1,4 @@
 export interface Environment {
-  development: boolean;
   production: boolean;
   defaultLoginName: string;
   defaultLoginPassword: string;
@@ -10,19 +9,19 @@ export interface Environment {
   websocketHost: string;
   isNative: boolean;
   csrfBypassToken: string;
+  allowNgrokRequests: boolean;
 }
 
 export const environment: Environment = {
-  development: false,
-  production: true,
-  defaultLoginName: "benjamin.tim@gmx.de",
-  defaultLoginPassword: "Test123",
-  backendUrl: "https://little-world.jannistoelle.de",
-  // backendUrl: 'https://staging-native-mods-543.t1m.me',
-  backendPath: "",
-  coreWsScheme: "wss://",
-  coreWsPath: "/api/core/ws",
-  websocketHost: "",
+  production: false,
+  defaultLoginName: 'benjamin.tim@gmx.de',
+  defaultLoginPassword: 'Test123',
+  backendUrl: 'https://stage.little-world.com',
+  backendPath: '',
+  coreWsScheme: 'wss://',
+  coreWsPath: '/api/core/ws',
+  websocketHost: 'stage.little-world.com',
   isNative: true,
-  csrfBypassToken: "abc",
+  csrfBypassToken: 'abc',
+  allowNgrokRequests: false,
 };
