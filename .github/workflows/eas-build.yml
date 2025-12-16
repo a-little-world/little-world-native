@@ -54,9 +54,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Install dependencies
         run: |
-          cd little-world-frontend
-          npm ci
-          cd ../little-world-native
+          cd little-world-native
           export PRODUCTION=${{ inputs.production }}
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
