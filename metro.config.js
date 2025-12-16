@@ -1,7 +1,7 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+
 const path = require("path");
-const environmentNative = require("./environments/env").default;
 
 const proxyRequests = false;
 

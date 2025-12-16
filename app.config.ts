@@ -1,4 +1,5 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
+import "tsx"; // Enable import of TypeScript files
 import environmentNative from "./environments/env";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
@@ -19,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
-    googleServicesFile: "./certs/google/GoogleService-Info.plist",
+    googleServicesFile: environmentNative.googleServiceInfoFile,
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
@@ -44,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.littleworld.littleworldapp",
     versionCode: 11,
-    googleServicesFile: "./certs/google/GoogleService-Info.plist",
+    googleServicesFile: environmentNative.googleServiceInfoFile,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -110,7 +111,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "@react-native-firebase/app",
       {
         ios: {
-          googleServicesFile: "./certs/google/GoogleService-Info.plist",
+          googleServicesFile: environmentNative.googleServiceInfoFile,
         },
       },
     ],
