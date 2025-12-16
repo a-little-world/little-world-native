@@ -18,13 +18,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
-    splash: {
-      image: "./src/assets/images/splash-icon.png",
-      imageWidth: 200,
-      resizeMode: "contain",
-      backgroundColor: "#ffffff",
-      tabletImage: "./src/assets/images/splash-icon.png",
-    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
