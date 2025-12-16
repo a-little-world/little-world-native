@@ -1,4 +1,5 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
+import environmentNative from "./environments/env";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -35,11 +36,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       UIBackgroundModes: ["remote-notification", "fetch"],
     },
     entitlements: {
-      // TODO: make dependant on build
-      "aps-environment": "development",
-      "com.apple.developer.aps-environment": "development",
+      "aps-environment": environmentNative.appleEnvironment,
       "com.apple.developer.devicecheck.appattest-environment":
-        process.env.APPLE_APPATTEST_ENVIRONMENT ?? "development",
+        environmentNative.appleEnvironment,
     },
   },
   android: {

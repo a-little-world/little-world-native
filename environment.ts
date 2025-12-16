@@ -1,5 +1,4 @@
 export interface Environment {
-  production: boolean;
   defaultLoginName: string;
   defaultLoginPassword: string;
   backendUrl: string;
@@ -9,11 +8,9 @@ export interface Environment {
   websocketHost: string;
   isNative: boolean;
   csrfBypassToken: string;
-  allowNgrokRequests: boolean;
 }
 
 export const environment: Environment = {
-  production: false,
   defaultLoginName: 'benjamin.tim@gmx.de',
   defaultLoginPassword: 'Test123',
   backendUrl: 'https://stage.little-world.com',
@@ -23,5 +20,4 @@ export const environment: Environment = {
   websocketHost: 'stage.little-world.com',
   isNative: true,
   csrfBypassToken: 'abc',
-  allowNgrokRequests: false,
 };

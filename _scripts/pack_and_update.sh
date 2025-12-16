@@ -4,7 +4,6 @@
 cd ../little-world-frontend || exit 1
 
 # Use environment variables if set, otherwise fall back to defaults
-PRODUCTION=${PRODUCTION:-false}
 SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
 HTTP_SCHEME=${HTTP_SCHEME:-"https"}
 HOST_DOMAIN=${HOST_DOMAIN:-"stage.little-world.com"}
@@ -14,7 +13,6 @@ if [ $HTTP_SCHEME = "https" ]; then
   USE_WSS_WEBSOCKET=true
 fi
 
-echo "PRODUCTION: $PRODUCTION"
 echo "SETUP_HOST_DOMAIN: $SETUP_HOST_DOMAIN"
 echo "HTTP_SCHEME: $HTTP_SCHEME"
 echo "HOST_DOMAIN: $HOST_DOMAIN"
@@ -35,7 +33,6 @@ echo "New version: $NEW_VERSION"
 
 # Update version in package.json
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
-sed -i.bak "s|production: .*,|production: $PRODUCTION,|" src/environment.ts
 sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
 if [[ -n "$HOST_DOMAIN" && "$HOST_DOMAIN" == *ngrok* ]]; then
   echo "Host domain contains 'ngrok', allowing ngrok headers"

@@ -1,5 +1,4 @@
 // This is the native internal environment, the frontend environment is at `@/environment`
-import { environment as frontendEnvironment } from "@/environment";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
@@ -11,18 +10,6 @@ export const ENV_CONFIG = {
 export function isWebBuild() {
   return Platform.OS === "web";
 }
-
-export interface EnvironmentNative {
-  googleCloudProjectNumber: string;
-  showDebugPanel: boolean;
-  production: boolean;
-}
-
-export const environment: EnvironmentNative = {
-  googleCloudProjectNumber: "601387323189",
-  showDebugPanel: true,
-  production: frontendEnvironment.production,
-};
 
 export const isExpoGoMode = () => ENV_CONFIG.USE_EXPO_GO;
 export const isLiveKitEnabled = () => ENV_CONFIG.USE_LIVEKIT;

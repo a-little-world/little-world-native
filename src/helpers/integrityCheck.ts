@@ -7,8 +7,8 @@ import {
 import { Platform } from "react-native";
 import uuid from "react-native-uuid";
 import { apiFetch } from "../api/helpers";
-import { environment } from "../config/environment-native";
 
+import environmentNative from "@/environments/env";
 import PlatformSecureStore from "./secureStore";
 
 const APP_INTEGRITY_KEY_ID_KEY = "APP_INTEGRITY_KEY_ID";
@@ -36,7 +36,7 @@ async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
     method: "POST",
     body: { keyId },
   });
-  const cloudProjectNumber = environment.googleCloudProjectNumber;
+  const cloudProjectNumber = environmentNative.googleCloudProjectNumber;
   await AppIntegrity.prepareIntegrityTokenProviderAsync(cloudProjectNumber);
   const integrityToken = await AppIntegrity.requestIntegrityCheckAsync(
     challenge
