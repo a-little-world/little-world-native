@@ -1,6 +1,7 @@
 export interface EnvironmentNative {
   googleCloudProjectNumber: string;
   showDebugPanel: boolean;
-  googleServiceInfoFile: string;
+  googleServiceInfoFileIOS: string;
+  googleServiceInfoFileAndroid: string;
   appleEnvironment: "development" | "production";
 }
