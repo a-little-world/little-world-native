@@ -7,10 +7,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { useAppStore } from "@/src/store/store";
-import {
-  IosAuthorizationStatus,
-  SchedulableTriggerInputTypes,
-} from "expo-notifications";
+import { IosAuthorizationStatus } from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { registerFirebaseDeviceToken } from "./firebase-util";
 
@@ -127,19 +124,6 @@ function FireBase() {
 
   useEffect(() => {
     register();
-
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Test",
-        body: "Custom sound test",
-        sound: "alert", // or 'alert.caf'
-      },
-      trigger: {
-        type: SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 2,
-        repeats: false,
-      },
-    });
 
     const tokenUpdatedListener = Notifications.addPushTokenListener((token) =>
       registerFirebaseDeviceToken(token.data)
