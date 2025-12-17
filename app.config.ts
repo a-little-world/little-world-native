@@ -79,6 +79,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     color: "#ffffff",
   },
   plugins: [
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+        },
+      },
+    ],
     "expo-router",
     "expo-font",
     "expo-web-browser",
@@ -97,14 +105,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
-      },
-    ],
-    [
-      "expo-build-properties",
-      {
-        ios: {
-          useFrameworks: "static",
-        },
       },
     ],
     [
