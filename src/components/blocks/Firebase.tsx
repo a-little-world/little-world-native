@@ -11,7 +11,25 @@ import {
   IosAuthorizationStatus,
   SchedulableTriggerInputTypes,
 } from "expo-notifications";
+import * as TaskManager from "expo-task-manager";
 import { registerFirebaseDeviceToken } from "./firebase-util";
+
+const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
+
+TaskManager.defineTask<Notifications.NotificationTaskPayload>(
+  BACKGROUND_NOTIFICATION_TASK,
+  async ({ data }) => {
+    console.log("Received a notification task payload!", data);
+    const isNotificationResponse = "actionIdentifier" in data;
+    if (isNotificationResponse) {
+      // Do something with the notification response from user
+    } else {
+      // Do something with the data from notification that was received
+    }
+  }
+);
+
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
