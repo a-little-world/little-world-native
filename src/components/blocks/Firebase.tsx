@@ -1,24 +1,29 @@
-import messaging, {
-  AuthorizationStatus,
-  getInitialNotification,
-  getMessaging,
-  onMessage,
-  onNotificationOpenedApp,
-  onTokenRefresh,
-  requestPermission,
-  setBackgroundMessageHandler,
-} from "@react-native-firebase/messaging";
-import { PermissionsAndroid, Platform } from "react-native";
+import { Platform } from "react-native";
 
-import { useEffect, useRef } from "react";
+import * as Device from "expo-device";
+import { PermissionStatus } from "expo-modules-core";
+import * as Notifications from "expo-notifications";
+
+import { useEffect } from "react";
 
 import { useAppStore } from "@/src/store/store";
-import { Unsubscribe } from "firebase/messaging";
-import { Alert } from "react-native";
 import {
-  registerFirebaseDeviceToken,
-  unregisterFirebaseDeviceToken,
-} from "./firebase-util";
+  IosAuthorizationStatus,
+  SchedulableTriggerInputTypes,
+} from "expo-notifications";
+import { registerFirebaseDeviceToken } from "./firebase-util";
+
+Notifications.setNotificationHandler({
+  handleNotification: async (notification) => {
+    console.log("received notification in foreground handler");
+    return {
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    };
+  },
+});
 
 interface FirebasePushNotificationData {
   headline: string;
@@ -27,163 +32,121 @@ interface FirebasePushNotificationData {
   timestamp: string;
 }
 
-async function requestUserPermission() {
-  console.log("requesting notification permission for platform", Platform.OS);
-  if (Platform.OS === "ios") {
-    return requestPermissionIOS();
-  }
-  if (Platform.OS === "android") {
-    return requestPermissionAndroid();
-  }
-  return false;
+function handleRegistrationError(errorMessage: string) {
+  alert(errorMessage);
+  throw new Error(errorMessage);
 }
 
 async function requestPermissionIOS(): Promise<boolean> {
-  const authStatus = await requestPermission(getMessaging(), {
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: true,
-    criticalAlert: false,
-    provisional: false,
-    sound: true,
-  });
+  let permission = await Notifications.getPermissionsAsync();
 
-  const enabled =
-    authStatus === AuthorizationStatus.AUTHORIZED ||
-    authStatus === AuthorizationStatus.PROVISIONAL;
+  if (permission.ios?.status === IosAuthorizationStatus.NOT_DETERMINED) {
+    permission = await Notifications.requestPermissionsAsync();
+  }
 
-  return enabled;
-}
+  const allowedStatuses: IosAuthorizationStatus[] = [
+    IosAuthorizationStatus.AUTHORIZED,
+    IosAuthorizationStatus.EPHEMERAL,
+    IosAuthorizationStatus.PROVISIONAL,
+  ];
 
-function setupMessageListeners() {
-  setBackgroundMessageHandler(messaging(), async (remoteMessage) => {
-    console.log("Background message handler!", remoteMessage);
-    const data = remoteMessage.data as unknown as FirebasePushNotificationData;
-    Alert.alert(
-      `Background message handler! Headline: ${data?.headline}; Title: ${data?.title}`,
-      data?.description
-    );
-  });
-
-  const unsubscribeOnMessage = onMessage(messaging(), async (remoteMessage) => {
-    console.log("A new FCM message arrived!", remoteMessage);
-    const data = remoteMessage.data as unknown as FirebasePushNotificationData;
-    Alert.alert(
-      `Foreground message handler! Headline: ${data?.headline}; Title: ${data?.title}`,
-      data?.description
-    );
-  });
-
-  const unsbuscribeOnNotificationOpenedApp = onNotificationOpenedApp(
-    messaging(),
-    (remoteMessage) => {
-      console.log(
-        "Notification caused app to open from background state:",
-        remoteMessage
-      );
-      const data =
-        remoteMessage.data as unknown as FirebasePushNotificationData;
-      Alert.alert(
-        `Notification opened App handler! Headline: ${data?.headline}; Title: ${data?.title}`,
-        data?.description
-      );
-    }
+  return (
+    permission.ios !== undefined &&
+    allowedStatuses.includes(permission.ios.status)
   );
-
-  // Check if app was opened from notification when app was quit
-  getInitialNotification(messaging()).then((remoteMessage) => {
-    if (remoteMessage) {
-      console.log(
-        "Notification caused app to open from quit state:",
-        remoteMessage
-      );
-      const data =
-        remoteMessage.data as unknown as FirebasePushNotificationData;
-      Alert.alert(
-        `Notification cause app to open handler! Headline: ${data?.headline}; Title: ${data?.title}`,
-        data?.description
-      );
-    }
-  });
-
-  const unsubscribeTokenRefresh = onTokenRefresh(messaging(), (token) => {
-    console.log("FCM token refreshed:", token);
-    // Send new token to server
-    registerFirebaseDeviceToken(token);
-  });
-
-  return () => {
-    unsubscribeOnMessage();
-    unsbuscribeOnNotificationOpenedApp();
-    unsubscribeTokenRefresh();
-  };
 }
 
 async function requestPermissionAndroid(): Promise<boolean> {
-  const permissionStatus = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-  );
-  if (permissionStatus === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-    /// save that and never ask again
+  await Notifications.setNotificationChannelAsync("default", {
+    name: "default",
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#FF231F7C",
+  });
+
+  let permission = await Notifications.getPermissionsAsync();
+
+  if (permission.status === PermissionStatus.UNDETERMINED) {
+    permission = await Notifications.requestPermissionsAsync();
   }
-  return permissionStatus === PermissionsAndroid.RESULTS.GRANTED;
+
+  return permission.status === PermissionStatus.GRANTED;
 }
 
-async function register(): Promise<boolean> {
+async function requestUserPermission() {
+  console.log("isDevice", Device.isDevice);
+  if (!Device.isDevice) {
+    return false;
+  }
+
+  if (Platform.OS === "android") {
+    return requestPermissionAndroid();
+  } else if (Platform.OS === "ios") {
+    return requestPermissionIOS();
+  } else {
+    console.log("notifications not supported on platform:", Platform.OS);
+    return false;
+  }
+}
+
+async function register(): Promise<void> {
   const permission = await requestUserPermission();
-  if (!permission) {
-    return false;
-  }
+  console.log("has notificaiton permissions", permission);
 
-  const token = await messaging().getToken();
+  const token = await Notifications.getDevicePushTokenAsync();
+  console.log("notiifcation token", token);
 
-  try {
-    await registerFirebaseDeviceToken(token);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-}
-
-async function unregister() {
-  const token = await messaging().getToken();
-
-  await unregisterFirebaseDeviceToken(token);
+  await registerFirebaseDeviceToken(token.data);
 }
 
 function FireBase() {
   useEffect(() => {
-    console.log("friebase");
+    console.log("firebase");
   }, []);
   const appStore = useAppStore();
 
   const notificationsEnabled = appStore.notificationsEnabled;
-  const unsubscribeRef = useRef<Unsubscribe>(undefined);
 
   useEffect(() => {
-    const unsubscribe = () => {
-      unsubscribeRef.current?.();
-    };
+    register();
 
-    console.log(`notifications enabled: ${notificationsEnabled}`);
-    if (notificationsEnabled) {
-      unsubscribeRef.current = setupMessageListeners();
-      register().then((registered) => {
-        console.log("registered", registered);
-        if (!registered) {
-          return;
-        }
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Test",
+        body: "Custom sound test",
+        sound: "alert", // or 'alert.caf'
+      },
+      trigger: {
+        type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 2,
+        repeats: false,
+      },
+    });
+
+    const tokenUpdatedListener = Notifications.addPushTokenListener((token) =>
+      registerFirebaseDeviceToken(token.data)
+    );
+
+    const notificationListener = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("received notification", notification);
+      }
+    );
+
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("clicked notification", response);
       });
-    } else {
-      unsubscribeRef.current?.();
-      unsubscribeRef.current = undefined;
 
-      unregister();
-    }
+    return () => {
+      tokenUpdatedListener.remove();
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  });
 
-    return unsubscribe;
+  useEffect(() => {
+    // TOOD: send POST request to backend and set notificationsEnabled to selected value
   }, [notificationsEnabled]);
 
   return <></>;

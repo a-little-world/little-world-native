@@ -108,19 +108,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
-      "@react-native-firebase/app",
+      "expo-notifications",
       {
-        ios: {
-          googleServicesFile: environmentNative.googleServiceInfoFileIOS,
-        },
-      },
-    ],
-    [
-      "@react-native-firebase/messaging",
-      {
-        ios: {
-          backgroundModes: ["remote-notification", "fetch"],
-        },
+        icon: "./src/assets/images/splash-icon.png",
+        color: "#ffffff",
+        defaultChannel: "default",
+        enableBackgroundRemoteNotifications: true,
       },
     ],
   ],
