@@ -2,6 +2,7 @@ import { environment } from "@/environment";
 import { router } from "expo-router";
 import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";
+import { authStore } from "../store/authStore";
 import { refreshAccessTokens } from "./token";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -65,6 +66,14 @@ export async function apiFetch<T = any>(
 
   if (useTagsOnly) {
     defaultHeaders["X-UseTagsOnly"] = "true";
+  }
+
+  const authHeaders = {
+    "X-CSRF-Bypass-Token": "abc",
+  } as Record<string, string>;
+  const { accessToken } = authStore.get();
+  if (accessToken) {
+    authHeaders.Authorization = `Bearer ${accessToken}`;
   }
 
   const fetchOptions: RequestInit = {
