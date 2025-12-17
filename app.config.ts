@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.11",
+  version: "1.0.14",
   orientation: "portrait",
   icon: "./src/assets/images/icon.png",
   scheme: "little-world-app",
@@ -44,7 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 11,
+    versionCode: 14,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/adaptive-icon.png",
@@ -126,10 +126,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
       ? {
-          eas: {
-            projectId: "d114c1e1-3b95-463a-b8d4-c24ca29f1d05",
-          },
-        }
+        eas: {
+          projectId: "d114c1e1-3b95-463a-b8d4-c24ca29f1d05",
+        },
+      }
       : {}),
     useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === "true",
     useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true",
