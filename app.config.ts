@@ -4,9 +4,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.15",
+  version: "1.0.16",
   orientation: "portrait",
-  icon: "./src/assets/images/icon.png",
+  icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
@@ -18,6 +18,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
+    icon: "./src/assets/images/logo-image.png",
+    splash: {
+      image: "./src/assets/images/splash-icon.png",
+      imageWidth: 200,
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+      tabletImage: "./src/assets/images/splash-icon.png",
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
@@ -32,9 +40,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 15,
+    versionCode: 16,
     adaptiveIcon: {
-      foregroundImage: "./src/assets/images/adaptive-icon.png",
+      foregroundImage: "./src/assets/images/logo-image.png",
       backgroundColor: "#ffffff",
     },
     permissions: [
@@ -59,7 +67,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     imageWidth: 200,
     resizeMode: "contain",
     backgroundColor: "#ffffff",
-    tabletImage: "./assets/splash-tablet.png",
+    tabletImage: "./src/assets/images/logo-image.png",
   },
   plugins: [
     "expo-router",
