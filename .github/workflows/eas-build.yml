@@ -42,8 +42,9 @@ jobs:
           ref: ${{ inputs.frontendCommitRef }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
-      - name: Install pnpm
-        run: npm install -g pnpm@latest-10
+      - name: Install pnpm & cpx
+        run: |
+          npm install -g pnpm@latest-10 cpx
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -54,9 +55,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: Install dependencies
         run: |
-          cd little-world-frontend
-          npm ci
-          cd ../little-world-native
+          cd little-world-native
           export PRODUCTION=${{ inputs.production }}
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"

@@ -1,12 +1,11 @@
+import {
+  LoadingLogo,
+  LoadingSizes,
+  CustomThemeProvider as NativeThemeProvider,
+} from "@a-little-world/little-world-design-system-native";
 import { View } from "react-native";
 import { useTheme } from "styled-components/native";
-import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/little-world-design-system-native";
 
-import {
-  Loading,
-  LoadingType,
-  LoadingSizes,
-} from "@a-little-world/little-world-design-system-native";
 import { getLoadingScreenStyles } from "./LoadingScreen.styles";
 
 const LoadingScreenContent = () => {
@@ -15,7 +14,7 @@ const LoadingScreenContent = () => {
 
   return (
     <View style={styles.container}>
-      <Loading type={LoadingType.Logo} size={LoadingSizes.Large} />
+      <LoadingLogo size={LoadingSizes.XXLarge}></LoadingLogo>
     </View>
   );
 };
