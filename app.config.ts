@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.16",
+  version: "1.0.17",
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
@@ -40,7 +40,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 16,
+    versionCode: 17,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/logo-image.png",
       backgroundColor: "#ffffff",
@@ -90,6 +90,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         backgroundColor: "#ffffff",
       },
     ],
+    [
+      "@sentry/react-native/expo",
+      {
+        "url": "https://sentry.io/",
+        "project": "lw-prod-backend",
+        "organization": "a-little-world-gug"
+      }
+    ]
   ],
   experiments: {
     typedRoutes: true,
