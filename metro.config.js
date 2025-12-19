@@ -1,11 +1,13 @@
-const { getDefaultConfig } = require("expo/metro-config");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const path = require("path");
+const {
+  getSentryExpoConfig
+} = require("@sentry/react-native/metro");
 
 const proxyRequests = false;
 
 module.exports = (() => {
-  const config = getDefaultConfig(__dirname);
+  const config = getSentryExpoConfig(__dirname);
 
   const { transformer, resolver } = config;
 
