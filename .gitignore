@@ -32,6 +32,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# DO NOT ADD THEM TO .easignore ELSE LOCAL BUILDS WILL FAIL ( cause tokens arent' uploaded to EAS )
+.env
+.env*.local
+
 app-example
 
 # iOS
