@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.19",
+  version: "1.0.20",
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
@@ -40,7 +40,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 19,
+    versionCode: 20,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/logo-image.png",
       backgroundColor: "#ffffff",
