@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { translations } from "@a-little-world/little-world-frontend-shared";
+// import { translations } from "@a-little-world/little-world-frontend-shared";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 
@@ -16,13 +16,13 @@ i18next.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
-        ...translations.en, // Shared translations first (base)
+        // ...translations.en, // Shared translations first (base)
         ...translationEN, // Local translations override shared ones
       },
     },
     de: {
       translation: {
-        ...translations.de, // Shared translations first (base)
+        // ...translations.de, // Shared translations first (base)
         ...translationDE, // Local translations override shared ones
       },
     },

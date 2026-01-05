@@ -8,7 +8,7 @@ setJSExceptionHandler((e, isFatal) => {
 }, true);
 
 import { loadStoredTokensIntoStore } from "@/src/api/token";
-import "@/src/i18n";
+//import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
