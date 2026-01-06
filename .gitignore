@@ -54,3 +54,6 @@ builds/
 
 fastlane/
 credentials.json
+
+# Private upload script
+upload.sh

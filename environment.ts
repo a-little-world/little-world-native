@@ -8,16 +8,18 @@ export interface Environment {
   websocketHost: string;
   isNative: boolean;
   csrfBypassToken: string;
+  allowNgrokRequests: boolean;
 }
 
 export const environment: Environment = {
-  defaultLoginName: 'benjamin.tim@gmx.de',
-  defaultLoginPassword: 'Test123',
-  backendUrl: 'https://stage.little-world.com',
-  backendPath: '',
-  coreWsScheme: 'wss://',
-  coreWsPath: '/api/core/ws',
-  websocketHost: 'stage.little-world.com',
+  defaultLoginName: "benjamin.tim@gmx.de",
+  defaultLoginPassword: "Test123",
+  backendUrl: "https://little-world.com",
+  backendPath: "",
+  coreWsScheme: "wss://",
+  coreWsPath: "/api/core/ws",
+  websocketHost: "little-world.com",
   isNative: true,
-  csrfBypassToken: 'abc',
+  csrfBypassToken: "abc",
+  allowNgrokRequests: true,
 };
