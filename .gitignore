@@ -55,5 +55,5 @@ builds/
 fastlane/
 credentials.json
 
-# Private upload script
+# Private iOS app upload script
 upload.sh
