@@ -84,7 +84,6 @@
     "@sentry/cli": "^3.0.1",
     "@types/react": "~19.1.17",
     "@types/react-test-renderer": "^19.0.0",
-    "eas-cli": "^16.18.0",
     "metro-minify-terser": "^0.83.1",
     "react-dom": "19.1.0",
     "react-native-svg-transformer": "^1.5.1",
