@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
-    icon: "./src/assets/images/icons/app.icon",
+    icon: "./assets/images/icons/app.icon",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
