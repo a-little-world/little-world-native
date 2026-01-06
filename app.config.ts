@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.7.5",
+    buildNumber: "1.0.20.1",
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
@@ -93,11 +93,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "@sentry/react-native/expo",
       {
-        "url": "https://sentry.io/",
-        "project": "lw-prod-backend",
-        "organization": "a-little-world-gug"
-      }
-    ]
+        url: "https://sentry.io/",
+        project: "lw-prod-backend",
+        organization: "a-little-world-gug",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
