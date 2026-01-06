@@ -20,7 +20,7 @@ export interface EnvironmentNative {
 
 export const environment: EnvironmentNative = {
   googleCloudProjectNumber: "601387323189",
-  showDebugPanel: true,
+  showDebugPanel: !frontendEnvironment.production,
   production: frontendEnvironment.production,
 };
 
