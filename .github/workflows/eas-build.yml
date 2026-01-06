@@ -49,6 +49,9 @@ jobs:
       - name: Install pnpm & cpx
         run: |
           npm install -g pnpm@latest-10 cpx
+      - name: Install pnpm & cpx
+        run: |
+          npm install -g pnpm@latest-10 cpx
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -60,6 +63,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd little-world-native
+          export PRODUCTION=${{ inputs.production }}
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
           export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')

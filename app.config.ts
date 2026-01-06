@@ -6,21 +6,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.14",
+  version: "1.0.20",
   orientation: "portrait",
-  icon: "./src/assets/images/icon.png",
+  icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.7.4",
+    buildNumber: "1.0.20.1",
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
+    icon: "./src/assets/images/logo-image.png",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
@@ -44,10 +45,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 14,
+    versionCode: 20,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
-      foregroundImage: "./src/assets/images/adaptive-icon.png",
+      foregroundImage: "./src/assets/images/logo-image.png",
       backgroundColor: "#ffffff",
     },
     permissions: [
@@ -72,10 +73,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     imageWidth: 200,
     resizeMode: "contain",
     backgroundColor: "#ffffff",
-    tabletImage: "./src/assets/images/splash-icon.png",
+    tabletImage: "./src/assets/images/logo-image.png",
   },
   notification: {
-    icon: "./src/assets/images/splash-icon.png",
+    icon: "./src/assets/images/logo-image.png",
     color: "#ffffff",
   },
   plugins: [
@@ -116,6 +117,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         enableBackgroundRemoteNotifications: true,
       },
     ],
+    [
+      "@sentry/react-native/expo",
+      {
+        url: "https://sentry.io/",
+        project: "lw-prod-backend",
+        organization: "a-little-world-gug",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
@@ -126,10 +135,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
       ? {
-        eas: {
-          projectId: "d114c1e1-3b95-463a-b8d4-c24ca29f1d05",
-        },
-      }
+          eas: {
+            projectId: "d114c1e1-3b95-463a-b8d4-c24ca29f1d05",
+            //projectId: "93610aa8-629e-4031-ac3c-f622399cca78", @tbscode project id
+          },
+        }
       : {}),
     useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === "true",
     useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true",

@@ -29,11 +29,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
-
 # typescript
 *.tsbuildinfo
+
+# DO NOT ADD THEM TO .easignore ELSE LOCAL BUILDS WILL FAIL ( cause tokens arent' uploaded to EAS )
+.env
+.env*.local
 
 app-example
 

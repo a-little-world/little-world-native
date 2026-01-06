@@ -51,10 +51,6 @@ ios/
 .DS_Store
 Thumbs.db
 
-# Environment and configuration files
-.env*.local
-.env
-
 # TypeScript build info
 *.tsbuildinfo
 
