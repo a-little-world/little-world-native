@@ -1,0 +1,29 @@
+{
+  "fill" : "system-light",
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "glass" : true,
+          "image-name" : "PNG (nur top layer transparent (backgrounnd white in Apple conf).png",
+          "name" : "PNG (nur top layer transparent (backgrounnd white in Apple conf)"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

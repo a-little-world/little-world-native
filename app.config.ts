@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
-    icon: "./src/assets/images/logo-image.png",
+    icon: "./assets/images/icons/app.icon",
     splash: {
       image: "./src/assets/images/splash-icon.png",
       imageWidth: 200,
