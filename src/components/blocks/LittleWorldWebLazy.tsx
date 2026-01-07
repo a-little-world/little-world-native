@@ -5,12 +5,12 @@ import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";
-import { Ref, Suspense, lazy, useRef, useEffect } from "react";
+import { Ref, Suspense, lazy, useEffect, useRef } from "react";
 
+import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
+import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
-import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
-import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import LoadingScreen from "../atoms/LoadingScreen";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {

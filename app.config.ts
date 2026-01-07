@@ -1,4 +1,6 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
+import "tsx"; // Enable import of TypeScript files
+import environmentNative from "./environments/env";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -18,6 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bitcode: false,
     bundleIdentifier: "com.littleworld.littleworldapp",
     appleTeamId: "3Z662F5MW8",
+    googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: "./assets/images/icons/app.icon",
     splash: {
       image: "./src/assets/images/splash-icon.png",
@@ -32,15 +35,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "Allow camera usage to participate in group video calls",
       NSMicrophoneUsageDescription:
         "Allow microphone usage to participate in group calls",
+      UIBackgroundModes: ["remote-notification", "fetch"],
     },
     entitlements: {
+      "aps-environment": environmentNative.appleEnvironment,
       "com.apple.developer.devicecheck.appattest-environment":
-        process.env.APPLE_APPATTEST_ENVIRONMENT ?? "development",
+        environmentNative.appleEnvironment,
     },
   },
   android: {
     package: "com.littleworld.littleworldapp",
     versionCode: 20,
+    googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/logo-image.png",
       backgroundColor: "#ffffff",
@@ -69,7 +75,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: "#ffffff",
     tabletImage: "./src/assets/images/logo-image.png",
   },
+  notification: {
+    icon: "./src/assets/images/logo-image.png",
+    color: "#ffffff",
+  },
   plugins: [
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+        },
+      },
+    ],
     "expo-router",
     "expo-font",
     "expo-web-browser",
@@ -88,6 +106,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
+      },
+    ],
+    [
+      "expo-notifications",
+      {
+        icon: "./src/assets/images/splash-icon.png",
+        color: "#ffffff",
+        defaultChannel: "default",
+        enableBackgroundRemoteNotifications: true,
       },
     ],
     [

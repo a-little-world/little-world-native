@@ -1,4 +1,5 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
+
 const path = require("path");
 const {
   getSentryExpoConfig
@@ -13,12 +14,15 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
-    // fixes metro cache errors
-    // Unable to resolve module ./../../../../../46f05506-791f-4df0-a080-6e421c03dd79/build/src/components/blocks/LittleWorldWebLazy.tsx from /private/var/folders/8h/0jk2h57s643fvbdqgf3c4f980000gn/T/eas-build-local-nodejs/f7b072aa-4517-4501-b910-de2d32db5e2f/build/node_modules/expo/dom/entry.js
-    cacheVersion: new Date().getTime().toString(),
     babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
     // Remove minification config that was causing issues
   };
+  const isCIBuild = process.env.IS_CI_BUILD === "true";
+  if (!isCIBuild) {
+    // fixes metro cache errors in local builds, production (built in cloud) should keep the cache
+    // Unable to resolve module ./../../../../../46f05506-791f-4df0-a080-6e421c03dd79/build/src/components/blocks/LittleWorldWebLazy.tsx from /private/var/folders/8h/0jk2h57s643fvbdqgf3c4f980000gn/T/eas-build-local-nodejs/f7b072aa-4517-4501-b910-de2d32db5e2f/build/node_modules/expo/dom/entry.js
+    config.cacheVersion = new Date().getTime().toString();
+  }
 
   config.resolver = {
     ...resolver,

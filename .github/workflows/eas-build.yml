@@ -16,11 +16,6 @@ on:
         description: "Base URL for backend (e.g., https://little-world.com)"
         required: true
         default: "https://little-world.com"
-      production:
-        description: "production"
-        required: true
-        default: true
-        type: boolean
       frontendCommitRef:
         description: "Fronted commit ref"
         required: true
@@ -31,6 +26,15 @@ jobs:
     name: Install and build
     runs-on: ubuntu-builds-small
     steps:
+      - name: environment
+        run: |
+          if [[ "${{ inputs.profile }}" == "preview" ]]; then
+            echo "STAGING=true" >> $GITHUB_OUTPUT
+            echo "PRODUCTION=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.profile }}" == "production" ]]; then
+            echo "PRODUCTION=true" >> $GITHUB_OUTPUT
+            echo "STAGING=false" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout little-world-native
         uses: actions/checkout@v4
         with:
@@ -45,6 +49,9 @@ jobs:
       - name: Install pnpm & cpx
         run: |
           npm install -g pnpm@latest-10 cpx
+      - name: Install pnpm & cpx
+        run: |
+          npm install -g pnpm@latest-10 cpx
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -56,19 +63,20 @@ jobs:
       - name: Install dependencies
         run: |
           cd little-world-native
-          export PRODUCTION=${{ inputs.production }}
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
           export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
           export USE_WSS_WEBSOCKET=true
-          if [[ "${{ inputs.production }}" == "true" ]]; then
-            export APPLE_APPATTEST_ENVIRONMENT=production
-          else
-            export APPLE_APPATTEST_ENVIRONMENT=development
-          fi
           ./_scripts/pack_and_update.sh
       - name: Build on EAS
+        env:
+          IS_CI_BUILD: true
         run: |
           cd little-world-native
           mv eas.ci.json eas.json
+          if [[ "${{ steps.environment.PRODUCTION }}" == "true" ]]; then
+            mv ./environments/env.prod.ts ./environments/env.ts
+          elif [[ "${{ steps.environment.STAGING }}" == "true" ]]; then
+            mv ./environments/env.staging.ts ./environments/env.ts
+          fi
           eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait

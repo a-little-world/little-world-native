@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "965452953600",
+    "project_id": "little-world-staging",
+    "storage_bucket": "little-world-staging.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965452953600:android:3387b59ce5ab82586380e5",
+        "android_client_info": {
+          "package_name": "com.littleworld.littleworldapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5eqU9ExONeUJqv4-fIfAdzToNzp5mKTE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

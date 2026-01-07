@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "601387323189",
+    "project_id": "little-world-production",
+    "storage_bucket": "little-world-production.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601387323189:android:02403dce7ad444d041467c",
+        "android_client_info": {
+          "package_name": "com.littleworld.littleworldapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4k-KPmNRCDqZ3J0bRuFSx8UEDb2lQcWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
