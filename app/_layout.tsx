@@ -7,11 +7,11 @@ setJSExceptionHandler((e, isFatal) => {
   console.log("JS ERROR", { isFatal, message: e?.message, stack: e?.stack });
 }, true);
 
-import { loadStoredTokensIntoStore } from "@/src/api/token";
 import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
+import { loadStoredTokensIntoStore } from "@/src/api/helpers";
 import LoadingScreen from "@/src/components/atoms/LoadingScreen";
 import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useState } from "react";

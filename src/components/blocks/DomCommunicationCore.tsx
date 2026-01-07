@@ -2,7 +2,7 @@ import {
   clearJwtTokens,
   requestIntegrityCheck,
   saveJwtTokens,
-} from "@/src/api/token";
+} from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import {
   DomCommunicationMessage,

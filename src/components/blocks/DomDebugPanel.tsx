@@ -1,4 +1,4 @@
-import { saveJwtTokens } from "@/src/api/token";
+import { saveJwtTokens } from "@/src/api/helpers";
 import { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
