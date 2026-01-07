@@ -3,7 +3,6 @@ import environmentNative from "@/environments/env";
 import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
 import DomDebugPanel from "@/src/components/blocks/DomDebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
-import FireBase from "@/src/components/blocks/Firebase";
 
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
@@ -14,7 +13,7 @@ export default function Page() {
 
   return (
     <DomCommunicationProvider>
-      <FireBase />
+      {/* <FireBase /> */}
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         <View style={{ height: insets.top, backgroundColor: "#fff" }} />
         <StatusBar style="dark" />
