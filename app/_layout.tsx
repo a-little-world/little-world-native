@@ -11,6 +11,7 @@ import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
+import environmentNative from "@/environments/env";
 import { loadStoredTokensIntoStore } from "@/src/api/helpers";
 import LoadingScreen from "@/src/components/atoms/LoadingScreen";
 import * as Sentry from "@sentry/react-native";
@@ -19,14 +20,16 @@ import { View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-Sentry.init({
-  dsn: "https://5b7832a26c656c8d809e8a3b26f57756@o4506032071507968.ingest.us.sentry.io/4506633212067840",
-  sendDefaultPii: false,
-  enableLogs: true,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [Sentry.mobileReplayIntegration()],
-});
+if (environmentNative.sentryUrl) {
+  Sentry.init({
+    dsn: environmentNative.sentryUrl,
+    sendDefaultPii: false,
+    enableLogs: true,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1,
+    integrations: [Sentry.mobileReplayIntegration()],
+  });
+}
 
 // // 1) Prevent auto hide *before* rendering anything.
 // SplashScreen.preventAutoHideAsync().catch((e) => {
