@@ -110,6 +110,9 @@ export async function apiFetch<T = any>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (errorData?.code === "token_not_valid") {
+        throw errorData;
+      }
       throw formatApiError(errorData, response);
     }
 
@@ -119,7 +122,8 @@ export async function apiFetch<T = any>(
       return null as T;
     }
   } catch (error: any) {
-    if (error?.status === 401) {
+    const tokenExpired = error?.code === "token_not_valid";
+    if (tokenExpired) {
       try {
         const tokenRefreshed = await refreshAccessTokens();
         if (tokenRefreshed) {
@@ -307,7 +311,7 @@ export async function refreshAccessTokens(): Promise<boolean> {
   }
 
   accessTokenRefresh = fetch(
-    `${environment.backendUrl}/api/token/refresh${integrityData.platform}`,
+    `${environment.backendUrl}/api/token/refresh/${integrityData.platform}`,
     fetchOptions
   )
     .then(async (res) => {

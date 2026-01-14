@@ -1,4 +1,5 @@
-import { saveJwtTokens } from "@/src/api/helpers";
+import { apiFetch, saveJwtTokens } from "@/src/api/helpers";
+import { useAuthStore } from "@/src/store/authStore";
 import { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
@@ -92,6 +93,23 @@ export default function DomDebugPanel() {
       }
 
       setLastResponse(res.ok ? "Tokens cleared" : res.error);
+    } catch (e: any) {
+      setLastResponse({ ok: false, error: String(e) });
+    }
+  };
+
+  const verifyTokens = async () => {
+    try {
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      console.log("auth store state", useAuthStore.getState());
+      const isValid = await apiFetch("/api/token/verify", {
+        method: "POST",
+        body: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        },
+      });
+      setLastResponse(isValid);
     } catch (e: any) {
       setLastResponse({ ok: false, error: String(e) });
     }
@@ -200,6 +218,14 @@ export default function DomDebugPanel() {
                           >
                             <Text style={styles.clearTokenButtonText}>
                               Clear tokens
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.verifyTokensButton}
+                            onPress={verifyTokens}
+                          >
+                            <Text style={styles.verifyTokensButtonText}>
+                              Verify access token
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -383,7 +409,7 @@ const styles = StyleSheet.create({
   closeButtonText: { fontSize: 14, color: "#666" },
   debugContent: { flex: 1 },
   inputRow: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     marginBottom: 16,
     gap: 8,
@@ -610,6 +636,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   clearTokenButtonText: { color: "white", fontSize: 10, fontWeight: "600" },
+  verifyTokensButton: {
+    backgroundColor: "#55c525ff",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  verifyTokensButtonText: { color: "white", fontSize: 10, fontWeight: "600" },
   noTokenText: {
     fontSize: 11,
     color: "#6c757d",

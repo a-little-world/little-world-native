@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.20.1",
+    buildNumber: "1.0.20.2",
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,

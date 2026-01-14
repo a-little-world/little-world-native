@@ -13,7 +13,8 @@ import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
 import environmentNative from "@/environments/env";
 import { loadStoredTokensIntoStore } from "@/src/api/helpers";
-import LoadingScreen from "@/src/components/atoms/LoadingScreen";
+import LoadingScreenTokenValidator from "@/src/components/atoms/LoadingScreenTokenValidator";
+import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
 import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
@@ -37,27 +38,30 @@ if (environmentNative.sentryUrl) {
 // });
 
 export default Sentry.wrap(function RootLayout() {
-  const [ready, setReady] = useState(false);
+  const [tokensLoaded, setTokensLoaded] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [tokensValidated, setTokensValidated] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await loadFonts();
-        await loadStoredTokensIntoStore();
-      } catch (e) {
-        console.warn("Failed to load fonts:", e);
-      } finally {
-        setReady(true);
-      }
-    })();
+    loadStoredTokensIntoStore()
+      .catch((e) => console.warn("Failed to load tokens into store", e))
+      .finally(() => setTokensLoaded(true));
+
+    loadFonts()
+      .catch((e) => console.warn("Failed to load fonts:", e))
+      .finally(() => setFontsLoaded(true));
   }, []);
 
   // 2) Hide only after the root view has laid out.
   const onLayoutRootView = useCallback(async () => {
-    if (ready) {
+    if (fontsLoaded) {
       // await SplashScreen.hideAsync();
     }
-  }, [ready]);
+  }, [fontsLoaded]);
+
+  const onTokensValidated = useCallback(async () => {
+    setTokensValidated(true);
+  }, [setTokensValidated]);
 
   return (
     <SafeAreaProvider>
@@ -66,17 +70,37 @@ export default Sentry.wrap(function RootLayout() {
         onLayout={onLayoutRootView}
       >
         <NativeThemeProvider>
-          {!ready ? (
-            <LoadingScreen />
-          ) : (
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                fullScreenGestureEnabled: true,
+          <DomCommunicationProvider>
+            {/* {!tokensValidated && (
+            <View
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                zIndex: 999,
               }}
-            />
-          )}
+            >
+              <LoadingScreenTokenValidator
+                onTokensValidated={onTokensValidated}
+              />
+            </View>
+          )} */}
+            {!tokensValidated && (
+              <LoadingScreenTokenValidator
+                onTokensValidated={onTokensValidated}
+                tokensLoaded={tokensLoaded}
+              />
+            )}
+            {fontsLoaded && ( // start rendering as early as possible and overlay loading screen on top
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                  fullScreenGestureEnabled: true,
+                }}
+              />
+            )}
+          </DomCommunicationProvider>
         </NativeThemeProvider>
       </View>
     </SafeAreaProvider>

@@ -4,6 +4,7 @@ import {
   saveJwtTokens,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -100,6 +101,7 @@ export function DomCommunicationProvider({
           // Set a timeout to reject the promise if no response comes
           setTimeout(() => {
             if (pendingRequestsRef.current.has(requestId)) {
+              console.info("request timeout for requesId", requestId);
               pendingRequestsRef.current.delete(requestId);
               reject(new Error("Response timeout"));
             }
@@ -143,6 +145,7 @@ export function DomCommunicationProvider({
         }
         case "WEBVIEW_READY": {
           transferAccessTokenIfPresent();
+          useWebViewStore.setState({ ready: true });
           return { ok: true };
         }
         case "RESPONSE": {

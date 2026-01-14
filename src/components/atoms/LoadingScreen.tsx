@@ -6,6 +6,7 @@ import {
 import { View } from "react-native";
 import { useTheme } from "styled-components/native";
 
+import { useEffect } from "react";
 import { getLoadingScreenStyles } from "./LoadingScreen.styles";
 
 const LoadingScreenContent = () => {
@@ -20,6 +21,9 @@ const LoadingScreenContent = () => {
 };
 
 export const LoadingScreen = () => {
+  useEffect(() => {
+    console.log("rendering loading screen");
+  }, []);
   return (
     <View style={{ flex: 1, width: "100%", height: "100%" }}>
       <NativeThemeProvider>
