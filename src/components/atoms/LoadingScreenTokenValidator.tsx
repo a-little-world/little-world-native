@@ -1,5 +1,12 @@
-import { apiFetch, clearJwtTokens } from "@/src/api/helpers";
+import {
+  clearJwtTokens,
+  loadStoredTokensIntoStore,
+  refreshAccessTokens,
+  TokenStatus,
+} from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { useWebViewStore } from "@/src/store/webViewStore";
+import JWT from "expo-jwt";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useDomCommunicationContext } from "../blocks/DomCommunicationCore";
@@ -7,7 +14,6 @@ import LoadingScreen from "./LoadingScreen";
 
 interface Props {
   onTokensValidated: () => void;
-  tokensLoaded: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -19,132 +25,104 @@ const styles = StyleSheet.create({
   },
 });
 
-interface TokenVerificationData {
-  access_token: string | undefined | null;
-  refresh_token: string | undefined | null;
-}
-
-interface TokenVerificationResult {
-  access_token_valid: boolean;
-  refresh_token_valid: boolean;
-}
+// consider valid as long as their expiry is at least 10 seconds into the future
+const TOKEN_EXPIRY_THRESHOLD = 10;
 
 // returns true if tokens could be verified (and possibly refreshed), otherwise false
-async function verifyTokens(): Promise<boolean> {
-  // saveJwtTokens("test1234", "test5678");
-  // await loadStoredTokensIntoStore();
-
-  const { accessToken, refreshToken } = useAuthStore.getState();
-  console.log(
-    `verifying tokens: authToken set: ${!!accessToken}, refreshToken set: ${!!refreshToken}`
-  );
-  // const tokenVerificationData: TokenVerificationData = {
-  //   access_token: accessToken,
-  //   refresh_token: refreshToken,
-  // };
+async function verifyTokens(): Promise<TokenStatus> {
+  const { accessToken, refreshToken } = await loadStoredTokensIntoStore();
 
   if (!accessToken || !refreshToken) {
-    return false;
+    return TokenStatus.MISSING;
   }
 
-  // return apiFetch("/api/token/verify", {
-  //   method: "POST",
-  //   body: {
-  //     token: accessToken,
-  //   },
-  // })
-  //   .then((res) => {
-  //     console.log("token verification successful", res);
-  //     return true;
-  //   })
-  //   .catch((e) => {
-  //     console.log("token verification failed. Refresh also invalid", e);
-  //     return false;
-  //   });
+  const now = new Date().getTime() / 1000;
+  const isExpired = (expirationTime: number): boolean =>
+    expirationTime - now < TOKEN_EXPIRY_THRESHOLD;
+  try {
+    const accessTokenExpiry = JWT.decode(accessToken, null).exp ?? 0;
+    if (!isExpired(accessTokenExpiry)) {
+      return TokenStatus.VALID;
+    }
+  } catch (_) {
+    // expo-jwt throws an error if the token is expired because the decode function also performs validation...
+  }
 
-  return apiFetch("/api/user")
-    .then((res) => {
-      console.log("token verification successful", res);
-      return true;
-    })
-    .catch((e) => {
-      console.log("token verification failed. Refresh also invalid", e);
-      return false;
-    });
+  try {
+    const refreshTokenExpiry = JWT.decode(refreshToken, null).exp ?? 0;
+    if (!isExpired(refreshTokenExpiry)) {
+      return TokenStatus.VALID;
+    }
+    return refreshAccessTokens();
+  } catch (_) {
+    // expo-jwt throws an error if the token is expired because the decode function also performs validation...
+  }
+
+  return TokenStatus.EXPIRED;
 }
 
-export function LoadingScreenTokenValidator({
-  onTokensValidated,
-  tokensLoaded,
-}: Props) {
-  // const { ready: webViewReady } = useWebViewStore();
-  const webViewReady = true;
-  const [tokenVerificationRequest, setTokenVerificationRequest] =
-    useState<Promise<boolean> | null>(null);
+export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
+  const { ready: webViewReady } = useWebViewStore();
+  const [tokenStatus, setTokenStatus] = useState<TokenStatus | null>(null);
   const { sendToDom } = useDomCommunicationContext();
 
   useEffect(() => {
-    if (tokensLoaded) {
-      setTokenVerificationRequest(verifyTokens());
-      console.log("setting token verification request");
-    }
-  }, [tokensLoaded, setTokenVerificationRequest]);
+    verifyTokens().then((tokenStatus) => setTokenStatus(tokenStatus));
+  }, []);
 
   useEffect(() => {
-    console.log(
-      `webViewReady: ${webViewReady}, tokenVerifyRequest set: ${
-        tokenVerificationRequest !== null
-      }`
-    );
-    if (webViewReady && tokenVerificationRequest) {
+    if (webViewReady && tokenStatus !== null) {
       (async () => {
-        const tokensVerified = await tokenVerificationRequest;
-        console.log(`tokens valid: ${tokensVerified}`);
-        if (tokensVerified) {
-          const { accessToken, refreshToken } = useAuthStore.getState();
-          await sendToDom({
-            action: "SET_AUTH_TOKENS",
-            payload: {
-              accessToken: accessToken ?? null,
-              refreshToken: refreshToken ?? null,
-            },
-          });
-          await sendToDom({
-            action: "NAVIGATE",
-            payload: {
-              path: "/app",
-            },
-          });
-          // navigate to app
-        } else {
-          await clearJwtTokens();
-          useAuthStore.setState({
-            accessToken: undefined,
-            refreshToken: undefined,
-          });
-          await sendToDom({
-            action: "SET_AUTH_TOKENS",
-            payload: {
-              accessToken: null,
-              refreshToken: null,
-            },
-          });
-          await sendToDom({
-            action: "NAVIGATE",
-            payload: {
-              path: "/login?sessionExpired=true",
-            },
-          });
+        switch (tokenStatus) {
+          case TokenStatus.VALID: {
+            const { accessToken, refreshToken } = useAuthStore.getState();
+            await sendToDom({
+              action: "SET_AUTH_TOKENS",
+              payload: {
+                accessToken: accessToken ?? null,
+                refreshToken: refreshToken ?? null,
+              },
+            });
+            await sendToDom({
+              action: "NAVIGATE",
+              payload: {
+                path: "/app",
+              },
+            });
+            // navigate to app
+            break;
+          }
+          case TokenStatus.EXPIRED:
+          case TokenStatus.MISSING:
+            // these cases only differ in whether the session expired message is shown
+            {
+              await clearJwtTokens();
+              useAuthStore.setState({
+                accessToken: undefined,
+                refreshToken: undefined,
+              });
+              await sendToDom({
+                action: "SET_AUTH_TOKENS",
+                payload: {
+                  accessToken: null,
+                  refreshToken: null,
+                },
+              });
+              await sendToDom({
+                action: "NAVIGATE",
+                payload: {
+                  path: `/login${tokenStatus === TokenStatus.EXPIRED ? "?sessionExpired=true" : ""}`,
+                },
+              });
+            }
+            break;
         }
 
+        // hide the loading screen
         onTokensValidated();
       })();
     }
-  }, [webViewReady, tokenVerificationRequest, sendToDom]);
-
-  // useEffect(() => {
-  //   setTimeout(() => onTokensValidated(), 5000);
-  // }, []);
+  }, [webViewReady, tokenStatus, sendToDom]);
 
   return (
     <View style={styles.overlayContainer}>

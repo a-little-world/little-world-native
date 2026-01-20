@@ -5,6 +5,7 @@ import {
   IntegrityCheck,
   IntegrityCheckAndroid,
   IntegrityCheckIOS,
+  IntegrityCheckRequestData,
 } from "littleplanet";
 import { Platform } from "react-native";
 import uuid from "react-native-uuid";
@@ -55,7 +56,7 @@ export const formatApiError = (responseBody: any, response: any) => {
 
 export async function apiFetch<T = any>(
   endpoint: string,
-  options: ApiFetchOptions = {}
+  options: ApiFetchOptions = {},
 ): Promise<T> {
   const {
     method = "GET",
@@ -105,7 +106,7 @@ export async function apiFetch<T = any>(
   try {
     const response = await fetch(
       `${environment.backendUrl}${endpoint}`,
-      fetchOptions
+      fetchOptions,
     );
 
     if (!response.ok) {
@@ -125,12 +126,21 @@ export async function apiFetch<T = any>(
     const tokenExpired = error?.code === "token_not_valid";
     if (tokenExpired) {
       try {
-        const tokenRefreshed = await refreshAccessTokens();
-        if (tokenRefreshed) {
-          return apiFetch(endpoint, options);
-        } else {
-          // refresh token expired -> navigate to login
-          router.navigate("/");
+        const tokenStatus = await refreshAccessTokens();
+        switch (tokenStatus) {
+          case TokenStatus.VALID: {
+            return apiFetch(endpoint, options);
+          }
+          case TokenStatus.EXPIRED:
+          case TokenStatus.MISSING: {
+            // refresh token expired -> navigate to login
+            useAuthStore.setState({
+              accessToken: undefined,
+              refreshToken: undefined,
+            });
+            router.navigate("/");
+            break;
+          }
         }
       } catch (err: any) {
         const response = err.cause;
@@ -159,7 +169,7 @@ export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
       return requestIntegrityCheckWeb();
     default:
       throw new Error(
-        `Platform ${Platform.OS} not supported for integrity check`
+        `Platform ${Platform.OS} not supported for integrity check`,
       );
   }
 }
@@ -173,9 +183,8 @@ async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
   });
   const cloudProjectNumber = environmentNative.googleCloudProjectNumber;
   await AppIntegrity.prepareIntegrityTokenProviderAsync(cloudProjectNumber);
-  const integrityToken = await AppIntegrity.requestIntegrityCheckAsync(
-    challenge
-  );
+  const integrityToken =
+    await AppIntegrity.requestIntegrityCheckAsync(challenge);
 
   return { platform: "android", integrityToken, keyId };
 }
@@ -200,7 +209,7 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
   try {
     const attestationObject = await AppIntegrity.attestKeyAsync(
       keyId,
-      challenge
+      challenge,
     );
     return { platform: "ios", attestationObject, keyId };
   } catch (error) {
@@ -213,6 +222,30 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
 
 async function requestIntegrityCheckWeb(): Promise<IntegrityCheck> {
   return { platform: "web", bypassToken: "bypassChangeMe!" };
+}
+
+// redaclaration from frontend since import functions/constant functions seems to cause issues.
+export function getIntegrityCheckRequestData(
+  integrityCheck: IntegrityCheck,
+): IntegrityCheckRequestData {
+  if (integrityCheck.platform === "android") {
+    return {
+      key_id: integrityCheck.keyId,
+      integrity_token: integrityCheck.integrityToken,
+    };
+  }
+  if (integrityCheck.platform === "ios") {
+    return {
+      key_id: integrityCheck.keyId,
+      attestation_object: integrityCheck.attestationObject,
+    };
+  }
+  if (integrityCheck.platform === "web") {
+    return {
+      bypass_token: integrityCheck.bypassToken,
+    };
+  }
+  throw new Error(`Unsupported platform for integrity check request data`);
 }
 
 // Token logic
@@ -240,7 +273,7 @@ export async function getRefreshJwtToken() {
 
 export async function saveJwtTokens(
   accessToken: string | null,
-  refreshToken: string | null
+  refreshToken: string | null,
 ) {
   try {
     if (SecureStore && typeof SecureStore.setItemAsync === "function") {
@@ -273,17 +306,23 @@ export async function loadStoredTokensIntoStore() {
   const refreshToken = (await getRefreshJwtToken()) ?? undefined;
 
   useAuthStore.setState({ accessToken, refreshToken });
+
+  return { accessToken, refreshToken };
 }
 
-let accessTokenRefresh: Promise<boolean> | undefined = undefined;
-export async function refreshAccessTokens(): Promise<boolean> {
+export enum TokenStatus {
+  VALID,
+  EXPIRED,
+  MISSING,
+}
+
+let accessTokenRefresh: Promise<TokenStatus> | undefined = undefined;
+export async function refreshAccessTokens(): Promise<TokenStatus> {
   if (accessTokenRefresh) {
     return accessTokenRefresh;
   }
 
   const { refreshToken } = useAuthStore.getState();
-  console.log("refreshToken", refreshToken);
-
   const defaultHeaders: Record<string, string> = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -302,34 +341,37 @@ export async function refreshAccessTokens(): Promise<boolean> {
     headers: { ...defaultHeaders, ...authHeaders },
     body: JSON.stringify({
       refresh: refreshToken,
-      ...integrityData,
+      ...getIntegrityCheckRequestData(integrityData),
     }),
   };
 
   if (!refreshToken) {
-    return false;
+    return TokenStatus.MISSING;
   }
 
   accessTokenRefresh = fetch(
     `${environment.backendUrl}/api/token/refresh/${integrityData.platform}`,
-    fetchOptions
+    fetchOptions,
   )
-    .then(async (res) => {
+    .then(async (res: any) => {
       if (res.ok) {
         const { access, refresh }: { access: string; refresh: string } =
           await res.json();
 
         useAuthStore.setState({ accessToken: access, refreshToken: refresh });
-        return true;
+        return TokenStatus.VALID;
       }
 
-      if (res.status === 403) {
+      if (res?.code === "token_not_valid") {
         // refresh token expired
-        console.warn("refresh token expired");
-        return false;
+        useAuthStore.setState({
+          accessToken: undefined,
+          refreshToken: undefined,
+        });
+        return TokenStatus.EXPIRED;
       }
 
-      throw new Error(undefined, { cause: res });
+      throw new Error("Unknown error", { cause: res });
     })
     .finally(() => (accessTokenRefresh = undefined));
 

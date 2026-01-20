@@ -34,7 +34,7 @@ export function useDomCommunicationContext() {
   const context = useContext(DomCommunicationContext);
   if (!context)
     throw new Error(
-      "useDomCommunicationContext must be used within a DomCommunicationProvider"
+      "useDomCommunicationContext must be used within a DomCommunicationProvider",
     );
   return context;
 }
@@ -106,7 +106,7 @@ export function DomCommunicationProvider({
               reject(new Error("Response timeout"));
             }
           }, REQUEST_TIMEOUT);
-        }
+        },
       );
       const messageWithId = { ...message, requestId };
 
@@ -116,7 +116,7 @@ export function DomCommunicationProvider({
       // Wait for the response to come via the callback
       return responsePromise;
     },
-    []
+    [],
   );
 
   const sendToReactNative: DomCommunicationMessageFn = useCallback(
@@ -144,7 +144,8 @@ export function DomCommunicationProvider({
           return { ok: true };
         }
         case "WEBVIEW_READY": {
-          transferAccessTokenIfPresent();
+          console.log("WEBVIEW_READY");
+          // transferAccessTokenIfPresent();
           useWebViewStore.setState({ ready: true });
           return { ok: true };
         }
@@ -175,7 +176,7 @@ export function DomCommunicationProvider({
           console.log(
             "console log from frontend",
             message.payload.message,
-            ...(message.payload.params ?? [])
+            ...(message.payload.params ?? []),
           );
           return { ok: true };
         }
@@ -187,7 +188,7 @@ export function DomCommunicationProvider({
         }
       }
     },
-    []
+    [],
   );
 
   const contextValue: DomCommunicationContextType = {
