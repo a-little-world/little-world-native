@@ -1,4 +1,4 @@
-import { apiFetch, saveJwtTokens } from "@/src/api/helpers";
+import { apiFetch, clearJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -33,12 +33,15 @@ export default function DomDebugPanel() {
   const routes = useMemo(
     () => [
       { label: "Sign Up", value: "/sign-up" },
-      { label: "Login", value: "/login" },
-      { label: "Profile", value: "/profile" },
+      { label: "Login login", value: "login" },
+      { label: "Login /login", value: "/login" },
+      { label: "Login ''", value: "" },
+      { label: "Login /", value: "/" },
+      { label: "Profile", value: "/app/profile" },
       { label: "Settings", value: "/settings" },
       { label: "Help", value: "/help" },
     ],
-    []
+    [],
   );
 
   const appInfoData = useMemo(
@@ -47,7 +50,7 @@ export default function DomDebugPanel() {
       { key: "getBackendUrl", value: getBackendUrl() },
       { key: "secureStoreIsAvailable", value: secureStoreIsAvailable() },
     ],
-    [secureStoreDecryptionKeyInfo]
+    [secureStoreDecryptionKeyInfo],
   );
 
   useEffect(() => {
@@ -74,7 +77,11 @@ export default function DomDebugPanel() {
 
   const clearTokens = async () => {
     try {
-      await saveJwtTokens(null, null);
+      await clearJwtTokens();
+      useAuthStore.setState({
+        accessToken: undefined,
+        refreshToken: undefined,
+      });
       const res = await sendToDom({
         action: "SET_AUTH_TOKENS",
         payload: {
@@ -98,18 +105,10 @@ export default function DomDebugPanel() {
     }
   };
 
-  const verifyTokens = async () => {
+  const checkAuthentication = async () => {
     try {
-      const { accessToken, refreshToken } = useAuthStore.getState();
-      console.log("auth store state", useAuthStore.getState());
-      const isValid = await apiFetch("/api/token/verify", {
-        method: "POST",
-        body: {
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        },
-      });
-      setLastResponse(isValid);
+      const isAuthenticated = await apiFetch("/api/user/authenticated");
+      setLastResponse(`${!isAuthenticated ? "not" : ""} authenticated`);
     } catch (e: any) {
       setLastResponse({ ok: false, error: String(e) });
     }
@@ -221,11 +220,11 @@ export default function DomDebugPanel() {
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={styles.verifyTokensButton}
-                            onPress={verifyTokens}
+                            style={styles.checkAuthentication}
+                            onPress={checkAuthentication}
                           >
-                            <Text style={styles.verifyTokensButtonText}>
-                              Verify access token
+                            <Text style={styles.checkAuthenticationButtonText}>
+                              Check current auth status
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -636,13 +635,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   clearTokenButtonText: { color: "white", fontSize: 10, fontWeight: "600" },
-  verifyTokensButton: {
+  checkAuthentication: {
     backgroundColor: "#55c525ff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
-  verifyTokensButtonText: { color: "white", fontSize: 10, fontWeight: "600" },
+  checkAuthenticationButtonText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "600",
+  },
   noTokenText: {
     fontSize: 11,
     color: "#6c757d",
