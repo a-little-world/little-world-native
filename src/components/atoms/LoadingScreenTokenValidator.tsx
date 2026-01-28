@@ -2,6 +2,7 @@ import {
   clearJwtTokens,
   loadStoredTokensIntoStore,
   refreshAccessTokens,
+  saveJwtTokens,
   TokenStatus,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
@@ -68,7 +69,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
 
   useEffect(() => {
     verifyTokens().then((tokenStatus) => setTokenStatus(tokenStatus));
-  }, []);
+  }, [setTokenStatus]);
 
   useEffect(() => {
     if (webViewReady && tokenStatus !== null) {
@@ -76,6 +77,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
         switch (tokenStatus) {
           case TokenStatus.VALID: {
             const { accessToken, refreshToken } = useAuthStore.getState();
+            saveJwtTokens(accessToken, refreshToken);
             await sendToDom({
               action: "SET_AUTH_TOKENS",
               payload: {

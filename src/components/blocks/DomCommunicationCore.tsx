@@ -61,27 +61,6 @@ export function DomCommunicationProvider({
     >
   >(new Map());
 
-  const transferAccessTokenIfPresent = () => {
-    const accessToken = authStore.accessToken ?? null;
-    const refreshToken = authStore.refreshToken ?? null;
-
-    console.log("auth tokens changed", accessToken, refreshToken);
-    if (accessToken && refreshToken) {
-      sendToDom({
-        action: "SET_AUTH_TOKENS",
-        payload: {
-          accessToken,
-          refreshToken,
-        },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            console.error("Failed to set auth tokens", res);
-          }
-        })
-        .catch(() => {});
-    }
-  };
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
@@ -126,6 +105,7 @@ export function DomCommunicationProvider({
         case "SET_AUTH_TOKENS": {
           const { accessToken, refreshToken } = payload;
           saveJwtTokens(accessToken, refreshToken);
+          useAuthStore.setState({ accessToken, refreshToken });
           return { ok: true };
         }
         case "GET_INTEGRITY_TOKEN": {
