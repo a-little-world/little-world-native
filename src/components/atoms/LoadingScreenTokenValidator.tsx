@@ -79,8 +79,8 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
             await sendToDom({
               action: "SET_AUTH_TOKENS",
               payload: {
-                accessToken: accessToken ?? null,
-                refreshToken: refreshToken ?? null,
+                accessToken,
+                refreshToken,
               },
             });
             await sendToDom({
@@ -104,8 +104,8 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
               await sendToDom({
                 action: "SET_AUTH_TOKENS",
                 payload: {
-                  accessToken: null,
-                  refreshToken: null,
+                  accessToken: undefined,
+                  refreshToken: undefined,
                 },
               });
               await sendToDom({

@@ -139,8 +139,10 @@ export function DomCommunicationProvider({
         }
         case "CLEAR_AUTH_TOKENS": {
           clearJwtTokens();
-          authStore.setAccessToken(undefined);
-          authStore.setRefreshToken(undefined);
+          useAuthStore.setState({
+            accessToken: undefined,
+            refreshToken: undefined,
+          });
           return { ok: true };
         }
         case "WEBVIEW_READY": {

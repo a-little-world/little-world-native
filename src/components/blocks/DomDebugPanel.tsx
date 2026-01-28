@@ -78,8 +78,8 @@ export default function DomDebugPanel() {
       const res = await sendToDom({
         action: "SET_AUTH_TOKENS",
         payload: {
-          accessToken: null,
-          refreshToken: null,
+          accessToken: undefined,
+          refreshToken: undefined,
         },
       });
 

@@ -272,18 +272,18 @@ export async function getRefreshJwtToken() {
 }
 
 export async function saveJwtTokens(
-  accessToken: string | null,
-  refreshToken: string | null,
+  accessToken: string | undefined,
+  refreshToken: string | undefined,
 ) {
   try {
     if (SecureStore && typeof SecureStore.setItemAsync === "function") {
-      if (accessToken !== null) {
+      if (accessToken !== undefined) {
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
       } else {
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       }
 
-      if (refreshToken !== null) {
+      if (refreshToken !== undefined) {
         await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
       } else {
         await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
