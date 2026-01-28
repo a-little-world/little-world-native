@@ -6,7 +6,7 @@ cd ../little-world-frontend || exit 1
 # Use environment variables if set, otherwise fall back to defaults
 SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
 HTTP_SCHEME=${HTTP_SCHEME:-"https"}
-HOST_DOMAIN=${HOST_DOMAIN:-"stage.little-world.com"}
+HOST_DOMAIN=${HOST_DOMAIN:-"d4c1d727311d.ngrok-free.app"}
 USE_WSS_WEBSOCKET=false
 FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
 if [ $HTTP_SCHEME = "https" ]; then
@@ -70,6 +70,7 @@ cp ../little-world-frontend/src/environment.ts ./environment.ts
 sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
+rm "littleplanet-$CURRENT_VERSION.tgz" || true
 pnpm install --no-frozen-lockfile
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 
