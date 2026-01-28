@@ -362,7 +362,11 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
         return TokenStatus.VALID;
       }
 
-      if (res?.code === "token_not_valid") {
+      const tokenExpired = res?.code === "token_not_valid";
+      const noTokenPresent =
+        res?.status === 403 &&
+        useAuthStore.getState().accessToken === undefined;
+      if (tokenExpired || noTokenPresent) {
         // refresh token expired
         useAuthStore.setState({
           accessToken: undefined,
