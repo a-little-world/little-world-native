@@ -24,7 +24,7 @@ on:
 jobs:
   build-ios:
     name: Install and build
-    runs-on: ubuntu-builds-small
+    runs-on: ubuntu-latest
     steps:
       - name: environment
         run: |
