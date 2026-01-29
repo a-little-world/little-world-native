@@ -24,7 +24,7 @@
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.6.0",
     "@a-little-world/little-world-design-system-native": "^0.5.0",
-    "@a-little-world/little-world-frontend-shared": "^0.1.0",
+    "@a-little-world/little-world-frontend-shared": "^0.1.1",
     "@babel/runtime": "^7.27.6",
     "@expo/app-integrity": "^0.1.9",
     "@expo/metro-runtime": "~6.1.2",
