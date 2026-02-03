@@ -12,21 +12,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     {
       refreshInterval: (isAuthenticated) => {
         // keep polling every 2s until ready === true
-        if (!isAuthenticated) return 2000;
+        if (isAuthenticated !== true) return 2000;
         return 0;
       },
     },
   );
 
-  const authStore = useAuthStore();
+  const { refreshToken } = useAuthStore();
 
   // check authentication status when tokens change
   useEffect(() => {
     mutate(IS_AUTHENTICATED_ENDPOINT);
-  }, [authStore]);
+  }, [refreshToken]);
 
-  // TODO: should also check 1. 'session_id' present
-  // 2. if 'session_id' & user present, else fetch userData
   const isAuthenticated = data && !isLoading && !error;
   return isAuthenticated ? children : null;
 }
