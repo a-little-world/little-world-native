@@ -5,13 +5,12 @@ import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";
-import { Ref, Suspense, lazy, useEffect, useRef } from "react";
+import { Ref, lazy, useEffect, useRef } from "react";
 
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
-import LoadingScreen from "../atoms/LoadingScreen";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -70,12 +69,10 @@ export default function LittleWorldWebLazy(props: {
   const LW: any = LittleWorldWebNative;
 
   return (
-    <Suspense fallback={<LoadingScreen />}>
-      <LW
-        dom={{ matchContent: true }}
-        sendMessageToReactNative={props.sendToReactNative}
-        registerReceiveHandler={registerReceiveHandler}
-      />
-    </Suspense>
+    <LW
+      dom={{ matchContent: true }}
+      sendMessageToReactNative={props.sendToReactNative}
+      registerReceiveHandler={registerReceiveHandler}
+    />
   );
 }

@@ -13,6 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Page() {
   const insets = useSafeAreaInsets();
 
+  {
+    /* <FireBase /> */
+  }
   return (
     <DomCommunicationProvider>
       <AuthGuard>
