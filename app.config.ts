@@ -85,6 +85,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         ios: {
           useFrameworks: "static",
+          forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
         },
       },
     ],
@@ -125,6 +126,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         organization: "a-little-world-gug",
       },
     ],
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
   ],
   experiments: {
     typedRoutes: true,
