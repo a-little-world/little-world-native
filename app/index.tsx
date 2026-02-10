@@ -10,9 +10,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Page() {
   const insets = useSafeAreaInsets();
 
-  {
-    /* <FireBase /> */
-  }
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={{ height: insets.top, backgroundColor: "#fff" }} />
