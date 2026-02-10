@@ -110,15 +110,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
-      "expo-notifications",
-      {
-        icon: "./src/assets/images/splash-icon.png",
-        color: "#ffffff",
-        defaultChannel: "default",
-        enableBackgroundRemoteNotifications: true,
-      },
-    ],
-    [
       "@sentry/react-native/expo",
       {
         url: "https://sentry.io/",
