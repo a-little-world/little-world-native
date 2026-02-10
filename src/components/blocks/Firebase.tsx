@@ -1,14 +1,16 @@
-import { Platform } from "react-native";
-
+import { getApp } from "@react-native-firebase/app";
+import {
+  getMessaging,
+  getToken,
+  onTokenRefresh,
+} from "@react-native-firebase/messaging";
 import * as Device from "expo-device";
 import { PermissionStatus } from "expo-modules-core";
 import * as Notifications from "expo-notifications";
-
-import { useEffect } from "react";
-
-import { useAppStore } from "@/src/store/store";
 import { IosAuthorizationStatus } from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
+import { useEffect } from "react";
+import { Platform } from "react-native";
 import { registerFirebaseDeviceToken } from "./firebase-util";
 
 const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
@@ -23,7 +25,7 @@ TaskManager.defineTask<Notifications.NotificationTaskPayload>(
     } else {
       // Do something with the data from notification that was received
     }
-  }
+  },
 );
 
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
@@ -108,31 +110,27 @@ async function register(): Promise<void> {
   const permission = await requestUserPermission();
   console.log("has notificaiton permissions", permission);
 
-  const token = await Notifications.getDevicePushTokenAsync();
-  console.log("notiifcation token", token);
+  const token = await getToken(getMessaging());
 
-  await registerFirebaseDeviceToken(token.data);
+  console.log("notifcation token", token);
+
+  await registerFirebaseDeviceToken(token);
 }
 
 function FireBase() {
   useEffect(() => {
     console.log("firebase");
   }, []);
-  const appStore = useAppStore();
-
-  const notificationsEnabled = appStore.notificationsEnabled;
 
   useEffect(() => {
     register();
 
-    const tokenUpdatedListener = Notifications.addPushTokenListener((token) =>
-      registerFirebaseDeviceToken(token.data)
-    );
+    console.log("registering push notifications");
 
     const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log("received notification", notification);
-      }
+      },
     );
 
     const responseListener =
@@ -140,16 +138,16 @@ function FireBase() {
         console.log("clicked notification", response);
       });
 
+    const tokenRefresUnsubscribe = onTokenRefresh(getMessaging(getApp()), () =>
+      register(),
+    );
+
     return () => {
-      tokenUpdatedListener.remove();
       notificationListener.remove();
       responseListener.remove();
+      tokenRefresUnsubscribe();
     };
-  });
-
-  useEffect(() => {
-    // TOOD: send POST request to backend and set notificationsEnabled to selected value
-  }, [notificationsEnabled]);
+  }, []);
 
   return <></>;
 }
