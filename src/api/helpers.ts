@@ -124,7 +124,10 @@ export async function apiFetch<T = any>(
     }
   } catch (error: any) {
     const tokenExpired = error?.code === "token_not_valid";
-    if (tokenExpired) {
+    const noTokenPresent =
+      error?.status === 403 &&
+      useAuthStore.getState().accessToken === undefined;
+    if (tokenExpired || noTokenPresent) {
       try {
         const tokenStatus = await refreshAccessTokens();
         switch (tokenStatus) {
