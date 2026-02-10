@@ -4,6 +4,7 @@ import {
   saveJwtTokens,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -33,7 +34,7 @@ export function useDomCommunicationContext() {
   const context = useContext(DomCommunicationContext);
   if (!context)
     throw new Error(
-      "useDomCommunicationContext must be used within a DomCommunicationProvider"
+      "useDomCommunicationContext must be used within a DomCommunicationProvider",
     );
   return context;
 }
@@ -60,27 +61,6 @@ export function DomCommunicationProvider({
     >
   >(new Map());
 
-  const transferAccessTokenIfPresent = () => {
-    const accessToken = authStore.accessToken ?? null;
-    const refreshToken = authStore.refreshToken ?? null;
-
-    console.log("auth tokens changed", accessToken, refreshToken);
-    if (accessToken && refreshToken) {
-      sendToDom({
-        action: "SET_AUTH_TOKENS",
-        payload: {
-          accessToken,
-          refreshToken,
-        },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            console.error("Failed to set auth tokens", res);
-          }
-        })
-        .catch(() => {});
-    }
-  };
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
@@ -100,11 +80,12 @@ export function DomCommunicationProvider({
           // Set a timeout to reject the promise if no response comes
           setTimeout(() => {
             if (pendingRequestsRef.current.has(requestId)) {
+              console.info("request timeout for requesId", requestId);
               pendingRequestsRef.current.delete(requestId);
               reject(new Error("Response timeout"));
             }
           }, REQUEST_TIMEOUT);
-        }
+        },
       );
       const messageWithId = { ...message, requestId };
 
@@ -114,7 +95,7 @@ export function DomCommunicationProvider({
       // Wait for the response to come via the callback
       return responsePromise;
     },
-    []
+    [],
   );
 
   const sendToReactNative: DomCommunicationMessageFn = useCallback(
@@ -124,6 +105,7 @@ export function DomCommunicationProvider({
         case "SET_AUTH_TOKENS": {
           const { accessToken, refreshToken } = payload;
           saveJwtTokens(accessToken, refreshToken);
+          useAuthStore.setState({ accessToken, refreshToken });
           return { ok: true };
         }
         case "GET_INTEGRITY_TOKEN": {
@@ -137,12 +119,16 @@ export function DomCommunicationProvider({
         }
         case "CLEAR_AUTH_TOKENS": {
           clearJwtTokens();
-          authStore.setAccessToken(undefined);
-          authStore.setRefreshToken(undefined);
+          useAuthStore.setState({
+            accessToken: undefined,
+            refreshToken: undefined,
+          });
           return { ok: true };
         }
         case "WEBVIEW_READY": {
-          transferAccessTokenIfPresent();
+          console.log("WEBVIEW_READY");
+          // transferAccessTokenIfPresent();
+          useWebViewStore.setState({ ready: true });
           return { ok: true };
         }
         case "RESPONSE": {
@@ -172,7 +158,7 @@ export function DomCommunicationProvider({
           console.log(
             "console log from frontend",
             message.payload.message,
-            ...(message.payload.params ?? [])
+            ...(message.payload.params ?? []),
           );
           return { ok: true };
         }
@@ -184,7 +170,7 @@ export function DomCommunicationProvider({
         }
       }
     },
-    []
+    [],
   );
 
   const contextValue: DomCommunicationContextType = {
