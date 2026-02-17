@@ -49,9 +49,6 @@ jobs:
       - name: Install pnpm & cpx
         run: |
           npm install -g pnpm@latest-10 cpx
-      - name: Install pnpm & cpx
-        run: |
-          npm install -g pnpm@latest-10 cpx
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
