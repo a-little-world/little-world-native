@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.21",
+  version: "1.0.22",
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.21",
+    buildNumber: "1.0.22",
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 21,
+    versionCode: 22,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/logo-image.png",
