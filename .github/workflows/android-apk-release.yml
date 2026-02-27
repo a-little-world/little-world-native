@@ -246,13 +246,3 @@ jobs:
         with:
           name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ github.event.inputs.tag }}-${{ github.run_number }}
           path: ${{ steps.rename_build_file.outputs.build_file_path }}
-
-      - name: Create or update GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag }}
-          name: ${{ github.event.inputs.name }}
-          prerelease: ${{ github.event.inputs.prerelease }}
-          files: ${{ steps.rename_build_file.outputs.build_file_path }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
