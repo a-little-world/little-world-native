@@ -53,6 +53,16 @@ jobs:
         with:
           path: little-world-native
 
+      - name: environment
+        run: |
+          if [[ "${{ inputs.profile }}" == "preview" ]]; then
+            echo "STAGING=true" >> $GITHUB_OUTPUT
+            echo "PRODUCTION=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.profile }}" == "production" ]]; then
+            echo "PRODUCTION=true" >> $GITHUB_OUTPUT
+            echo "STAGING=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout little-world-frontend (sibling)
         uses: actions/checkout@v4
         with:
@@ -131,8 +141,16 @@ jobs:
 
       - name: Build Android APK (EAS Cloud)
         working-directory: little-world-native
+        env:
+          IS_CI_BUILD: true
         run: |
           mv eas.ci.json eas.json
+
+          if [[ "${{ steps.environment.PRODUCTION }}" == "true" ]]; then
+            mv ./environments/env.prod.ts ./environments/env.ts
+          elif [[ "${{ steps.environment.STAGING }}" == "true" ]]; then
+            mv ./environments/env.staging.ts ./environments/env.ts
+          fi
 
           # Run build and capture output
           set -o pipefail

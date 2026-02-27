@@ -1,4 +1,4 @@
-name: EAS Build
+name: IOS EAS Build
 on:
   workflow_dispatch:
     inputs:
