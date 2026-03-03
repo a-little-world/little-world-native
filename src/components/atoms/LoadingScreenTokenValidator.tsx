@@ -1,10 +1,18 @@
+import { USER_ENDPOINT } from "@/src/api";
 import {
+  apiFetch,
   clearJwtTokens,
   loadStoredTokensIntoStore,
   refreshAccessTokens,
   saveJwtTokens,
   TokenStatus,
 } from "@/src/api/helpers";
+import {
+  APP_ROUTE,
+  BASE_ROUTE,
+  USER_FORM_ROUTE,
+  VERIFY_EMAIL_ROUTE,
+} from "@/src/routes";
 import { useAuthStore } from "@/src/store/authStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import JWT from "expo-jwt";
@@ -78,6 +86,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
           case TokenStatus.VALID: {
             const { accessToken, refreshToken } = useAuthStore.getState();
             saveJwtTokens(accessToken, refreshToken);
+
             await sendToDom({
               action: "SET_AUTH_TOKENS",
               payload: {
@@ -85,10 +94,19 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
                 refreshToken,
               },
             });
+
+            let route = BASE_ROUTE + APP_ROUTE;
+            const userData = await apiFetch(USER_ENDPOINT);
+            if (!userData?.emailVerified) {
+              route += `/${VERIFY_EMAIL_ROUTE}`;
+            } else if (!userData.userFormCompleted) {
+              route += `/${USER_FORM_ROUTE}`;
+            }
+
             await sendToDom({
               action: "NAVIGATE",
               payload: {
-                path: "/app",
+                path: route,
               },
             });
             // navigate to app
