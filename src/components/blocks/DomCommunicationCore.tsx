@@ -6,6 +6,10 @@ import {
 import { useAuthStore } from "@/src/store/authStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
+  registerFirebaseDeviceToken,
+  unregisterFirebaseDeviceToken,
+} from "@/src/utils/firebase-util";
+import {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   DomCommunicationResponse,
@@ -115,6 +119,20 @@ export function DomCommunicationProvider({
             data: {
               ...integrityData,
             },
+          };
+        }
+        case "REGISTER_DEVICE_PUSH_TOKEN": {
+          await registerFirebaseDeviceToken();
+
+          return {
+            ok: true,
+          };
+        }
+        case "UNREGISTER_DEVICE_PUSH_TOKEN": {
+          await unregisterFirebaseDeviceToken();
+
+          return {
+            ok: true,
           };
         }
         case "CLEAR_AUTH_TOKENS": {
