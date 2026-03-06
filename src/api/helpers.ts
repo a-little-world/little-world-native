@@ -6,9 +6,11 @@ import {
   IntegrityCheckAndroid,
   IntegrityCheckIOS,
   IntegrityCheckRequestData,
+  IntegrityCheckRequestDataAndroid,
+  IntegrityCheckRequestDataIOS,
+  IntegrityCheckRequestDataWeb,
 } from "littleplanet";
 import { Platform } from "react-native";
-import uuid from "react-native-uuid";
 import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";
 import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
@@ -30,6 +32,11 @@ interface ApiError extends Error {
   status?: number;
   statusText?: string;
   data?: any;
+}
+
+interface IntegrityChallenge {
+  challenge: string;
+  challengeId: string;
 }
 
 export const formatApiError = (responseBody: any, response: any) => {
@@ -124,7 +131,10 @@ export async function apiFetch<T = any>(
     }
   } catch (error: any) {
     const tokenExpired = error?.code === "token_not_valid";
-    if (tokenExpired) {
+    const noTokenPresent =
+      error?.status === 403 &&
+      useAuthStore.getState().accessToken === undefined;
+    if (tokenExpired || noTokenPresent) {
       try {
         const tokenStatus = await refreshAccessTokens();
         switch (tokenStatus) {
@@ -175,18 +185,13 @@ export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
 }
 
 async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
-  const keyId = uuid.v4();
-
-  const { challenge } = await apiFetch("/api/integrity/challenge", {
-    method: "POST",
-    body: { keyId },
-  });
+  const { challenge, challengeId } = await fetchIntegrityChallenge();
   const cloudProjectNumber = environmentNative.googleCloudProjectNumber;
   await AppIntegrity.prepareIntegrityTokenProviderAsync(cloudProjectNumber);
   const integrityToken =
     await AppIntegrity.requestIntegrityCheckAsync(challenge);
 
-  return { platform: "android", integrityToken, keyId };
+  return { platform: "android", challengeId, integrityToken };
 }
 
 async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
@@ -201,17 +206,14 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     await PlatformSecureStore.setItemAsync(APP_INTEGRITY_KEY_ID_KEY, keyId);
   }
 
-  const { challenge } = await apiFetch("/api/integrity/challenge", {
-    method: "POST",
-    body: { keyId },
-  });
+  const { challenge, challengeId } = await fetchIntegrityChallenge();
 
   try {
     const attestationObject = await AppIntegrity.attestKeyAsync(
       keyId,
       challenge,
     );
-    return { platform: "ios", attestationObject, keyId };
+    return { platform: "ios", keyId, challengeId, attestationObject };
   } catch (error) {
     if (error !== "ERR_APP_INTEGRITY_SERVER_UNAVAILABLE") {
       await PlatformSecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
@@ -224,26 +226,33 @@ async function requestIntegrityCheckWeb(): Promise<IntegrityCheck> {
   return { platform: "web", bypassToken: "bypassChangeMe!" };
 }
 
+async function fetchIntegrityChallenge(): Promise<IntegrityChallenge> {
+  return apiFetch("/api/integrity/challenge", {
+    method: "POST",
+  });
+}
+
 // redaclaration from frontend since import functions/constant functions seems to cause issues.
 export function getIntegrityCheckRequestData(
   integrityCheck: IntegrityCheck,
 ): IntegrityCheckRequestData {
   if (integrityCheck.platform === "android") {
     return {
-      key_id: integrityCheck.keyId,
+      challenge_id: integrityCheck.challengeId,
       integrity_token: integrityCheck.integrityToken,
-    };
+    } satisfies IntegrityCheckRequestDataAndroid;
   }
   if (integrityCheck.platform === "ios") {
     return {
       key_id: integrityCheck.keyId,
+      challenge_id: integrityCheck.challengeId,
       attestation_object: integrityCheck.attestationObject,
-    };
+    } satisfies IntegrityCheckRequestDataIOS;
   }
   if (integrityCheck.platform === "web") {
     return {
       bypass_token: integrityCheck.bypassToken,
-    };
+    } satisfies IntegrityCheckRequestDataWeb;
   }
   throw new Error(`Unsupported platform for integrity check request data`);
 }

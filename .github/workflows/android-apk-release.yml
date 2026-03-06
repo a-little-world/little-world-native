@@ -53,6 +53,16 @@ jobs:
         with:
           path: little-world-native
 
+      - name: environment
+        run: |
+          if [[ "${{ inputs.profile }}" == "preview" ]]; then
+            echo "STAGING=true" >> $GITHUB_OUTPUT
+            echo "PRODUCTION=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.profile }}" == "production" ]]; then
+            echo "PRODUCTION=true" >> $GITHUB_OUTPUT
+            echo "STAGING=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout little-world-frontend (sibling)
         uses: actions/checkout@v4
         with:
@@ -72,14 +82,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24.x
 
-      - name: Install pnpm
+      - name: Install pnpm & cpx
         run: |
-          npm i -g pnpm@10
-          npm i -g cpx
+          npm install -g pnpm@latest-10 cpx
 
-      - name: Pack and update local frontend package
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies (pack and update frontend)
         run: |
           cd little-world-native
           cat ../little-world-frontend/package.json
@@ -89,56 +104,11 @@ jobs:
           export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
 
-      - name: Prepare Android signing (optional)
-        working-directory: little-world-native
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
-            echo "Configuring Android signing from secrets"
-            echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > android-release.keystore
-            node -e '
-              const fs = require("fs");
-              const creds = {
-                android: {
-                  keystore: {
-                    keystorePath: "android-release.keystore",
-                    keystorePassword: process.env.ANDROID_KEYSTORE_PASSWORD || "",
-                    keyAlias: process.env.ANDROID_KEY_ALIAS || "",
-                    keyPassword: process.env.ANDROID_KEY_PASSWORD || ""
-                  }
-                }
-              };
-              fs.writeFileSync("credentials.json", JSON.stringify(creds));
-              console.log("Wrote credentials.json");
-            '
-          else
-            echo "ANDROID_KEYSTORE_BASE64 not set. Skipping signing configuration."
-          fi
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
       - name: Verify toolchain
         run: |
-          java -version
           node -v
           pnpm -v
-          adb --version || true
-
-      - name: Verify EAS auth (whoami)
-        working-directory: little-world-native
-        shell: bash
-        run: |
-          if [ -n "${EXPO_TOKEN:-}" ]; then
-            npx --yes eas-cli@latest whoami || true
-          else
-            echo "EXPO_TOKEN not set; EAS will prompt and fail in CI."
-          fi
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          eas whoami || true
 
       - name: Inject environment values into src/config/environment-native.ts
         working-directory: little-world-native
@@ -172,13 +142,19 @@ jobs:
       - name: Build Android APK (EAS Cloud)
         working-directory: little-world-native
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          IS_CI_BUILD: true
         run: |
           mv eas.ci.json eas.json
 
+          if [[ "${{ steps.environment.PRODUCTION }}" == "true" ]]; then
+            mv ./environments/env.prod.ts ./environments/env.ts
+          elif [[ "${{ steps.environment.STAGING }}" == "true" ]]; then
+            mv ./environments/env.staging.ts ./environments/env.ts
+          fi
+
           # Run build and capture output
           set -o pipefail
-          npx --yes eas-cli@latest build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive | tee build_output.txt
+          eas build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive | tee build_output.txt
 
           # Extract URL
           URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(apk|aab)' build_output.txt | tail -n1)
@@ -270,13 +246,3 @@ jobs:
         with:
           name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ github.event.inputs.tag }}-${{ github.run_number }}
           path: ${{ steps.rename_build_file.outputs.build_file_path }}
-
-      - name: Create or update GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag }}
-          name: ${{ github.event.inputs.name }}
-          prerelease: ${{ github.event.inputs.prerelease }}
-          files: ${{ steps.rename_build_file.outputs.build_file_path }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}

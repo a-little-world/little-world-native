@@ -1,4 +1,4 @@
-name: EAS Build
+name: IOS EAS Build
 on:
   workflow_dispatch:
     inputs:
@@ -46,9 +46,6 @@ jobs:
           ref: ${{ inputs.frontendCommitRef }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
-      - name: Install pnpm & cpx
-        run: |
-          npm install -g pnpm@latest-10 cpx
       - name: Install pnpm & cpx
         run: |
           npm install -g pnpm@latest-10 cpx
