@@ -21,18 +21,10 @@ on:
         description: "Frontend commit SHA or branch to checkout"
         required: false
         default: "main"
-      googleCloudProjectID:
-        description: "Google Project ID for cloud integrity apis"
-        required: false
-        default: "106218836766"
       easBuildTag:
         description: "EAS build type"
         required: false
         default: "preview"
-      showDebugPanel:
-        description: "Show debug panel"
-        required: false
-        default: "true"
 
 permissions:
   contents: write
@@ -53,13 +45,18 @@ jobs:
         with:
           path: little-world-native
 
-      - name: environment
+      - name: Determine build environment
+        id: environment
         run: |
-          if [[ "${{ inputs.profile }}" == "preview" ]]; then
+          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
+          if [[ "$EAS_BUILD_TAG" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_OUTPUT
             echo "PRODUCTION=false" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.profile }}" == "production" ]]; then
+          elif [[ "$EAS_BUILD_TAG" == "production" ]]; then
             echo "PRODUCTION=true" >> $GITHUB_OUTPUT
+            echo "STAGING=false" >> $GITHUB_OUTPUT
+          else
+            echo "PRODUCTION=false" >> $GITHUB_OUTPUT
             echo "STAGING=false" >> $GITHUB_OUTPUT
           fi
 
@@ -110,7 +107,7 @@ jobs:
           pnpm -v
           eas whoami || true
 
-      - name: Inject environment values into src/config/environment-native.ts
+      - name: Inject base URL into src/config/environment-native.ts
         working-directory: little-world-native
         shell: bash
         run: |
@@ -119,7 +116,6 @@ jobs:
           cp "$FILE" "$FILE.bak"
 
           # Inputs from workflow_dispatch
-          GOOGLE_CLOUD_PROJECT_ID='${{ github.event.inputs.googleCloudProjectID }}'
           BASE_URL='${{ github.event.inputs.baseUrl }}'
 
           # Only replace when inputs are provided (non-empty)
@@ -127,17 +123,7 @@ jobs:
             # Update backendUrl if present in this config file layout
             sed -i.bak "s|backendUrl: \".*\"|backendUrl: \"${BASE_URL}\"|" "$FILE" || true
           fi
-          if [ -n "${GOOGLE_CLOUD_PROJECT_ID}" ]; then
-            sed -i.bak "s|googleCloudProjectNumber: \".*\"|googleCloudProjectNumber: \"${GOOGLE_CLOUD_PROJECT_ID}\"|" "$FILE" || true
-          fi
-
-          SHOW_DEBUG_PANEL='${{ github.event.inputs.showDebugPanel }}' # "true" or "false"
-          if [ "${SHOW_DEBUG_PANEL}" = "true" ]; then
-            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: true,|" "$FILE" || true
-          else
-            sed -i.bak "s|showDebugPanel: .*|showDebugPanel: false,|" "$FILE" || true
-          fi
-          echo "Injected environment values into $FILE"
+          echo "Injected base URL value into $FILE"
 
       - name: Build Android APK (EAS Cloud)
         working-directory: little-world-native
@@ -146,9 +132,9 @@ jobs:
         run: |
           mv eas.ci.json eas.json
 
-          if [[ "${{ steps.environment.PRODUCTION }}" == "true" ]]; then
+          if [[ "${{ steps.environment.outputs.PRODUCTION }}" == "true" ]]; then
             mv ./environments/env.prod.ts ./environments/env.ts
-          elif [[ "${{ steps.environment.STAGING }}" == "true" ]]; then
+          elif [[ "${{ steps.environment.outputs.STAGING }}" == "true" ]]; then
             mv ./environments/env.staging.ts ./environments/env.ts
           fi
 
