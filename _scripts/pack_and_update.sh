@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Navigate to lw_components directory
 cd ../little-world-frontend || exit 1
