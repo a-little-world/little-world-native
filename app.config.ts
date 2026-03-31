@@ -85,6 +85,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         ios: {
           useFrameworks: "static",
+          forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
         },
       },
     ],
@@ -109,15 +110,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
-      "expo-notifications",
-      {
-        icon: "./src/assets/images/splash-icon.png",
-        color: "#ffffff",
-        defaultChannel: "default",
-        enableBackgroundRemoteNotifications: true,
-      },
-    ],
-    [
       "@sentry/react-native/expo",
       {
         url: "https://sentry.io/",
@@ -125,6 +117,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         organization: "a-little-world-gug",
       },
     ],
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
   ],
   experiments: {
     typedRoutes: true,
