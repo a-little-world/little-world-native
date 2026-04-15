@@ -1,5 +1,4 @@
 const { transform: svgrTransform } = require("@svgr/core");
-const resolveConfigDir = require("path-dirname");
 
 /**
  * Metro Babel transformer for React Native
