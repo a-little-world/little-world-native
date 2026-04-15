@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@a-little-world/little-world-design-system-core':
-        specifier: ^1.9.0
-        version: 1.9.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^1.10.1
+        version: 1.10.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@a-little-world/little-world-design-system-native':
         specifier: ^0.6.0
         version: 0.6.0(@babel/runtime@7.28.6)(@react-navigation/native@7.1.28(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(@rn-primitives/portal@1.3.0(@types/react@19.1.17)(immer@11.1.3)(react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(use-sync-external-store@1.6.0(react@19.1.0)))(@types/react@19.1.17)(expo-linear-gradient@15.0.8(expo@54.0.32)(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react-native-svg@15.12.1(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(styled-components@6.3.8(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
@@ -190,8 +190,8 @@ importers:
         specifier: ^4.1.3
         version: 4.1.3
       '@sentry/cli':
-        specifier: ^3.0.1
-        version: 3.1.0
+        specifier: ^3.3.5
+        version: 3.3.5
       '@svgr/core':
         specifier: ^8.1.0
         version: 8.1.0(typescript@5.9.3)
@@ -288,6 +288,10 @@ packages:
     resolution: {integrity: sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/code-frame@7.29.0':
+    resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/compat-data@7.28.6':
     resolution: {integrity: sha512-2lfu57JtzctfIrcGMz992hyLlByuzgIk58+hhGCxjKZ3rWI82NnVLjXcaTqkI2NvlcvOskZaiZ5kjUALo3Lpxg==}
     engines: {node: '>=6.9.0'}
@@ -298,6 +302,10 @@ packages:
 
   '@babel/generator@7.28.6':
     resolution: {integrity: sha512-lOoVRwADj8hjf7al89tvQ2a1lf53Z+7tiXMgpZJL3maQPDxh0DgLMN62B2MKUOFcoodBHLMbDM6WAbKgNy5Suw==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/generator@7.29.1':
+    resolution: {integrity: sha512-qsaF+9Qcm2Qv8SRIMMscAvG4O3lJ0F1GuMo5HR/Bp02LopNgnZBC/EkbevHFeGs4ls/oPz9v+Bsmzbkbe+0dUw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-annotate-as-pure@7.27.3':
@@ -393,6 +401,11 @@ packages:
 
   '@babel/parser@7.28.6':
     resolution: {integrity: sha512-TeR9zWR18BvbfPmGbLampPMW+uW1NZnJlRuuHso8i87QZNq2JRF9i6RgxRqtEq+wQGsS19NNTWr2duhnE49mfQ==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.29.2':
+    resolution: {integrity: sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -965,8 +978,16 @@ packages:
     resolution: {integrity: sha512-fgWX62k02qtjqdSNTAGxmKYY/7FSL9WAS1o2Hu5+I5m9T0yxZzr4cnrfXQ/MX0rIifthCSs6FKTlzYbJcPtMNg==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/traverse@7.29.0':
+    resolution: {integrity: sha512-4HPiQr0X7+waHfyXPZpWPfWL/J7dcN1mx9gL6WdQVMbPnF3+ZhSMs8tCxN7oHddJE9fhNE7+lxdnlyemKfJRuA==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/types@7.28.6':
     resolution: {integrity: sha512-0ZrskXVEHSWIqZM/sQZ4EV3jZJXRkio/WCxaqKZP1g//CEWEPSfeZFcms4XeKBCHU0ZKnIkdJeU/kF+eRp5lBg==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/types@7.29.0':
+    resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
   '@bufbuild/protobuf@1.10.1':
@@ -1157,7 +1178,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@54.0.22':
     resolution: {integrity: sha512-BTH2FCczhJLfj1cpfcKrzhKnvRLTOztgW4bVloKDqH+G3ZSohWLRFNAIz56XtdjPxBbi2/qWhGBAkl7kBon/Jw==}
@@ -2731,8 +2752,8 @@ packages:
     engines: {node: '>=10'}
     os: [darwin]
 
-  '@sentry/cli-darwin@3.1.0':
-    resolution: {integrity: sha512-xT1WlCHenGGO29Lq/wKaIthdqZzNzZhlPs7dXrzlBx9DyA2Jnl0g7WEau0oWi8GyJGVRXCJMiCydR//Tb5qVwA==}
+  '@sentry/cli-darwin@3.3.5':
+    resolution: {integrity: sha512-E/SIY6+j2nt6Ri9nMt78sYle3LiF6uZyz4HGmvcEMU6HXjegmAayhy0J10JST+vZTzN6VixD8sUsa5UeJiOPcg==}
     engines: {node: '>=18'}
     os: [darwin]
 
@@ -2742,8 +2763,8 @@ packages:
     cpu: [arm64]
     os: [linux, freebsd, android]
 
-  '@sentry/cli-linux-arm64@3.1.0':
-    resolution: {integrity: sha512-Jm/iHLKiHxrZYlAq2tT07amiegEVCOAQT9Unilr6djjcZzS2tcI9ThSRQvjP9tFpFRKop+NyNGE3XHXf69r00g==}
+  '@sentry/cli-linux-arm64@3.3.5':
+    resolution: {integrity: sha512-/W7HTk2OFKD0bguTvQR1ue6pkFQWaGiqPafOSIQKyq0aGfbZhBn/Uj+IRefgMZMhJQ29xRz0y/iGRGKE+ef4Vg==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [linux, freebsd, android]
@@ -2754,8 +2775,8 @@ packages:
     cpu: [arm]
     os: [linux, freebsd, android]
 
-  '@sentry/cli-linux-arm@3.1.0':
-    resolution: {integrity: sha512-kbP3/8/Ct/Jbm569KDXbFIyMyPypIegObvIT7LdSsfdYSZdBd396GV7vUpSGKiLUVVN0xjn8OqQ48AVGfjmuMg==}
+  '@sentry/cli-linux-arm@3.3.5':
+    resolution: {integrity: sha512-EGuEIvC2OQyar/vu+jAQEmovTMgxpoxdx5knnzL5dLhIemjEUNqwv/sXq+m/Aj+ThqCMofcTWB2TOZXsTtl0Tw==}
     engines: {node: '>=18'}
     cpu: [arm]
     os: [linux, freebsd, android]
@@ -2766,8 +2787,8 @@ packages:
     cpu: [x86, ia32]
     os: [linux, freebsd, android]
 
-  '@sentry/cli-linux-i686@3.1.0':
-    resolution: {integrity: sha512-f/PK/EGK5vFOy7LC4Riwb+BEE20Nk7RbEFEMjvRq26DpETCrZYUGlbpIKvJFKOaUmr79aAkFCA/EjJiYfcQP2Q==}
+  '@sentry/cli-linux-i686@3.3.5':
+    resolution: {integrity: sha512-qODMEWLEeUNp3IUlwwISB37EXSo8qgMmHQuLKfxDjpIKw+7NAFfptOloqPrHkLWK3TzFr+Nv643wIKZaYrz28Q==}
     engines: {node: '>=18'}
     cpu: [x86, ia32]
     os: [linux, freebsd, android]
@@ -2778,8 +2799,8 @@ packages:
     cpu: [x64]
     os: [linux, freebsd, android]
 
-  '@sentry/cli-linux-x64@3.1.0':
-    resolution: {integrity: sha512-T+v8x1ujhixZrOrH0sVhsW6uLwK4n0WS+B+5xV46WqUKe32cbYotursp2y53ROjgat8SQDGeP/VnC0Qa3Y2fEA==}
+  '@sentry/cli-linux-x64@3.3.5':
+    resolution: {integrity: sha512-DCz7lQ4PySjQ1WvWOQ/uTdwauRo1D7hSHazxZ+fUAnK/epSPM9qLkjDMlD8uM5CaLoR8+ZTs7N94vV5LZs2QpA==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [linux, freebsd, android]
@@ -2790,8 +2811,8 @@ packages:
     cpu: [arm64]
     os: [win32]
 
-  '@sentry/cli-win32-arm64@3.1.0':
-    resolution: {integrity: sha512-2DIPq6aW2DC34EDC9J0xwD+9BpFnKdFGdIcQUZMS+5pXlU6V7o8wpZxZAM8TdYNmsPkkQGKp7Dhl/arWpvNgrw==}
+  '@sentry/cli-win32-arm64@3.3.5':
+    resolution: {integrity: sha512-VMNsHiyZcP8Ft3fcK/1zoO4L66soe1eSfXg2tglFQSc/2MYA5v1Br9B1GtjBwDIc3EmdPtFZhOGLyqIzszMxJw==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [win32]
@@ -2802,8 +2823,8 @@ packages:
     cpu: [x86, ia32]
     os: [win32]
 
-  '@sentry/cli-win32-i686@3.1.0':
-    resolution: {integrity: sha512-2NuywEiiZn6xJ1yAV2xjv/nuHiy6kZU5XR3RSAIrPdEZD1nBoMsH/gB2FufQw58Ziz/7otFcX+vtGpJjbIT5mQ==}
+  '@sentry/cli-win32-i686@3.3.5':
+    resolution: {integrity: sha512-BE6aHOIpsm4jgavsvvXNcSikAr/8NSva3rk1N3BzoOLuX+dcFxBI60K1i2VzB1vsgtivJJo9YySNCi60dBgWTg==}
     engines: {node: '>=18'}
     cpu: [x86, ia32]
     os: [win32]
@@ -2814,8 +2835,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sentry/cli-win32-x64@3.1.0':
-    resolution: {integrity: sha512-Ip405Yqdrr+l9TImsZOJz6c9Nb4zvXcmtOIBKLHc9cowpfXfmlqsHbDp7Xh4+k4L0uLr9i+8ilgQ6ypcuF4UCg==}
+  '@sentry/cli-win32-x64@3.3.5':
+    resolution: {integrity: sha512-MSU+PtBuiLjEbiPFOvxk4CI3TCagwkIg9kvJ+DrI3+pBY0Sga/dOyeWKTIgb01xSVcfjdw0UkpU52VCvzTT9ew==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
@@ -2825,8 +2846,8 @@ packages:
     engines: {node: '>= 10'}
     hasBin: true
 
-  '@sentry/cli@3.1.0':
-    resolution: {integrity: sha512-ngnx6E8XjXpg1uzma45INfKCS8yurb/fl3cZdXTCa2wmek8b4N6WIlmOlTKFTBrV54OauF6mloJxAlpuzoQR6g==}
+  '@sentry/cli@3.3.5':
+    resolution: {integrity: sha512-eyLHTj0rpeCsOUX+1ZU8UEWRXy6nXvTXNdhtAt1t6YXan9gSsAexZf28zVmDcYcP8WRbK0D2JMLp7NcaQCQgEA==}
     engines: {node: '>= 18'}
     hasBin: true
 
@@ -5014,6 +5035,9 @@ packages:
   lodash@4.17.23:
     resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
+  lodash@4.18.1:
+    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
+
   log-symbols@2.2.0:
     resolution: {integrity: sha512-VeIAFslyIerEJLXHziedo2basKbMKtTw3vfn5IzG0XTjhAVEJyNHnL2p7vc+wBDSdQuUpNw3M2u6xb9QsAY5Eg==}
     engines: {node: '>=4'}
@@ -6448,6 +6472,10 @@ packages:
     resolution: {integrity: sha512-VfQPToRA5FZs/qJxLIinmU59u0r7LXqoJkCzinq3ckNJp3vKEh7jTWN589YQ5+aoAC/TGRLyJLCPKcLQbM8r9g==}
     engines: {node: '>=18.17'}
 
+  undici@6.25.0:
+    resolution: {integrity: sha512-ZgpWDC5gmNiuY9CnLVXEH8rl50xhRCuLNA97fAUnKi8RRuV4E6KG31pDTsLVUKnohJE0I3XDrTeEydAXRw47xg==}
+    engines: {node: '>=18.17'}
+
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -6823,7 +6851,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.6
       csstype: 3.2.3
-      lodash: 4.17.23
+      lodash: 4.18.1
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       svgson: 5.3.1
@@ -6912,6 +6940,12 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
+  '@babel/code-frame@7.29.0':
+    dependencies:
+      '@babel/helper-validator-identifier': 7.28.5
+      js-tokens: 4.0.0
+      picocolors: 1.1.1
+
   '@babel/compat-data@7.28.6': {}
 
   '@babel/core@7.28.6':
@@ -6938,6 +6972,14 @@ snapshots:
     dependencies:
       '@babel/parser': 7.28.6
       '@babel/types': 7.28.6
+      '@jridgewell/gen-mapping': 0.3.13
+      '@jridgewell/trace-mapping': 0.3.31
+      jsesc: 3.1.0
+
+  '@babel/generator@7.29.1':
+    dependencies:
+      '@babel/parser': 7.29.2
+      '@babel/types': 7.29.0
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       jsesc: 3.1.0
@@ -7070,6 +7112,10 @@ snapshots:
   '@babel/parser@7.28.6':
     dependencies:
       '@babel/types': 7.28.6
+
+  '@babel/parser@7.29.2':
+    dependencies:
+      '@babel/types': 7.29.0
 
   '@babel/plugin-bugfix-firefox-class-in-computed-class-key@7.28.5(@babel/core@7.28.6)':
     dependencies:
@@ -7767,7 +7813,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@babel/traverse@7.29.0':
+    dependencies:
+      '@babel/code-frame': 7.29.0
+      '@babel/generator': 7.29.1
+      '@babel/helper-globals': 7.28.0
+      '@babel/parser': 7.29.2
+      '@babel/template': 7.28.6
+      '@babel/types': 7.29.0
+      debug: 4.4.3(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
+
   '@babel/types@7.28.6':
+    dependencies:
+      '@babel/helper-string-parser': 7.27.1
+      '@babel/helper-validator-identifier': 7.28.5
+
+  '@babel/types@7.29.0':
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
@@ -10429,49 +10492,49 @@ snapshots:
   '@sentry/cli-darwin@2.55.0':
     optional: true
 
-  '@sentry/cli-darwin@3.1.0':
+  '@sentry/cli-darwin@3.3.5':
     optional: true
 
   '@sentry/cli-linux-arm64@2.55.0':
     optional: true
 
-  '@sentry/cli-linux-arm64@3.1.0':
+  '@sentry/cli-linux-arm64@3.3.5':
     optional: true
 
   '@sentry/cli-linux-arm@2.55.0':
     optional: true
 
-  '@sentry/cli-linux-arm@3.1.0':
+  '@sentry/cli-linux-arm@3.3.5':
     optional: true
 
   '@sentry/cli-linux-i686@2.55.0':
     optional: true
 
-  '@sentry/cli-linux-i686@3.1.0':
+  '@sentry/cli-linux-i686@3.3.5':
     optional: true
 
   '@sentry/cli-linux-x64@2.55.0':
     optional: true
 
-  '@sentry/cli-linux-x64@3.1.0':
+  '@sentry/cli-linux-x64@3.3.5':
     optional: true
 
   '@sentry/cli-win32-arm64@2.55.0':
     optional: true
 
-  '@sentry/cli-win32-arm64@3.1.0':
+  '@sentry/cli-win32-arm64@3.3.5':
     optional: true
 
   '@sentry/cli-win32-i686@2.55.0':
     optional: true
 
-  '@sentry/cli-win32-i686@3.1.0':
+  '@sentry/cli-win32-i686@3.3.5':
     optional: true
 
   '@sentry/cli-win32-x64@2.55.0':
     optional: true
 
-  '@sentry/cli-win32-x64@3.1.0':
+  '@sentry/cli-win32-x64@3.3.5':
     optional: true
 
   '@sentry/cli@2.55.0':
@@ -10494,21 +10557,21 @@ snapshots:
       - encoding
       - supports-color
 
-  '@sentry/cli@3.1.0':
+  '@sentry/cli@3.3.5':
     dependencies:
       progress: 2.0.3
       proxy-from-env: 1.1.0
-      undici: 6.23.0
+      undici: 6.25.0
       which: 2.0.2
     optionalDependencies:
-      '@sentry/cli-darwin': 3.1.0
-      '@sentry/cli-linux-arm': 3.1.0
-      '@sentry/cli-linux-arm64': 3.1.0
-      '@sentry/cli-linux-i686': 3.1.0
-      '@sentry/cli-linux-x64': 3.1.0
-      '@sentry/cli-win32-arm64': 3.1.0
-      '@sentry/cli-win32-i686': 3.1.0
-      '@sentry/cli-win32-x64': 3.1.0
+      '@sentry/cli-darwin': 3.3.5
+      '@sentry/cli-linux-arm': 3.3.5
+      '@sentry/cli-linux-arm64': 3.3.5
+      '@sentry/cli-linux-i686': 3.3.5
+      '@sentry/cli-linux-x64': 3.3.5
+      '@sentry/cli-win32-arm64': 3.3.5
+      '@sentry/cli-win32-i686': 3.3.5
+      '@sentry/cli-win32-x64': 3.3.5
 
   '@sentry/core@10.12.0': {}
 
@@ -13021,6 +13084,8 @@ snapshots:
 
   lodash@4.17.23: {}
 
+  lodash@4.18.1: {}
+
   log-symbols@2.2.0:
     dependencies:
       chalk: 2.4.2
@@ -13162,7 +13227,7 @@ snapshots:
   metro-source-map@0.83.3:
     dependencies:
       '@babel/traverse': 7.28.6
-      '@babel/traverse--for-generate-function-map': '@babel/traverse@7.28.6'
+      '@babel/traverse--for-generate-function-map': '@babel/traverse@7.29.0'
       '@babel/types': 7.28.6
       flow-enums-runtime: 0.0.6
       invariant: 2.2.4
@@ -14555,6 +14620,8 @@ snapshots:
   undici-types@7.16.0: {}
 
   undici@6.23.0: {}
+
+  undici@6.25.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
