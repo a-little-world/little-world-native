@@ -30,44 +30,41 @@ const getExpoTransformer = () => {
 
 /**
  * Custom Metro transformer for SVG files
- * 
- * - SVGs from the 'littleplanet' package are converted to data URIs for <img src="..."> usage
+ *
+ * - SVGs from the frontend ('littleplanet') package are converted to data URIs for <img src="..."> usage
  * - All other SVGs are transformed into React components using SVGR
  * - Non-SVG files are passed through to the default transformer
  */
 async function customTransform({ src, filename, options }) {
   const transformer = getExpoTransformer() || getReactNativeTransformer();
-  
+
   // Only process SVG files - pass everything else through to default transformer
   if (!filename || !filename.endsWith(".svg")) {
     return transformer.transform({ src, filename, options });
   }
-  
-  // Check if this SVG is from the littleplanet package
-  const isLittlePlanetSvg = 
-    filename.includes("littleplanet") || 
-    filename.includes("node_modules/.pnpm/littleplanet");
 
-  if (isLittlePlanetSvg) {
-    // For littleplanet SVGs, convert to data URI for use with <img src="...">
+  // Check if this SVG is from the frontend ('littleplanet') package
+  const isFrontendSvg = filename.includes("littleplanet");
+  if (isFrontendSvg) {
+    // Convert to data URI for use with <img src="...">
     const svgContent = src;
-    
+
     // Create a data URI from the SVG content
     // Remove newlines and extra spaces to make it more compact
     const minifiedSvg = svgContent
-      .replace(/\n/g, ' ')
-      .replace(/\s+/g, ' ')
-      .replace(/> </g, '><')
+      .replace(/\n/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/> </g, "><")
       .trim();
-    
+
     // Encode for use in data URI
-    const base64Svg = Buffer.from(minifiedSvg).toString('base64');
+    const base64Svg = Buffer.from(minifiedSvg).toString("base64");
     const dataUri = `data:image/svg+xml;base64,${base64Svg}`;
-    
+
     // Export the data URI as a string for use with <img src={...}>
     return transformer.transform({
       src: `module.exports = ${JSON.stringify(dataUri)};`,
-      filename: filename.replace(/\.svg$/, '.js'),
+      filename: filename.replace(/\.svg$/, ".js"),
       options,
     });
   }
@@ -93,8 +90,10 @@ async function customTransform({ src, filename, options }) {
     },
   };
 
-  const transformedSrc = await svgrTransform(src, svgrConfig, { filePath: filename });
-  
+  const transformedSrc = await svgrTransform(src, svgrConfig, {
+    filePath: filename,
+  });
+
   return transformer.transform({
     src: transformedSrc,
     filename,
