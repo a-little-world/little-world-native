@@ -85,6 +85,11 @@ jobs:
         run: |
           npm install -g pnpm@latest-10 cpx
 
+      - name: Install little-world-frontend dependencies
+        working-directory: little-world-frontend
+        run: |
+          npm ci
+
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
