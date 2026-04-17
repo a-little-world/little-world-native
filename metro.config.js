@@ -1,6 +1,9 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
+
 const path = require("path");
-const { getSentryExpoConfig } = require("@sentry/react-native/metro");
+const {
+  getSentryExpoConfig
+} = require("@sentry/react-native/metro");
 
 const proxyRequests = false;
 
@@ -11,9 +14,9 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve("./metro-svg-transformer"),
+    babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+    // Remove minification config that was causing issues
   };
-
   const isCIBuild = process.env.IS_CI_BUILD === "true";
   if (!isCIBuild) {
     // fixes metro cache errors in local builds, production (built in cloud) should keep the cache
@@ -23,8 +26,6 @@ module.exports = (() => {
 
   config.resolver = {
     ...resolver,
-    // Keep SVG in sourceExts (transformed by our custom transformer)
-    // and filter out from assetExts (not treated as static assets)
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     sourceExts: [...resolver.sourceExts, "svg"],
     // Fix React resolution issues
@@ -43,44 +44,11 @@ module.exports = (() => {
     // Remove problematic blockList that was causing issues
   };
 
-  // Serializer hook to fix <img src> usage for images from the littleplanet package
-  // Metro's default asset loader exports images as: module.exports = { uri: "..." }
-  // This is designed for React Native's <Image source={require(...)} /> API.
-  // However, in the WebView DOM component, we need to use standard web <img src="...">
-  // This hook transforms the export from an object with a uri property to just the
-  // string URL, so that `import img from './image.png'` gives us a usable string
-  // for <img src={img}> instead of an object.
+  // Configure serializer to handle DOM components better
   config.serializer = {
     ...config.serializer,
-    experimentalSerializerHook: (graph) => {
-      for (const module of graph.dependencies.values()) {
-        if (
-          module.path &&
-          /\.(webp|png|jpg|jpeg|gif)$/i.test(module.path) &&
-          (module.path.includes("littleplanet") ||
-            module.path.includes("node_modules/.pnpm/littleplanet"))
-        ) {
-          const code = module.output[0]?.data?.code;
-          if (code) {
-            // Match Metro's default asset export format: module.exports = { uri: "..." }
-            const assetMatch = code.match(
-              /module\.exports\s*=\s*\{\s*uri:\s*"([^"]+)"[^}]*\}/,
-            );
-
-            if (assetMatch) {
-              const uri = assetMatch[1];
-              // Replace with a simple string export so <img src={require(...)}> works
-              module.output[0].data.code = code.replace(
-                /module\.exports\s*=\s*\{[^}]+\}/,
-                `module.exports = ${JSON.stringify(uri)};`,
-              );
-              module.output[0].data.map = null;
-            }
-          }
-        }
-      }
-      return graph;
-    },
+    // Ensure custom serializer handles path resolution correctly
+    customSerializer: config.serializer?.customSerializer,
   };
 
   if (proxyRequests) {
