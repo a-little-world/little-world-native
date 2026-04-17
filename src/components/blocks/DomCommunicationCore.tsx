@@ -9,7 +9,7 @@ import {
   registerFirebaseDeviceToken,
   unregisterFirebaseDeviceToken,
 } from "@/src/utils/firebase-util";
-import {
+import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   DomCommunicationResponse,
