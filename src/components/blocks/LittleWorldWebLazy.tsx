@@ -1,7 +1,7 @@
 // LittleWorldWebLazy.tsx
 "use dom";
 
-import {
+import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";

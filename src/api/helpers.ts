@@ -1,7 +1,7 @@
 import { environment } from "@/environment";
 import * as AppIntegrity from "@expo/app-integrity";
 import { router } from "expo-router";
-import {
+import type {
   IntegrityCheck,
   IntegrityCheckAndroid,
   IntegrityCheckIOS,
