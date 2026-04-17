@@ -89,6 +89,9 @@ importers:
       expo-modules-core:
         specifier: ~55.0.22
         version: 55.0.22(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
+      expo-notifications:
+        specifier: ~55.0.19
+        version: 55.0.19(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       expo-router:
         specifier: ~55.0.12
         version: 55.0.12(@expo/log-box@55.0.10)(@expo/metro-runtime@55.0.9)(@types/react@19.1.17)(expo-constants@55.0.14)(expo-font@55.0.6)(expo-linking@55.0.13)(expo@55.0.15)(react-dom@19.2.4(react@19.2.4))(react-native-gesture-handler@2.30.1(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-reanimated@4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-safe-area-context@5.6.2(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-screens@4.23.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-web@0.21.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
@@ -123,8 +126,8 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       littleplanet:
-        specifier: file:./littleplanet-0.1.312.tgz
-        version: file:littleplanet-0.1.312.tgz(@emotion/is-prop-valid@1.4.0)(@types/dom-mediacapture-record@1.0.22)(immer@11.1.3)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(tslib@2.8.1)(use-sync-external-store@1.6.0(react@19.2.4))
+        specifier: file:./littleplanet-0.1.316.tgz
+        version: file:littleplanet-0.1.316.tgz(@emotion/is-prop-valid@1.4.0)(@types/dom-mediacapture-record@1.0.22)(immer@11.1.3)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(tslib@2.8.1)(use-sync-external-store@1.6.0(react@19.2.4))
       livekit-client:
         specifier: ^2.13.8
         version: 2.17.0(@types/dom-mediacapture-record@1.0.22)
@@ -3514,6 +3517,9 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0
 
+  badgin@1.2.3:
+    resolution: {integrity: sha512-NQGA7LcfCpSzIbGRbkgjgdWkjy7HI+Th5VLxTJfW5EeaAf3fnS+xWQaQOCYiny+q6QSvxqoSO04vCx+4u++EJw==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -4143,6 +4149,11 @@ packages:
   exec-async@2.2.0:
     resolution: {integrity: sha512-87OpwcEiMia/DeiKFzaQNBNFeN3XkkpYIh9FyOqq5mS2oKv3CBE67PXoEKcr6nodWdXNogTiQ0jE2NGuoffXPw==}
 
+  expo-application@55.0.14:
+    resolution: {integrity: sha512-NgqDIt3eCf4aVLp1L6AcEanCYoyJeuBsGrgGSzOIvxAsOvp5X3SYKW3ROgpKUnLQEKMWlzwETpjsUGszcqkk8g==}
+    peerDependencies:
+      expo: '*'
+
   expo-asset@55.0.15:
     resolution: {integrity: sha512-d3FIpHJ6ZngYXxRItYWBGT5H8Wkk7/l4fMe8Mmd2xDyKrO0/CM7c8r/J5M71D+BJr5P3My8wertGYZXHSiZYxQ==}
     peerDependencies:
@@ -4277,6 +4288,13 @@ packages:
     peerDependenciesMeta:
       react-native-worklets:
         optional: true
+
+  expo-notifications@55.0.19:
+    resolution: {integrity: sha512-t1DPN9xwSh5kN5T8k0lER/NbcuhMIxj/ukfDWzFOJb2WdfB+VBWaiBUj4K26agsX7tQFMz2wsCXpkYXLdfzSdw==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
 
   expo-router@55.0.12:
     resolution: {integrity: sha512-Bm6IhI0Kl5/tDlCHPms8jDqy1O6HLHIOrMsEmmAQ5Lgg5UBtDfRThEyHPVOLNTOs8e7/bG/Ftz6a4UgQVA+NhQ==}
@@ -5106,9 +5124,9 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  littleplanet@file:littleplanet-0.1.312.tgz:
-    resolution: {integrity: sha512-nhr36ptRzSYQd9/gvVmYJJPtZqXyT14TULdNWjNNV2pTV4P9/I7cPe94HOhNeOhyvtThgHXquA75X2KMZHBKFQ==, tarball: file:littleplanet-0.1.312.tgz}
-    version: 0.1.312
+  littleplanet@file:littleplanet-0.1.316.tgz:
+    resolution: {integrity: sha512-tEuLZVWXfTReg0vGwxgc1VvaRNuMqBlwDYO1D6bK1GbV/m+4mWPAyNi4rLL3G97Fqq4AEQZBU31J/Vorfivkkg==, tarball: file:littleplanet-0.1.316.tgz}
+    version: 0.1.316
 
   livekit-client@2.17.0:
     resolution: {integrity: sha512-BD1QUS44ancVTBdnAher0aO7DV5holFYH2lYradYT/HgXtn6R8xPyvtDAH3UH40jGcesDo9fEopCFwEdOgrIhg==}
@@ -11431,6 +11449,8 @@ snapshots:
       babel-plugin-jest-hoist: 29.6.3
       babel-preset-current-node-syntax: 1.2.0(@babel/core@7.28.6)
 
+  badgin@1.2.3: {}
+
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -12114,6 +12134,10 @@ snapshots:
 
   exec-async@2.2.0: {}
 
+  expo-application@55.0.14(expo@55.0.15):
+    dependencies:
+      expo: 55.0.15(@babel/core@7.28.6)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.9)(expo-router@55.0.12)(react-dom@19.2.4(react@19.2.4))(react-native-webview@13.16.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+
   expo-asset@55.0.15(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
     dependencies:
       '@expo/image-utils': 0.8.13(typescript@5.9.3)
@@ -12273,6 +12297,20 @@ snapshots:
       react-native: 0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)
     optionalDependencies:
       react-native-worklets: 0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
+
+  expo-notifications@55.0.19(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
+    dependencies:
+      '@expo/image-utils': 0.8.13(typescript@5.9.3)
+      abort-controller: 3.0.0
+      badgin: 1.2.3
+      expo: 55.0.15(@babel/core@7.28.6)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.9)(expo-router@55.0.12)(react-dom@19.2.4(react@19.2.4))(react-native-webview@13.16.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      expo-application: 55.0.14(expo@55.0.15)
+      expo-constants: 55.0.14(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(typescript@5.9.3)
+      react: 19.2.4
+      react-native: 0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   expo-router@55.0.12(@expo/log-box@55.0.10)(@expo/metro-runtime@55.0.9)(@types/react@19.1.17)(expo-constants@55.0.14)(expo-font@55.0.6)(expo-linking@55.0.13)(expo@55.0.15)(react-dom@19.2.4(react@19.2.4))(react-native-gesture-handler@2.30.1(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-reanimated@4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-safe-area-context@5.6.2(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-screens@4.23.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-web@0.21.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4):
     dependencies:
@@ -13209,7 +13247,7 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  littleplanet@file:littleplanet-0.1.312.tgz(@emotion/is-prop-valid@1.4.0)(@types/dom-mediacapture-record@1.0.22)(immer@11.1.3)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(tslib@2.8.1)(use-sync-external-store@1.6.0(react@19.2.4)):
+  littleplanet@file:littleplanet-0.1.316.tgz(@emotion/is-prop-valid@1.4.0)(@types/dom-mediacapture-record@1.0.22)(immer@11.1.3)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(tslib@2.8.1)(use-sync-external-store@1.6.0(react@19.2.4)):
     dependencies:
       '@a-little-world/little-world-design-system': 2.13.3(@types/react@19.2.4)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@babel/core': 7.28.6

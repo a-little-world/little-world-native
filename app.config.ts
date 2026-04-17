@@ -75,10 +75,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: "#ffffff",
     tabletImage: "./src/assets/images/logo-image.png",
   },
-  notification: {
-    icon: "./src/assets/images/logo-image.png",
-    color: "#ffffff",
-  },
   plugins: [
     [
       "expo-build-properties",
@@ -107,6 +103,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
+      },
+    ],
+    [
+      "expo-notifications",
+      {
+        icon: "./src/assets/images/logo-image.png",
+        color: "#ffffff",
       },
     ],
     [
