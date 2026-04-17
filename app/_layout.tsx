@@ -1,12 +1,6 @@
 // app/_layout.tsx
 
 import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/little-world-design-system-native";
-import { setJSExceptionHandler } from "react-native-exception-handler";
-
-setJSExceptionHandler((e, isFatal) => {
-  console.log("JS ERROR", { isFatal, message: e?.message, stack: e?.stack });
-}, true);
-
 import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
 import { Stack } from "expo-router";
