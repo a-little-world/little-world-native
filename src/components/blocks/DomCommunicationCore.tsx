@@ -1,8 +1,4 @@
-import {
-  clearJwtTokens,
-  requestIntegrityCheck,
-  saveJwtTokens,
-} from "@/src/api/helpers";
+import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
@@ -108,7 +104,7 @@ export function DomCommunicationProvider({
       switch (action) {
         case "SET_AUTH_TOKENS": {
           const { accessToken, refreshToken } = payload;
-          saveJwtTokens(accessToken, refreshToken);
+          await saveJwtTokens(accessToken, refreshToken);
           useAuthStore.setState({ accessToken, refreshToken });
           return { ok: true };
         }
@@ -134,14 +130,6 @@ export function DomCommunicationProvider({
           return {
             ok: true,
           };
-        }
-        case "CLEAR_AUTH_TOKENS": {
-          clearJwtTokens();
-          useAuthStore.setState({
-            accessToken: undefined,
-            refreshToken: undefined,
-          });
-          return { ok: true };
         }
         case "WEBVIEW_READY": {
           console.log("WEBVIEW_READY");

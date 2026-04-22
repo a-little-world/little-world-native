@@ -17,6 +17,7 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
+import { getEffectiveBackendUrl } from "../store/debugStore";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -112,7 +113,7 @@ export async function apiFetch<T = any>(
 
   try {
     const response = await fetch(
-      `${environment.backendUrl}${endpoint}`,
+      `${getEffectiveBackendUrl()}${endpoint}`,
       fetchOptions,
     );
 
@@ -359,7 +360,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
   }
 
   accessTokenRefresh = fetch(
-    `${environment.backendUrl}/api/token/refresh/${integrityData.platform}`,
+    `${getEffectiveBackendUrl()}/api/token/refresh/${integrityData.platform}`,
     fetchOptions,
   )
     .then(async (res: any) => {
