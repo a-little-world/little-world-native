@@ -29,11 +29,11 @@ jobs:
       - name: environment
         run: |
           if [[ "${{ inputs.profile }}" == "preview" ]]; then
-            echo "STAGING=true" >> $GITHUB_OUTPUT
-            echo "PRODUCTION=false" >> $GITHUB_OUTPUT
+            echo "STAGING=true" >> $GITHUB_ENV
+            echo "PRODUCTION=false" >> $GITHUB_ENV
           elif [[ "${{ inputs.profile }}" == "production" ]]; then
-            echo "PRODUCTION=true" >> $GITHUB_OUTPUT
-            echo "STAGING=false" >> $GITHUB_OUTPUT
+            echo "PRODUCTION=true" >> $GITHUB_ENV
+            echo "STAGING=false" >> $GITHUB_ENV
           fi
       - name: Checkout little-world-native
         uses: actions/checkout@v4
@@ -73,9 +73,9 @@ jobs:
         run: |
           cd little-world-native
           mv eas.ci.json eas.json
-          if [[ "${{ steps.environment.PRODUCTION }}" == "true" ]]; then
+          if [[ "$PRODUCTION" == "true" ]]; then
             mv ./environments/env.prod.ts ./environments/env.ts
-          elif [[ "${{ steps.environment.STAGING }}" == "true" ]]; then
+          elif [[ "$STAGING" == "true" ]]; then
             mv ./environments/env.staging.ts ./environments/env.ts
           fi
           eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait
