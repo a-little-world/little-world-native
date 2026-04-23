@@ -6,7 +6,12 @@ import {
   supportsAppIntegrity,
 } from "@/src/helpers/appInfos";
 import { useAuthStore } from "@/src/store/authStore";
-import { debugStore, useDebugStore } from "@/src/store/debugStore";
+import {
+  FetchError,
+  ReactError,
+  debugStore,
+  useDebugStore,
+} from "@/src/store/debugStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ScrollView,
@@ -18,15 +23,25 @@ import {
 } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
 
-type SectionKey = "backend" | "tokens" | "dom" | "appinfo";
+type SectionKey =
+  | "backend"
+  | "tokens"
+  | "dom"
+  | "appinfo"
+  | "fetchErrors"
+  | "reactErrors";
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function Section({
   title,
+  badge,
   expanded,
   onToggle,
   children,
 }: {
   title: string;
+  badge?: number;
   expanded: boolean;
   onToggle: () => void;
   children: React.ReactNode;
@@ -34,7 +49,14 @@ function Section({
   return (
     <View style={styles.section}>
       <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          {badge != null && badge > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.chevron}>{expanded ? "▾" : "▸"}</Text>
       </TouchableOpacity>
       {expanded && <View style={styles.sectionBody}>{children}</View>}
@@ -76,6 +98,100 @@ function Btn({
   );
 }
 
+function FetchErrorItem({
+  error,
+  expanded,
+  onToggle,
+}: {
+  error: FetchError;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const time = error.timestamp.slice(11, 19); // HH:MM:SS from ISO
+  const fmt = (v: unknown) => {
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch {
+      return String(v);
+    }
+  };
+  return (
+    <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
+      <View style={styles.errorItemHeader}>
+        <Text style={styles.errorTimestamp}>{time}</Text>
+        <Text style={styles.errorSummary} numberOfLines={1}>
+          {error.method} {error.endpoint}
+          {error.status != null ? ` → ${error.status}` : ""}
+        </Text>
+        <Text style={styles.errorChevron}>{expanded ? "▾" : "▸"}</Text>
+      </View>
+      {expanded && (
+        <View style={styles.errorDetails}>
+          <Text style={styles.errorDetailLabel}>URL</Text>
+          <Text style={styles.errorDetailValue}>{error.url}</Text>
+          {error.status != null && (
+            <>
+              <Text style={styles.errorDetailLabel}>Status</Text>
+              <Text style={styles.errorDetailValue}>{error.status}</Text>
+            </>
+          )}
+          <Text style={styles.errorDetailLabel}>Headers</Text>
+          <Text style={styles.errorDetailValue}>{fmt(error.headers)}</Text>
+          {error.requestBody != null && (
+            <>
+              <Text style={styles.errorDetailLabel}>Request Body</Text>
+              <Text style={styles.errorDetailValue}>{fmt(error.requestBody)}</Text>
+            </>
+          )}
+          <Text style={styles.errorDetailLabel}>Error</Text>
+          <Text style={styles.errorDetailValue}>{fmt(error.error)}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+function ReactErrorItem({
+  error,
+  expanded,
+  onToggle,
+}: {
+  error: ReactError;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const time = error.timestamp.slice(11, 19);
+  const brief =
+    error.message.length > 60
+      ? error.message.slice(0, 60) + "…"
+      : error.message;
+  return (
+    <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
+      <View style={styles.errorItemHeader}>
+        <Text style={styles.errorTimestamp}>{time}</Text>
+        <Text style={styles.errorSummary} numberOfLines={1}>
+          {brief}
+        </Text>
+        <Text style={styles.errorChevron}>{expanded ? "▾" : "▸"}</Text>
+      </View>
+      {expanded && (
+        <View style={styles.errorDetails}>
+          <Text style={styles.errorDetailLabel}>Message</Text>
+          <Text style={styles.errorDetailValue}>{error.message}</Text>
+          {error.stack && (
+            <>
+              <Text style={styles.errorDetailLabel}>Stack</Text>
+              <Text style={styles.errorDetailValue}>{error.stack}</Text>
+            </>
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
 const ROUTES = [
   { label: "Sign Up", value: "/sign-up" },
   { label: "Login", value: "/login" },
@@ -84,24 +200,41 @@ const ROUTES = [
   { label: "Help", value: "/help" },
 ];
 
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function DebugPanel() {
   const { sendToDom } = useDomCommunicationContext();
   const { accessToken, refreshToken } = useAuthStore();
+  const {
+    backendUrlOverride,
+    debugAccessToken,
+    debugRefreshToken,
+    fetchErrors,
+    reactErrors,
+  } = useDebugStore();
 
   const [visible, setVisible] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const tapResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const TAPS_REQUIRED = 1;
+
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
     backend: true,
     tokens: true,
     dom: false,
     appinfo: false,
+    fetchErrors: true,
+    reactErrors: true,
   });
 
-  // Backend URL state
-  const { backendUrlOverride, debugAccessToken, debugRefreshToken } =
-    useDebugStore();
+  // Track which individual error items are expanded
+  const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>(
+    {},
+  );
+  const toggleError = (id: string) =>
+    setExpandedErrors((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // Backend URL input
   const [urlInput, setUrlInput] = useState(
     () => debugStore.get().backendUrlOverride ?? environment.backendUrl,
   );
@@ -237,12 +370,16 @@ export default function DebugPanel() {
     }
   };
 
+  // ── Secret tap ────────────────────────────────────────────────────────────
   const handleSecretTap = () => {
     if (tapResetTimer.current) clearTimeout(tapResetTimer.current);
     setTapCount((prev) => {
       const next = prev + 1;
       if (next >= TAPS_REQUIRED) {
         setVisible(true);
+        if (!debugStore.get().debugEnabled) {
+          debugStore.get().setDebugEnabled(true);
+        }
         return 0;
       }
       tapResetTimer.current = setTimeout(() => setTapCount(0), 1500);
@@ -258,8 +395,11 @@ export default function DebugPanel() {
   const appInfoRows = useMemo(
     () => [
       { label: "Backend URL", value: getBackendUrl() },
-      { label: "Integrity", value: String(supportsAppIntegrity()) },
-      { label: "SecureStore", value: String(secureStoreIsAvailable()) },
+      { label: "Integrity support", value: String(supportsAppIntegrity()) },
+      {
+        label: "SecureStore available",
+        value: String(secureStoreIsAvailable()),
+      },
     ],
     [],
   );
@@ -333,13 +473,11 @@ export default function DebugPanel() {
               <Text style={styles.subLabel}>Regular tokens</Text>
               <Row label="Access" value={truncate(accessToken)} />
               <Row label="Refresh" value={truncate(refreshToken)} />
-
               <Text style={[styles.subLabel, { marginTop: 8 }]}>
                 Debug tokens
               </Text>
               <Row label="Access" value={truncate(debugAccessToken)} />
               <Row label="Refresh" value={truncate(debugRefreshToken)} />
-
               <View style={styles.btnRow}>
                 <Btn
                   label="Regular → debug"
@@ -397,7 +535,6 @@ export default function DebugPanel() {
                   small
                 />
               </View>
-
               <Text style={[styles.subLabel, { marginTop: 8 }]}>Navigate</Text>
               <View style={styles.btnRow}>
                 <TouchableOpacity
@@ -447,6 +584,64 @@ export default function DebugPanel() {
               {appInfoRows.map((item) => (
                 <Row key={item.label} label={item.label} value={item.value} />
               ))}
+            </Section>
+
+            {/* ── Fetch Errors ── */}
+            <Section
+              title="Fetch Errors"
+              badge={fetchErrors.length}
+              expanded={expanded.fetchErrors}
+              onToggle={() => toggle("fetchErrors")}
+            >
+              {fetchErrors.length > 0 && (
+                <Btn
+                  label="Clear all"
+                  onPress={() => debugStore.get().clearFetchErrors()}
+                  color="#dc3545"
+                  small
+                />
+              )}
+              {fetchErrors.length === 0 ? (
+                <Text style={styles.emptyText}>No fetch errors</Text>
+              ) : (
+                fetchErrors.map((e) => (
+                  <FetchErrorItem
+                    key={e.id}
+                    error={e}
+                    expanded={!!expandedErrors[e.id]}
+                    onToggle={() => toggleError(e.id)}
+                  />
+                ))
+              )}
+            </Section>
+
+            {/* ── React Errors ── */}
+            <Section
+              title="React Errors"
+              badge={reactErrors.length}
+              expanded={expanded.reactErrors}
+              onToggle={() => toggle("reactErrors")}
+            >
+              {reactErrors.length > 0 && (
+                <Btn
+                  label="Clear all"
+                  onPress={() => debugStore.get().clearReactErrors()}
+                  color="#dc3545"
+                  small
+                />
+              )}
+              {reactErrors.length === 0 ? (
+                <Text style={styles.emptyText}>No React errors</Text>
+              ) : (
+                reactErrors.map((e) => (
+                  <ReactErrorItem
+                    key={e.id}
+                    error={e}
+                    expanded={!!expandedErrors[e.id]}
+                    onToggle={() => toggleError(e.id)}
+                  />
+                ))
+              )}
             </Section>
 
             {/* Result */}
@@ -521,10 +716,7 @@ const styles = StyleSheet.create({
 
   scroll: { flex: 1 },
 
-  section: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
+  section: { borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -533,17 +725,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#fafafa",
   },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   sectionTitle: { fontSize: 13, fontWeight: "600", color: "#333" },
   chevron: { fontSize: 13, color: "#007AFF" },
   sectionBody: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
 
+  badge: {
+    backgroundColor: "#dc3545",
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    minWidth: 16,
+    alignItems: "center",
+  },
+  badgeText: { fontSize: 10, fontWeight: "700", color: "#fff" },
+
   subLabel: { fontSize: 11, fontWeight: "600", color: "#888", marginBottom: 4 },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
+  row: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
   rowLabel: {
     fontSize: 11,
     fontWeight: "600",
@@ -551,12 +750,7 @@ const styles = StyleSheet.create({
     width: 64,
     flexShrink: 0,
   },
-  rowValue: {
-    fontSize: 11,
-    color: "#333",
-    fontFamily: "monospace",
-    flex: 1,
-  },
+  rowValue: { fontSize: 11, color: "#333", fontFamily: "monospace", flex: 1 },
 
   input: {
     borderWidth: 1,
@@ -569,22 +763,14 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
 
-  btnRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 6,
-  },
+  btnRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
   btn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 7,
     alignItems: "center",
   },
-  btnSmall: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
+  btnSmall: { paddingHorizontal: 10, paddingVertical: 6 },
   btnText: { color: "white", fontSize: 13, fontWeight: "600" },
   btnTextSmall: { fontSize: 11 },
 
@@ -618,6 +804,60 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: { fontSize: 13, color: "#333" },
   dropdownItemActive: { color: "#007AFF", fontWeight: "600" },
+
+  // Error items
+  emptyText: {
+    fontSize: 11,
+    color: "#aaa",
+    fontStyle: "italic",
+    marginTop: 8,
+    textAlign: "center",
+  },
+  errorItem: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#ffd0d0",
+    borderRadius: 6,
+    backgroundColor: "#fff8f8",
+    overflow: "hidden",
+  },
+  errorItemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 6,
+  },
+  errorTimestamp: {
+    fontSize: 10,
+    color: "#888",
+    fontFamily: "monospace",
+    flexShrink: 0,
+  },
+  errorSummary: {
+    flex: 1,
+    fontSize: 11,
+    color: "#c0392b",
+    fontFamily: "monospace",
+  },
+  errorChevron: { fontSize: 11, color: "#c0392b", flexShrink: 0 },
+  errorDetails: {
+    borderTopWidth: 1,
+    borderTopColor: "#ffd0d0",
+    padding: 10,
+    gap: 4,
+  },
+  errorDetailLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#888",
+    marginTop: 6,
+  },
+  errorDetailValue: {
+    fontSize: 10,
+    color: "#333",
+    fontFamily: "monospace",
+  },
 
   resultBox: {
     margin: 12,

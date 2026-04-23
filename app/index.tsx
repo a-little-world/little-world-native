@@ -4,9 +4,12 @@ import AuthGuard from "@/src/components/atoms/AuthGuard";
 import DebugPanel from "@/src/components/blocks/DebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
+import { setupReactErrorTracking } from "@/src/store/debugStore";
 import { StatusBar } from "expo-status-bar";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+setupReactErrorTracking();
 
 export default function Page() {
   const insets = useSafeAreaInsets();

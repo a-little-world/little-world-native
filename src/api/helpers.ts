@@ -17,7 +17,7 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
-import { getEffectiveBackendUrl } from "../store/debugStore";
+import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -120,7 +120,7 @@ export async function apiFetch<T = any>(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       if (errorData?.code === "token_not_valid") {
-        throw errorData;
+        throw { ...errorData, status: response.status };
       }
       throw formatApiError(errorData, response);
     }
@@ -160,6 +160,17 @@ export async function apiFetch<T = any>(
       }
     }
 
+    if (debugStore.get().debugEnabled) {
+      debugStore.get().addFetchError({
+        method,
+        endpoint,
+        url: `${getEffectiveBackendUrl()}${endpoint}`,
+        headers: fetchOptions.headers as Record<string, string>,
+        requestBody: body,
+        status: (error as any)?.status,
+        error,
+      });
+    }
     console.error(`API Fetch Error (${endpoint}):`, error);
     throw error;
   }

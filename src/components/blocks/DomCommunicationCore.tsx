@@ -1,5 +1,6 @@
 import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { debugStore } from "@/src/store/debugStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   registerFirebaseDeviceToken,
@@ -166,6 +167,30 @@ export function DomCommunicationProvider({
             message.payload.message,
             ...(message.payload.params ?? []),
           );
+          return { ok: true };
+        }
+        case "LOG_ERROR": {
+          if (debugStore.get().debugEnabled) {
+            const { payload } = message;
+            if (payload.type === "react") {
+              debugStore.get().addReactError({
+                message: payload.source
+                  ? `[${payload.source}] ${payload.message}`
+                  : payload.message,
+                stack: payload.stack,
+              });
+            } else {
+              debugStore.get().addFetchError({
+                method: payload.method,
+                endpoint: payload.endpoint,
+                url: payload.url,
+                headers: payload.headers,
+                requestBody: payload.requestBody,
+                status: payload.status,
+                error: payload.error,
+              });
+            }
+          }
           return { ok: true };
         }
         default: {
