@@ -1,5 +1,4 @@
 // Page.tsx
-import environmentNative from "@/environments/env";
 import AuthGuard from "@/src/components/atoms/AuthGuard";
 import DebugPanel from "@/src/components/blocks/DebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
@@ -21,7 +20,7 @@ export default function Page() {
       <StatusBar style="dark" />
       <View style={{ flex: 1, width: "100%", display: "block" }}>
         <DomWebViewHost />
-        {environmentNative.showDebugPanel && <DebugPanel />}
+        <DebugPanel />
       </View>
     </View>
   );
