@@ -142,7 +142,9 @@ function FetchErrorItem({
           {error.requestBody != null && (
             <>
               <Text style={styles.errorDetailLabel}>Request Body</Text>
-              <Text style={styles.errorDetailValue}>{fmt(error.requestBody)}</Text>
+              <Text style={styles.errorDetailValue}>
+                {fmt(error.requestBody)}
+              </Text>
             </>
           )}
           <Text style={styles.errorDetailLabel}>Error</Text>
@@ -450,7 +452,10 @@ export default function DebugPanel() {
             <TextInput
               style={[styles.input, styles.modalInput]}
               value={secretInput}
-              onChangeText={(v) => { setSecretInput(v); setSecretError(false); }}
+              onChangeText={(v) => {
+                setSecretInput(v);
+                setSecretError(false);
+              }}
               placeholder="Secret"
               secureTextEntry
               autoFocus
@@ -742,10 +747,10 @@ export default function DebugPanel() {
 const styles = StyleSheet.create({
   secretZone: {
     position: "absolute",
-    top: 0,
+    bottom: 0,
     right: 0,
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
     zIndex: 1000,
     cursor: "default",
   },
@@ -976,7 +981,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
-  modalTitle: { fontSize: 15, fontWeight: "700", color: "#1a1a1a", marginBottom: 12 },
+  modalTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 12,
+  },
   modalInput: { marginBottom: 0 },
   modalError: { fontSize: 12, color: "#dc3545", marginTop: 6 },
   modalBtnRow: {
