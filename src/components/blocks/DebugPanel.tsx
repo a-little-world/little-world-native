@@ -281,8 +281,13 @@ export default function DebugPanel() {
   const applyUrl = () => {
     const trimmed = urlInput.trim();
     if (!trimmed) return;
-    debugStore.set({ backendUrlOverride: trimmed });
-    result(`Backend URL set to: ${trimmed}`);
+    if (trimmed === environment.backendUrl) {
+      debugStore.set({ backendUrlOverride: null });
+      result(`Backend URL reset to default`);
+    } else {
+      debugStore.set({ backendUrlOverride: trimmed });
+      result(`Backend URL set to: ${trimmed}`);
+    }
   };
 
   const resetUrl = () => {
