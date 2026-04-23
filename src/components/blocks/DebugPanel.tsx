@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -430,10 +431,10 @@ export default function DebugPanel() {
 
   return (
     <>
-      <TouchableOpacity
+      <Pressable
         style={styles.secretZone}
         onPress={handleSecretTap}
-        activeOpacity={1}
+        android_ripple={null}
       />
 
       {/* ── Secret unlock dialog ── */}
@@ -746,6 +747,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     zIndex: 1000,
+    cursor: "default",
   },
 
   panel: {
