@@ -78,4 +78,15 @@ jobs:
           elif [[ "$STAGING" == "true" ]]; then
             mv ./environments/env.staging.ts ./environments/env.ts
           fi
-          eas build --platform ios --profile ${{ inputs.profile }}  --non-interactive --no-wait
+          git config user.email "ci@github.com"
+          git config user.name "CI"
+          git commit -am "ci: apply ${{ inputs.profile }} environment configuration"
+          eas build --platform ios --profile ${{ inputs.profile }} --non-interactive --no-wait
+      - name: Upload project source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-project-source-${{ inputs.profile }}-${{ github.run_id }}
+          path: |
+            little-world-native/
+            !little-world-native/node_modules/
+          retention-days: 1
