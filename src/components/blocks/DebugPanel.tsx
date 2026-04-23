@@ -14,6 +14,7 @@ import {
 } from "@/src/store/debugStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -216,7 +217,11 @@ export default function DebugPanel() {
   const [visible, setVisible] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const tapResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const TAPS_REQUIRED = 1;
+
+  // Secret dialog
+  const [secretDialogVisible, setSecretDialogVisible] = useState(false);
+  const [secretInput, setSecretInput] = useState("");
+  const [secretError, setSecretError] = useState(false);
 
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
     backend: true,
@@ -373,18 +378,37 @@ export default function DebugPanel() {
   // ── Secret tap ────────────────────────────────────────────────────────────
   const handleSecretTap = () => {
     if (tapResetTimer.current) clearTimeout(tapResetTimer.current);
+    const tapsRequired = debugStore.get().debugEnabled ? 1 : 7;
     setTapCount((prev) => {
       const next = prev + 1;
-      if (next >= TAPS_REQUIRED) {
-        setVisible(true);
-        if (!debugStore.get().debugEnabled) {
-          debugStore.get().setDebugEnabled(true);
+      if (next >= tapsRequired) {
+        if (debugStore.get().debugEnabled) {
+          setVisible(true);
+        } else {
+          setSecretInput("");
+          setSecretError(false);
+          setSecretDialogVisible(true);
         }
         return 0;
       }
       tapResetTimer.current = setTimeout(() => setTapCount(0), 1500);
       return next;
     });
+  };
+
+  const handleSecretSubmit = () => {
+    if (secretInput === "secret") {
+      debugStore.get().setDebugEnabled(true);
+      setSecretDialogVisible(false);
+      setVisible(true);
+    } else {
+      setSecretError(true);
+    }
+  };
+
+  const handleStopDebugging = () => {
+    setVisible(false);
+    debugStore.get().setDebugEnabled(false);
   };
 
   const truncate = (s: string | null | undefined, len = 32) => {
@@ -411,6 +435,48 @@ export default function DebugPanel() {
         onPress={handleSecretTap}
         activeOpacity={1}
       />
+
+      {/* ── Secret unlock dialog ── */}
+      <Modal
+        visible={secretDialogVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSecretDialogVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Enter debug secret</Text>
+            <TextInput
+              style={[styles.input, styles.modalInput]}
+              value={secretInput}
+              onChangeText={(v) => { setSecretInput(v); setSecretError(false); }}
+              placeholder="Secret"
+              secureTextEntry
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
+              onSubmitEditing={handleSecretSubmit}
+            />
+            {secretError && (
+              <Text style={styles.modalError}>Wrong secret, try again.</Text>
+            )}
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => setSecretDialogVisible(false)}
+              >
+                <Text style={styles.modalBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnOk]}
+                onPress={handleSecretSubmit}
+              >
+                <Text style={[styles.modalBtnText, { color: "#fff" }]}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {visible && (
         <View style={styles.panel}>
@@ -656,6 +722,15 @@ export default function DebugPanel() {
                 <Text style={styles.resultText}>{lastResult}</Text>
               </View>
             )}
+
+            {/* Stop Debugging */}
+            <View style={styles.stopRow}>
+              <Btn
+                label="Stop Debugging"
+                onPress={handleStopDebugging}
+                color="#dc3545"
+              />
+            </View>
           </ScrollView>
         </View>
       )}
@@ -875,4 +950,45 @@ const styles = StyleSheet.create({
   resultLabel: { fontSize: 11, fontWeight: "700", color: "#3355cc" },
   resultClear: { fontSize: 11, color: "#888" },
   resultText: { fontSize: 11, color: "#223", fontFamily: "monospace" },
+
+  stopRow: {
+    margin: 12,
+    marginTop: 4,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: 280,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  modalTitle: { fontSize: 15, fontWeight: "700", color: "#1a1a1a", marginBottom: 12 },
+  modalInput: { marginBottom: 0 },
+  modalError: { fontSize: 12, color: "#dc3545", marginTop: 6 },
+  modalBtnRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 16,
+  },
+  modalBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 7,
+  },
+  modalBtnCancel: { backgroundColor: "#e0e0e0" },
+  modalBtnOk: { backgroundColor: "#007AFF" },
+  modalBtnText: { fontSize: 14, fontWeight: "600", color: "#333" },
 });
