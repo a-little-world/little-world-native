@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -751,13 +752,14 @@ export default function DebugPanel() {
 
 const styles = StyleSheet.create({
   secretZone: {
-    position: "absolute",
+    position: Platform.select({ web: "fixed", default: "absolute" }),
     bottom: 0,
     right: 0,
     width: 40,
     height: 40,
     zIndex: 1000,
     cursor: "default",
+    // backgroundColor: "transparent",
   },
 
   panel: {
