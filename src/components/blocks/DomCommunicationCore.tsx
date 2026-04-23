@@ -1,6 +1,6 @@
 import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
-import { debugStore } from "@/src/store/debugStore";
+import { debugStore, useDebugStore } from "@/src/store/debugStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   registerFirebaseDeviceToken,
@@ -17,6 +17,7 @@ import {
   Ref,
   useCallback,
   useContext,
+  useEffect,
   useRef,
 } from "react";
 import uuid from "react-native-uuid";
@@ -134,8 +135,15 @@ export function DomCommunicationProvider({
         }
         case "WEBVIEW_READY": {
           console.log("WEBVIEW_READY");
-          // transferAccessTokenIfPresent();
           useWebViewStore.setState({ ready: true });
+          // Sync debug config — also handles WebView reloads where `ready` was already true
+          const { debugEnabled, backendUrlOverride } = debugStore.get();
+          setTimeout(() => {
+            sendToDom({
+              action: "SET_DEBUG_CONFIG",
+              payload: { debugEnabled, backendUrlOverride },
+            }).catch(() => {});
+          }, 0);
           return { ok: true };
         }
         case "RESPONSE": {
@@ -203,6 +211,37 @@ export function DomCommunicationProvider({
     },
     [],
   );
+
+  // ── Sync debug config to frontend ────────────────────────────────────────
+  const { ready } = useWebViewStore();
+
+  useEffect(() => {
+    if (!ready) return;
+
+    const syncDebugConfig = (
+      debugEnabled: boolean,
+      backendUrlOverride: string | null,
+    ) => {
+      sendToDom({
+        action: "SET_DEBUG_CONFIG",
+        payload: { debugEnabled, backendUrlOverride },
+      }).catch(() => {});
+    };
+
+    // Initial sync
+    const { debugEnabled, backendUrlOverride } = debugStore.get();
+    syncDebugConfig(debugEnabled, backendUrlOverride);
+
+    // Subscribe to future changes
+    return useDebugStore.subscribe((state, prev) => {
+      if (
+        state.debugEnabled !== prev.debugEnabled ||
+        state.backendUrlOverride !== prev.backendUrlOverride
+      ) {
+        syncDebugConfig(state.debugEnabled, state.backendUrlOverride);
+      }
+    });
+  }, [ready, sendToDom]);
 
   const contextValue: DomCommunicationContextType = {
     sendToDom,
