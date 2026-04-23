@@ -46,9 +46,6 @@ jobs:
           ref: ${{ inputs.frontendCommitRef }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
-      - name: Install pnpm & cpx
-        run: |
-          npm install -g pnpm@latest-10 cpx
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
