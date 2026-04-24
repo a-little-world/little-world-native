@@ -232,12 +232,12 @@ export default function DebugPanel() {
   const [secretError, setSecretError] = useState(false);
 
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
+    appinfo: true,
     backend: true,
-    tokens: true,
+    tokens: false,
     dom: false,
-    appinfo: false,
-    fetchErrors: true,
-    reactErrors: true,
+    fetchErrors: false,
+    reactErrors: false,
   });
 
   // Track which individual error items are expanded
@@ -275,6 +275,19 @@ export default function DebugPanel() {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
+  }, [visible]);
+
+  // Window origin — fetched once when panel opens
+  const [windowOrigin, setWindowOrigin] = useState<string>("…");
+  useEffect(() => {
+    if (!visible) return;
+    sendToDom({ action: "GET_WINDOW_ORIGIN", payload: {} })
+      .then((res) =>
+        setWindowOrigin(
+          res.ok ? (res.data?.origin ?? "unknown") : `error: ${res.error}`,
+        ),
+      )
+      .catch(() => setWindowOrigin("error"));
   }, [visible]);
 
   const toggle = (key: SectionKey) =>
@@ -517,6 +530,18 @@ export default function DebugPanel() {
             style={styles.scroll}
             showsVerticalScrollIndicator={false}
           >
+            {/* ── App Info ── */}
+            <Section
+              title="App Info"
+              expanded={expanded.appinfo}
+              onToggle={() => toggle("appinfo")}
+            >
+              {appInfoRows.map((item) => (
+                <Row key={item.label} label={item.label} value={item.value} />
+              ))}
+              <Row label="Window origin" value={windowOrigin} />
+            </Section>
+
             {/* ── Backend URL ── */}
             <Section
               title="Backend URL"
@@ -658,17 +683,6 @@ export default function DebugPanel() {
                   ))}
                 </View>
               )}
-            </Section>
-
-            {/* ── App Info ── */}
-            <Section
-              title="App Info"
-              expanded={expanded.appinfo}
-              onToggle={() => toggle("appinfo")}
-            >
-              {appInfoRows.map((item) => (
-                <Row key={item.label} label={item.label} value={item.value} />
-              ))}
             </Section>
 
             {/* ── Fetch Errors ── */}
@@ -843,7 +857,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     color: "#555",
-    width: 64,
+    width: 90,
     flexShrink: 0,
   },
   rowValue: { fontSize: 11, color: "#333", fontFamily: "monospace", flex: 1 },
