@@ -393,12 +393,13 @@ export default function DebugPanel() {
   };
 
   const checkAuth = async () => {
+    let authenticated = false;
     try {
-      await apiFetch("/api/user/authenticated");
-      result("Authenticated");
-    } catch {
-      result("Not authenticated");
-    }
+      authenticated = await apiFetch("/api/user/authenticated").then(
+        (response) => response === true,
+      );
+    } catch {}
+    result(`${authenticated ? "" : "Not"} Authenticated`);
   };
 
   // ── Secret tap ────────────────────────────────────────────────────────────
