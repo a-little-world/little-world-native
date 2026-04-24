@@ -43,12 +43,14 @@ type SectionKey =
 function Section({
   title,
   badge,
+  warning,
   expanded,
   onToggle,
   children,
 }: {
   title: string;
   badge?: number;
+  warning?: boolean;
   expanded: boolean;
   onToggle: () => void;
   children: React.ReactNode;
@@ -58,6 +60,7 @@ function Section({
       <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
         <View style={styles.sectionTitleRow}>
           <Text style={styles.sectionTitle}>{title}</Text>
+          {warning && <Text style={{ marginLeft: 4, fontSize: 13 }}>⚠️</Text>}
           {badge != null && badge > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{badge}</Text>
@@ -71,11 +74,20 @@ function Section({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  label,
+  value,
+  warning,
+}: {
+  label: string;
+  value: string;
+  warning?: boolean;
+}) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue} numberOfLines={1} ellipsizeMode="middle">
+      {warning && <Text style={{ marginRight: 4, fontSize: 11 }}>⚠️</Text>}
+      <Text style={styles.rowValue}>
         {value}
       </Text>
     </View>
@@ -231,14 +243,14 @@ export default function DebugPanel() {
   const [secretInput, setSecretInput] = useState("");
   const [secretError, setSecretError] = useState(false);
 
-  const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
+  const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>(() => ({
     appinfo: true,
-    backend: true,
+    backend: !!debugStore.get().backendUrlOverride,
     tokens: false,
     dom: false,
     fetchErrors: false,
     reactErrors: false,
-  });
+  }));
 
   // Track which individual error items are expanded
   const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>(
@@ -546,16 +558,14 @@ export default function DebugPanel() {
             {/* ── Backend URL ── */}
             <Section
               title="Backend URL"
+              warning={!!backendUrlOverride}
               expanded={expanded.backend}
               onToggle={() => toggle("backend")}
             >
               <Row
                 label="Active"
-                value={
-                  backendUrlOverride
-                    ? `⚠ ${backendUrlOverride}`
-                    : environment.backendUrl
-                }
+                warning={!!backendUrlOverride}
+                value={backendUrlOverride ?? environment.backendUrl}
               />
               <TextInput
                 style={styles.input}
