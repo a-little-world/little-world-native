@@ -12,6 +12,7 @@ import {
   debugStore,
   useDebugStore,
 } from "@/src/store/debugStore";
+import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
@@ -25,6 +26,9 @@ import {
   View,
 } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
+
+const DEVELOPER_SECRET_DIGEST =
+  "446bb2136d0c9299b80da0ed06c22a131cd5f5f1d0459c4a39f2b0db5608d40a";
 
 type SectionKey =
   | "backend"
@@ -405,8 +409,12 @@ export default function DebugPanel() {
     });
   };
 
-  const handleSecretSubmit = () => {
-    if (secretInput === "secret") {
+  const handleSecretSubmit = async () => {
+    const digest = await digestStringAsync(
+      CryptoDigestAlgorithm.SHA256,
+      secretInput,
+    );
+    if (digest === DEVELOPER_SECRET_DIGEST) {
       debugStore.get().setDebugEnabled(true);
       setSecretDialogVisible(false);
       setVisible(true);
@@ -454,7 +462,9 @@ export default function DebugPanel() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Enter debug secret</Text>
+            <Text style={styles.modalTitle}>
+              So you think you're a developer, huh? Prove it.
+            </Text>
             <TextInput
               style={[styles.input, styles.modalInput]}
               value={secretInput}
@@ -462,16 +472,13 @@ export default function DebugPanel() {
                 setSecretInput(v);
                 setSecretError(false);
               }}
-              placeholder="Secret"
               secureTextEntry
               autoFocus
               autoCapitalize="none"
               autoCorrect={false}
               onSubmitEditing={handleSecretSubmit}
             />
-            {secretError && (
-              <Text style={styles.modalError}>Wrong secret, try again.</Text>
-            )}
+            {secretError && <Text style={styles.modalError}>Try again.</Text>}
             <View style={styles.modalBtnRow}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalBtnCancel]}
