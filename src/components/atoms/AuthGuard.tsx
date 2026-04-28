@@ -1,4 +1,4 @@
-import { apiFetch } from "@/src/api/helpers";
+import { apiFetch, refreshAccessTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { useEffect } from "react";
 import useSWR, { mutate } from "swr";
@@ -11,8 +11,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     apiFetch,
     {
       refreshInterval: (isAuthenticated) => {
-        // keep polling every 2s until ready === true
-        if (isAuthenticated !== true) return 2000;
+        // keep polling every 3s until authenticated
+        if (isAuthenticated !== true) {
+          refreshAccessTokens();
+          return 3000;
+        }
         return 0;
       },
     },

@@ -1,6 +1,5 @@
 import { environment } from "@/environment";
 import * as AppIntegrity from "@expo/app-integrity";
-import { router } from "expo-router";
 import type {
   IntegrityCheck,
   IntegrityCheckAndroid,
@@ -17,7 +16,9 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
+import { getAppRoute, LOGIN_ROUTE } from "../routes";
 import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
+import { domCommunicationStore } from "../store/domCommunicationStore";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -145,11 +146,13 @@ export async function apiFetch<T = any>(
           case TokenStatus.EXPIRED:
           case TokenStatus.MISSING: {
             // refresh token expired -> navigate to login
-            useAuthStore.setState({
-              accessToken: undefined,
-              refreshToken: undefined,
+            const { sendToDom } = domCommunicationStore.get();
+            const sessionExpiredRoute = `${getAppRoute(LOGIN_ROUTE)}?sessionExpired=true`;
+            await sendToDom?.({
+              action: "NAVIGATE",
+              payload: { path: sessionExpiredRoute },
             });
-            router.navigate("/");
+
             break;
           }
         }
@@ -161,15 +164,32 @@ export async function apiFetch<T = any>(
     }
 
     if (debugStore.get().debugEnabled) {
-      debugStore.get().addFetchError({
-        method,
-        endpoint,
-        url: `${getEffectiveBackendUrl()}${endpoint}`,
-        headers: fetchOptions.headers as Record<string, string>,
-        requestBody: body,
-        status: (error as any)?.status,
-        error,
-      });
+      if (error instanceof TypeError) {
+        debugStore.get().addFetchError({
+          method,
+          endpoint,
+          url: `${getEffectiveBackendUrl()}${endpoint}`,
+          headers: fetchOptions.headers as Record<string, string>,
+          requestBody: body,
+          status: (error as any)?.status ?? 999,
+          error: {
+            type: "TypeError",
+            message: error.message,
+            details:
+              "Possible causes: Internect connection issues or CORS error",
+          },
+        });
+      } else {
+        debugStore.get().addFetchError({
+          method,
+          endpoint,
+          url: `${getEffectiveBackendUrl()}${endpoint}`,
+          headers: fetchOptions.headers as Record<string, string>,
+          requestBody: body,
+          status: (error as any)?.status,
+          error,
+        });
+      }
     }
     console.error(`API Fetch Error (${endpoint}):`, error);
     throw error;
@@ -337,6 +357,24 @@ export enum TokenStatus {
   MISSING,
 }
 
+async function updateTokens(
+  accessToken: string | undefined,
+  refreshToken: string | undefined,
+): Promise<void> {
+  const { setAccessToken, setRefreshToken } = useAuthStore.getState();
+  const { sendToDom } = domCommunicationStore.get();
+
+  setAccessToken(accessToken);
+  setRefreshToken(refreshToken);
+  await sendToDom?.({
+    action: "SET_AUTH_TOKENS",
+    payload: {
+      accessToken,
+      refreshToken,
+    },
+  });
+}
+
 let accessTokenRefresh: Promise<TokenStatus> | undefined = undefined;
 export async function refreshAccessTokens(): Promise<TokenStatus> {
   if (accessTokenRefresh) {
@@ -344,6 +382,11 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
   }
 
   const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) {
+    await updateTokens(undefined, undefined);
+    return TokenStatus.MISSING;
+  }
+
   const defaultHeaders: Record<string, string> = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -355,50 +398,51 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
     "X-CSRF-Bypass-Token": "abc",
   } as Record<string, string>;
 
-  const integrityData = await requestIntegrityCheck();
-
-  const fetchOptions: RequestInit = {
-    method: "POST",
-    headers: { ...defaultHeaders, ...authHeaders },
-    body: JSON.stringify({
-      refresh: refreshToken,
-      ...getIntegrityCheckRequestData(integrityData),
-    }),
-  };
-
-  if (!refreshToken) {
-    return TokenStatus.MISSING;
-  }
-
-  accessTokenRefresh = fetch(
-    `${getEffectiveBackendUrl()}/api/token/refresh/${integrityData.platform}`,
-    fetchOptions,
-  )
-    .then(async (res: any) => {
-      if (res.ok) {
-        const { access, refresh }: { access: string; refresh: string } =
-          await res.json();
-
-        useAuthStore.setState({ accessToken: access, refreshToken: refresh });
-        return TokenStatus.VALID;
+  accessTokenRefresh = (async (): Promise<TokenStatus> => {
+    try {
+      const { sendToDom } = domCommunicationStore.get();
+      if (!sendToDom) {
+        await updateTokens(undefined, undefined);
+        return TokenStatus.MISSING;
       }
 
-      const tokenExpired = res?.code === "token_not_valid";
-      const noTokenPresent =
-        res?.status === 403 &&
-        useAuthStore.getState().accessToken === undefined;
-      if (tokenExpired || noTokenPresent) {
-        // refresh token expired
-        useAuthStore.setState({
-          accessToken: undefined,
-          refreshToken: undefined,
-        });
+      const integrityData = await requestIntegrityCheck();
+      const fetchOptions: RequestInit = {
+        method: "POST",
+        headers: { ...defaultHeaders, ...authHeaders },
+        body: JSON.stringify({
+          refresh: refreshToken,
+          ...getIntegrityCheckRequestData(integrityData),
+        }),
+      };
+
+      const response = await fetch(
+        `${getEffectiveBackendUrl()}/api/token/refresh/${
+          integrityData.platform
+        }`,
+        fetchOptions,
+      );
+
+      const responseBody = await response.json().catch(() => {});
+      const { access, refresh } = responseBody;
+
+      await updateTokens(access, refresh);
+      if (!response.ok) {
         return TokenStatus.EXPIRED;
       }
 
-      throw new Error("Unknown error", { cause: res });
-    })
-    .finally(() => (accessTokenRefresh = undefined));
+      if (access && refresh) {
+        return TokenStatus.VALID;
+      }
+
+      return TokenStatus.EXPIRED;
+    } catch (_e) {
+      await updateTokens(undefined, undefined);
+      return TokenStatus.EXPIRED;
+    } finally {
+      accessTokenRefresh = undefined;
+    }
+  })();
 
   return accessTokenRefresh;
 }
