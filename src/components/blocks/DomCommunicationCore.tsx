@@ -1,6 +1,7 @@
 import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { debugStore, useDebugStore } from "@/src/store/debugStore";
+import { domCommunicationStore } from "@/src/store/domCommunicationStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   registerFirebaseDeviceToken,
@@ -99,6 +100,7 @@ export function DomCommunicationProvider({
     },
     [],
   );
+  domCommunicationStore.set({ sendToDom });
 
   const sendToReactNative: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
