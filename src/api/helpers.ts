@@ -329,10 +329,8 @@ export async function saveJwtTokens(
   try {
     if (SecureStore && typeof SecureStore.setItemAsync === "function") {
       if (accessToken !== undefined) {
-        console.log("setting access token", accessToken?.substring(0, 5));
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
       } else {
-        console.log("deleting access token", accessToken);
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       }
 
@@ -348,7 +346,6 @@ export async function saveJwtTokens(
 export async function clearJwtTokens() {
   try {
     if (SecureStore && typeof SecureStore.deleteItemAsync === "function") {
-      console.log("deleting access token");
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     }

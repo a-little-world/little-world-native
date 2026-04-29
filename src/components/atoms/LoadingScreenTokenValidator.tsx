@@ -51,7 +51,6 @@ async function verifyTokens(): Promise<TokenStatus> {
   try {
     const accessTokenExpiry = JWT.decode(accessToken, null).exp ?? 0;
     if (!isExpired(accessTokenExpiry)) {
-      console.log("token valid");
       return TokenStatus.VALID;
     }
   } catch (_) {
@@ -93,7 +92,6 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
               route += `/${USER_FORM_ROUTE}`;
             }
 
-            console.log("navigate to app", route);
             await sendToDom({
               action: "NAVIGATE",
               payload: {

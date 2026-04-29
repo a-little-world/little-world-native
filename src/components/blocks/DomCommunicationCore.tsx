@@ -136,7 +136,6 @@ export function DomCommunicationProvider({
           };
         }
         case "WEBVIEW_READY": {
-          console.log("WEBVIEW_READY");
           useWebViewStore.setState({ ready: true });
           // Sync debug config — also handles WebView reloads where `ready` was already true
           const { debugEnabled, backendUrlOverride } = debugStore.get();
