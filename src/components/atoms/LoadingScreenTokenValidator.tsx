@@ -2,6 +2,7 @@ import { USER_ENDPOINT } from "@/src/api";
 import {
   apiFetch,
   loadStoredTokensIntoStore,
+  navigateToLogin,
   refreshAccessTokens,
   TokenStatus,
 } from "@/src/api/helpers";
@@ -100,15 +101,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
           }
           case TokenStatus.EXPIRED:
           case TokenStatus.MISSING:
-            // these cases only differ in whether the session expired message is shown
-            {
-              await sendToDom({
-                action: "NAVIGATE",
-                payload: {
-                  path: `/login${tokenStatus === TokenStatus.EXPIRED ? "?sessionExpired=true" : ""}`,
-                },
-              });
-            }
+            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
             break;
         }
 

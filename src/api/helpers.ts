@@ -20,6 +20,12 @@ import { getAppRoute, LOGIN_ROUTE } from "../routes";
 import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
+export async function navigateToLogin(expired: boolean = false): Promise<void> {
+  const { sendToDom } = domCommunicationStore.get();
+  const path = `${getAppRoute(LOGIN_ROUTE)}${expired ? "?sessionExpired=true" : ""}`;
+  await sendToDom?.({ action: "NAVIGATE", payload: { path } });
+}
+
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface ApiFetchOptions {
@@ -145,14 +151,7 @@ export async function apiFetch<T = any>(
           }
           case TokenStatus.EXPIRED:
           case TokenStatus.MISSING: {
-            // refresh token expired -> navigate to login
-            const { sendToDom } = domCommunicationStore.get();
-            const sessionExpiredRoute = `${getAppRoute(LOGIN_ROUTE)}?sessionExpired=true`;
-            await sendToDom?.({
-              action: "NAVIGATE",
-              payload: { path: sessionExpiredRoute },
-            });
-
+            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
             break;
           }
         }
