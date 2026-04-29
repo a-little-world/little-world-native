@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export type FetchError = {
   id: string;
   timestamp: string;
+  source: "frontend" | "native";
   method: string;
   endpoint: string;
   url: string;
@@ -18,6 +19,7 @@ export type FetchError = {
 export type ReactError = {
   id: string;
   timestamp: string;
+  source: "frontend" | "native";
   message: string;
   stack?: string;
 };
@@ -119,6 +121,7 @@ export function setupReactErrorTracking() {
   (ErrorUtils as any).setGlobalHandler((error: Error, isFatal?: boolean) => {
     if (useDebugStore.getState().debugEnabled) {
       useDebugStore.getState().addReactError({
+        source: "native",
         message: error?.message ?? String(error),
         stack: error?.stack,
       });

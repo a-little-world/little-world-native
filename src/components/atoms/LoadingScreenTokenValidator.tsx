@@ -5,6 +5,7 @@ import {
   navigateToLogin,
   refreshAccessTokens,
   TokenStatus,
+  updateTokens,
 } from "@/src/api/helpers";
 import {
   APP_ROUTE,
@@ -38,6 +39,7 @@ const TOKEN_EXPIRY_THRESHOLD = 10;
 // returns true if tokens could be verified (and possibly refreshed), otherwise false
 async function verifyTokens(): Promise<TokenStatus> {
   const { accessToken, refreshToken } = await loadStoredTokensIntoStore();
+  await updateTokens(accessToken, refreshToken);
 
   if (!accessToken || !refreshToken) {
     return TokenStatus.MISSING;
@@ -49,6 +51,7 @@ async function verifyTokens(): Promise<TokenStatus> {
   try {
     const accessTokenExpiry = JWT.decode(accessToken, null).exp ?? 0;
     if (!isExpired(accessTokenExpiry)) {
+      console.log("token valid");
       return TokenStatus.VALID;
     }
   } catch (_) {
@@ -90,6 +93,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
               route += `/${USER_FORM_ROUTE}`;
             }
 
+            console.log("navigate to app", route);
             await sendToDom({
               action: "NAVIGATE",
               payload: {

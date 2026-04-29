@@ -138,6 +138,9 @@ function FetchErrorItem({
     <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
+        <Text style={styles.errorSource}>
+          {error.source === "native" ? "N:" : "F:"}
+        </Text>
         <Text style={styles.errorSummary} numberOfLines={1}>
           {error.method} {error.endpoint}
           {error.status != null ? ` → ${error.status}` : ""}
@@ -190,6 +193,9 @@ function ReactErrorItem({
     <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
+        <Text style={styles.errorSource}>
+          {error.source === "native" ? "N:" : "F:"}
+        </Text>
         <Text style={styles.errorSummary} numberOfLines={1}>
           {brief}
         </Text>
@@ -953,6 +959,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#888",
     fontFamily: "monospace",
+    flexShrink: 0,
+  },
+  errorSource: {
+    fontSize: 10,
+    color: "#666",
+    fontFamily: "monospace",
+    fontWeight: "700",
     flexShrink: 0,
   },
   errorSummary: {

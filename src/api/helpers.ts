@@ -167,6 +167,7 @@ export async function apiFetch<T = any>(
     if (debugStore.get().debugEnabled) {
       if (error instanceof TypeError) {
         debugStore.get().addFetchError({
+          source: "native",
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,
@@ -182,6 +183,7 @@ export async function apiFetch<T = any>(
         });
       } else {
         debugStore.get().addFetchError({
+          source: "native",
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,
@@ -361,7 +363,7 @@ export enum TokenStatus {
   MISSING,
 }
 
-async function updateTokens(
+export async function updateTokens(
   accessToken: string | undefined,
   refreshToken: string | undefined,
 ): Promise<void> {

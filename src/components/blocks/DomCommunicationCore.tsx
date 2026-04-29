@@ -140,12 +140,10 @@ export function DomCommunicationProvider({
           useWebViewStore.setState({ ready: true });
           // Sync debug config — also handles WebView reloads where `ready` was already true
           const { debugEnabled, backendUrlOverride } = debugStore.get();
-          setTimeout(() => {
-            sendToDom({
-              action: "SET_DEBUG_CONFIG",
-              payload: { debugEnabled, backendUrlOverride },
-            }).catch(() => {});
-          }, 0);
+          await sendToDom({
+            action: "SET_DEBUG_CONFIG",
+            payload: { debugEnabled, backendUrlOverride },
+          });
           return { ok: true };
         }
         case "RESPONSE": {
@@ -180,13 +178,13 @@ export function DomCommunicationProvider({
             const { payload } = message;
             if (payload.type === "react") {
               debugStore.get().addReactError({
-                message: payload.source
-                  ? `[${payload.source}] ${payload.message}`
-                  : payload.message,
+                source: "frontend",
+                message: payload.message,
                 stack: payload.stack,
               });
             } else {
               debugStore.get().addFetchError({
+                source: "frontend",
                 method: payload.method,
                 endpoint: payload.endpoint,
                 url: payload.url,
@@ -216,14 +214,14 @@ export function DomCommunicationProvider({
   useEffect(() => {
     if (!ready) return;
 
-    const syncDebugConfig = (
+    const syncDebugConfig = async (
       debugEnabled: boolean,
       backendUrlOverride: string | null,
     ) => {
-      sendToDom({
+      await sendToDom({
         action: "SET_DEBUG_CONFIG",
         payload: { debugEnabled, backendUrlOverride },
-      }).catch(() => {});
+      });
     };
 
     // Initial sync
