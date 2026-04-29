@@ -140,30 +140,6 @@ export async function apiFetch<T = any>(
       return null as T;
     }
   } catch (error: any) {
-    const tokenExpired = error?.code === "token_not_valid";
-    const noTokenPresent =
-      error?.status === 403 &&
-      useAuthStore.getState().accessToken === undefined;
-    if (tokenExpired || noTokenPresent) {
-      try {
-        const tokenStatus = await refreshAccessTokens();
-        switch (tokenStatus) {
-          case TokenStatus.VALID: {
-            return apiFetch(endpoint, options);
-          }
-          case TokenStatus.EXPIRED:
-          case TokenStatus.MISSING: {
-            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
-            break;
-          }
-        }
-      } catch (err: any) {
-        const response = err.cause;
-        const errorData = await response.json().catch(() => ({}));
-        throw formatApiError(errorData, response);
-      }
-    }
-
     if (debugStore.get().debugEnabled) {
       if (error instanceof TypeError) {
         debugStore.get().addFetchError({
@@ -194,6 +170,31 @@ export async function apiFetch<T = any>(
         });
       }
     }
+
+    const tokenExpired = error?.code === "token_not_valid";
+    const noTokenPresent =
+      error?.status === 403 &&
+      useAuthStore.getState().accessToken === undefined;
+    if (tokenExpired || noTokenPresent) {
+      try {
+        const tokenStatus = await refreshAccessTokens();
+        switch (tokenStatus) {
+          case TokenStatus.VALID: {
+            return apiFetch(endpoint, options);
+          }
+          case TokenStatus.EXPIRED:
+          case TokenStatus.MISSING: {
+            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
+            break;
+          }
+        }
+      } catch (err: any) {
+        const response = err.cause;
+        const errorData = await response.json().catch(() => ({}));
+        throw formatApiError(errorData, response);
+      }
+    }
+
     console.error(`API Fetch Error (${endpoint}):`, error);
     throw error;
   }
