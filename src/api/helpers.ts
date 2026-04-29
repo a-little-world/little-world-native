@@ -16,24 +16,16 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
-import { LOGIN_ROUTE } from "../routes";
 import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
 export async function navigateToLogin(expired: boolean = false): Promise<void> {
-  const location = window?.location.hash.replaceAll("#", "");
-  if (
-    location.startsWith(`/${LOGIN_ROUTE}`) &&
-    (!expired || location.includes(`?sessionExpired=${expired}`))
-  ) {
-    // prevent subsequent navigations from overriding expiration status
-    return;
-  }
-
+  // Delegate navigation to frontend
   const { sendToDom } = domCommunicationStore.get();
-  const path = `/${LOGIN_ROUTE}${expired ? "?sessionExpired=true" : ""}`;
-
-  await sendToDom?.({ action: "NAVIGATE", payload: { path } });
+  await sendToDom?.({
+    action: "NAVIGATE_TO_LOGIN",
+    payload: { sessionExpired: expired },
+  });
 }
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
