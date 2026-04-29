@@ -144,6 +144,20 @@ export function DomCommunicationProvider({
             action: "SET_DEBUG_CONFIG",
             payload: { debugEnabled, backendUrlOverride },
           });
+
+          const { accessToken, refreshToken } = useAuthStore.getState();
+          await sendToDom({
+            action: "SET_AUTH_TOKENS",
+            payload: {
+              accessToken,
+              refreshToken,
+            },
+          });
+
+          await sendToDom({
+            action: "NATIVE_READY",
+            payload: {},
+          });
           return { ok: true };
         }
         case "RESPONSE": {
@@ -223,10 +237,6 @@ export function DomCommunicationProvider({
         payload: { debugEnabled, backendUrlOverride },
       });
     };
-
-    // Initial sync
-    const { debugEnabled, backendUrlOverride } = debugStore.get();
-    syncDebugConfig(debugEnabled, backendUrlOverride);
 
     // Subscribe to future changes
     return useDebugStore.subscribe((state, prev) => {

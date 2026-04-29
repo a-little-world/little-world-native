@@ -75,6 +75,12 @@ export async function apiFetch<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
 ): Promise<T> {
+  if (accessTokenRefresh) {
+    // in case we are already loading a new token, wait before sending any new requests. They would fail anyway due to the
+    // invalid access token
+    await accessTokenRefresh;
+  }
+
   const {
     method = "GET",
     body,
