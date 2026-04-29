@@ -16,13 +16,23 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
-import { getAppRoute, LOGIN_ROUTE } from "../routes";
+import { LOGIN_ROUTE } from "../routes";
 import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
 export async function navigateToLogin(expired: boolean = false): Promise<void> {
+  const location = window?.location.hash.replaceAll("#", "");
+  if (
+    location.startsWith(`/${LOGIN_ROUTE}`) &&
+    (!expired || location.includes(`?sessionExpired=${expired}`))
+  ) {
+    // prevent subsequent navigations from overriding expiration status
+    return;
+  }
+
   const { sendToDom } = domCommunicationStore.get();
-  const path = `${getAppRoute(LOGIN_ROUTE)}${expired ? "?sessionExpired=true" : ""}`;
+  const path = `/${LOGIN_ROUTE}${expired ? "?sessionExpired=true" : ""}`;
+
   await sendToDom?.({ action: "NAVIGATE", payload: { path } });
 }
 
@@ -318,8 +328,10 @@ export async function saveJwtTokens(
   try {
     if (SecureStore && typeof SecureStore.setItemAsync === "function") {
       if (accessToken !== undefined) {
+        console.log("setting access token", accessToken?.substring(0, 5));
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
       } else {
+        console.log("deleting access token", accessToken);
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       }
 
@@ -335,6 +347,7 @@ export async function saveJwtTokens(
 export async function clearJwtTokens() {
   try {
     if (SecureStore && typeof SecureStore.deleteItemAsync === "function") {
+      console.log("deleting access token");
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     }
@@ -365,6 +378,7 @@ async function updateTokens(
 
   setAccessToken(accessToken);
   setRefreshToken(refreshToken);
+  await saveJwtTokens(accessToken, refreshToken);
   await sendToDom?.({
     action: "SET_AUTH_TOKENS",
     payload: {
