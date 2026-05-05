@@ -41,8 +41,6 @@ if [ "$SETUP_HOST_DOMAIN" = true ]; then
   sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
 fi
 
-sed -i.bak "s|websocketHost: '.*'|websocketHost: '$HOST_DOMAIN'|" src/environment.ts
-
 rm package.json.bak
 
 # Run pnpm pack
