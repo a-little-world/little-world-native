@@ -93,7 +93,6 @@ This app uses i18next for internationalization and merges translations from two 
 ### Translation Structure
 
 - **Shared translations**: Common translations used across all Little World applications
-
   - View existing translations: [@a-little-world/little-world-frontend-shared/translations](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
   - Add new shared translations to the shared package repository
 
@@ -130,6 +129,21 @@ The translation merging is handled automatically in `src/i18n.ts`.
 - `@media(...)` queries
 
 ### Common Issues & Solutions
+
+If your local iOS build fails with: error: exportArchive Copy failed:
+Take look at produced logs found in. The path will be logged a few lines before the error and look something like this:
+`Logging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/8h/0jk2h57s643fvbdqgf3c4f980000gn/T/littleworldapp_2026-05-07_16-02-16.748.xcdistributionlogs".` If the contained `IDEDistributionPipeline.log` show something like this at the very end:
+
+```
+2026-05-07 14:02:18 +0000 [MT] Running /usr/bin/rsync ...
+2026-05-07 14:02:18 +0000  rsync: on remote machine: --extended-attributes: unknown option
+2026-05-07 14:02:18 +0000  rsync error: syntax or usage error (code 1) at main.c(1802) [server=3.4.1]
+2026-05-07 14:02:18 +0000  rsync(62991): error: unexpected end of file
+2026-05-07 14:02:18 +0000 [MT] /usr/bin/rsync exited with 1
+```
+
+You might have installed a separate version of rsync. The rsync that comes bundled with MacOS/Xcode is modified by apple.
+Try running `rsync --extended-attributes --version`. If that fails because `--extended-attributes` is an unknown option, then the build is using the wrong rsync. Easiest solve is to remove it or change the path to point to the system rsync at `/usr/bin/rsync`. What is confusing about this, is that the build uses the correct rsync, but the server (I guess the receiving folder/process) is using the system rsync. This can also be seen in the log, where in this example the server uses version [server=3.4.1], whereas the `/usr/bin/rsync` is a different version.
 
 #### Style Array Issues
 
