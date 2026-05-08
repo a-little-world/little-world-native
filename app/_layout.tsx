@@ -1,12 +1,13 @@
 // app/_layout.tsx
 
-import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/little-world-design-system-native";
 import "@/src/i18n";
 import { loadFonts } from "@/src/utils/loadFonts";
+import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/little-world-design-system-native";
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
 import environmentNative from "@/environments/env";
 import LoadingScreenTokenValidator from "@/src/components/atoms/LoadingScreenTokenValidator";
+import DebugPanel from "@/src/components/blocks/DebugPanel";
 import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
 import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -59,6 +60,7 @@ export default Sentry.wrap(function RootLayout() {
       >
         <NativeThemeProvider>
           <DomCommunicationProvider>
+            <DebugPanel />
             {!tokensValidated && (
               <LoadingScreenTokenValidator
                 onTokensValidated={onTokensValidated}

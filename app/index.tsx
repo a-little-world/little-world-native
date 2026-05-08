@@ -1,6 +1,5 @@
 // Page.tsx
 import AuthGuard from "@/src/components/atoms/AuthGuard";
-import DebugPanel from "@/src/components/blocks/DebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
 import { setupReactErrorTracking } from "@/src/store/debugStore";
@@ -20,7 +19,6 @@ export default function Page() {
       <StatusBar style="dark" />
       <View style={{ flex: 1, width: "100%", display: "block" }}>
         <DomWebViewHost />
-        <DebugPanel />
       </View>
     </View>
   );

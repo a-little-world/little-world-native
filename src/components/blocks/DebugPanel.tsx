@@ -87,9 +87,7 @@ function Row({
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
       {warning && <Text style={{ marginRight: 4, fontSize: 11 }}>⚠️</Text>}
-      <Text style={styles.rowValue}>
-        {value}
-      </Text>
+      <Text style={styles.rowValue}>{value}</Text>
     </View>
   );
 }
@@ -802,7 +800,7 @@ const styles = StyleSheet.create({
 
   panel: {
     position: "absolute",
-    top: 24,
+    top: 48,
     left: 12,
     right: 12,
     maxHeight: 620,
