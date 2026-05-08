@@ -11,7 +11,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
   owner: "little-world",
   ios: {
     buildNumber: "1.0.29",
