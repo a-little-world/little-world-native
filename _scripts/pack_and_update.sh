@@ -8,16 +8,11 @@ cd ../little-world-frontend || exit 1
 SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
 HTTP_SCHEME=${HTTP_SCHEME:-"https"}
 HOST_DOMAIN=${HOST_DOMAIN:-"little-world.com"}
-USE_WSS_WEBSOCKET=false
 FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
-if [ $HTTP_SCHEME = "https" ]; then
-  USE_WSS_WEBSOCKET=true
-fi
 
 echo "SETUP_HOST_DOMAIN: $SETUP_HOST_DOMAIN"
 echo "HTTP_SCHEME: $HTTP_SCHEME"
 echo "HOST_DOMAIN: $HOST_DOMAIN"
-echo "USE_WSS_WEBSOCKET: $USE_WSS_WEBSOCKET"
 echo "FULL_HOST_DOMAIN: $FULL_HOST_DOMAIN"
 
 # Get current version from package.json
@@ -45,13 +40,6 @@ fi
 if [ "$SETUP_HOST_DOMAIN" = true ]; then
   sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
 fi
-
-if [ "$USE_WSS_WEBSOCKET" = true ]; then
-  sed -i.bak "s|coreWsScheme: '.*'|coreWsScheme: 'wss://'|" src/environment.ts
-else
-  sed -i.bak "s|coreWsScheme: '.*'|coreWsScheme: 'ws://'|" src/environment.ts
-fi
-sed -i.bak "s|websocketHost: '.*'|websocketHost: '$HOST_DOMAIN'|" src/environment.ts
 
 rm package.json.bak
 

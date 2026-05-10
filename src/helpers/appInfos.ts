@@ -12,3 +12,4 @@ export function secureStoreIsAvailable(): boolean {
 export function getBackendUrl(): string {
   return frontendEnvironment.backendUrl;
 }
+

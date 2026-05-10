@@ -1,9 +1,7 @@
-import {
-  clearJwtTokens,
-  requestIntegrityCheck,
-  saveJwtTokens,
-} from "@/src/api/helpers";
+import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { debugStore, useDebugStore } from "@/src/store/debugStore";
+import { domCommunicationStore } from "@/src/store/domCommunicationStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import {
   registerFirebaseDeviceToken,
@@ -20,6 +18,7 @@ import {
   Ref,
   useCallback,
   useContext,
+  useEffect,
   useRef,
 } from "react";
 import uuid from "react-native-uuid";
@@ -101,6 +100,7 @@ export function DomCommunicationProvider({
     },
     [],
   );
+  domCommunicationStore.set({ sendToDom });
 
   const sendToReactNative: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
@@ -108,7 +108,7 @@ export function DomCommunicationProvider({
       switch (action) {
         case "SET_AUTH_TOKENS": {
           const { accessToken, refreshToken } = payload;
-          saveJwtTokens(accessToken, refreshToken);
+          await saveJwtTokens(accessToken, refreshToken);
           useAuthStore.setState({ accessToken, refreshToken });
           return { ok: true };
         }
@@ -135,18 +135,28 @@ export function DomCommunicationProvider({
             ok: true,
           };
         }
-        case "CLEAR_AUTH_TOKENS": {
-          clearJwtTokens();
-          useAuthStore.setState({
-            accessToken: undefined,
-            refreshToken: undefined,
-          });
-          return { ok: true };
-        }
         case "WEBVIEW_READY": {
-          console.log("WEBVIEW_READY");
-          // transferAccessTokenIfPresent();
           useWebViewStore.setState({ ready: true });
+          // Sync debug config — also handles WebView reloads where `ready` was already true
+          const { debugEnabled, backendUrlOverride } = debugStore.get();
+          await sendToDom({
+            action: "SET_DEBUG_CONFIG",
+            payload: { debugEnabled, backendUrlOverride },
+          });
+
+          const { accessToken, refreshToken } = useAuthStore.getState();
+          await sendToDom({
+            action: "SET_AUTH_TOKENS",
+            payload: {
+              accessToken,
+              refreshToken,
+            },
+          });
+
+          await sendToDom({
+            action: "NATIVE_READY",
+            payload: {},
+          });
           return { ok: true };
         }
         case "RESPONSE": {
@@ -168,16 +178,36 @@ export function DomCommunicationProvider({
             };
           }
         }
-        case "NAVIGATE": {
-          const path = message.payload.path;
-          return sendToDom({ action: "NAVIGATE", payload: { path } });
-        }
         case "CONSOLE_LOG": {
           console.log(
             "console log from frontend",
             message.payload.message,
             ...(message.payload.params ?? []),
           );
+          return { ok: true };
+        }
+        case "LOG_ERROR": {
+          if (debugStore.get().debugEnabled) {
+            const { payload } = message;
+            if (payload.type === "react") {
+              debugStore.get().addReactError({
+                source: "frontend",
+                message: payload.message,
+                stack: payload.stack,
+              });
+            } else {
+              debugStore.get().addFetchError({
+                source: "frontend",
+                method: payload.method,
+                endpoint: payload.endpoint,
+                url: payload.url,
+                headers: payload.headers,
+                requestBody: payload.requestBody,
+                status: payload.status,
+                error: payload.error,
+              });
+            }
+          }
           return { ok: true };
         }
         default: {
@@ -190,6 +220,33 @@ export function DomCommunicationProvider({
     },
     [],
   );
+
+  // ── Sync debug config to frontend ────────────────────────────────────────
+  const { ready } = useWebViewStore();
+
+  useEffect(() => {
+    if (!ready) return;
+
+    const syncDebugConfig = async (
+      debugEnabled: boolean,
+      backendUrlOverride: string | null,
+    ) => {
+      await sendToDom({
+        action: "SET_DEBUG_CONFIG",
+        payload: { debugEnabled, backendUrlOverride },
+      });
+    };
+
+    // Subscribe to future changes
+    return useDebugStore.subscribe((state, prev) => {
+      if (
+        state.debugEnabled !== prev.debugEnabled ||
+        state.backendUrlOverride !== prev.backendUrlOverride
+      ) {
+        syncDebugConfig(state.debugEnabled, state.backendUrlOverride);
+      }
+    });
+  }, [ready, sendToDom]);
 
   const contextValue: DomCommunicationContextType = {
     sendToDom,

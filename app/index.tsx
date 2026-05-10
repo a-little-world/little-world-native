@@ -1,13 +1,13 @@
 // Page.tsx
-import environmentNative from "@/environments/env";
 import AuthGuard from "@/src/components/atoms/AuthGuard";
-import DomDebugPanel from "@/src/components/blocks/DomDebugPanel";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
-
+import { setupReactErrorTracking } from "@/src/store/debugStore";
 import { StatusBar } from "expo-status-bar";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+setupReactErrorTracking();
 
 export default function Page() {
   const insets = useSafeAreaInsets();
@@ -19,7 +19,6 @@ export default function Page() {
       <StatusBar style="dark" />
       <View style={{ flex: 1, width: "100%", display: "block" }}>
         <DomWebViewHost />
-        {environmentNative.showDebugPanel && <DomDebugPanel />}
       </View>
     </View>
   );

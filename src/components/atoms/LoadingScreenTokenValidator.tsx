@@ -1,11 +1,11 @@
 import { USER_ENDPOINT } from "@/src/api";
 import {
   apiFetch,
-  clearJwtTokens,
   loadStoredTokensIntoStore,
+  navigateToLogin,
   refreshAccessTokens,
-  saveJwtTokens,
   TokenStatus,
+  updateTokens,
 } from "@/src/api/helpers";
 import {
   APP_ROUTE,
@@ -13,7 +13,6 @@ import {
   USER_FORM_ROUTE,
   VERIFY_EMAIL_ROUTE,
 } from "@/src/routes";
-import { useAuthStore } from "@/src/store/authStore";
 import { useWebViewStore } from "@/src/store/webViewStore";
 import JWT from "expo-jwt";
 import { useEffect, useState } from "react";
@@ -40,6 +39,7 @@ const TOKEN_EXPIRY_THRESHOLD = 10;
 // returns true if tokens could be verified (and possibly refreshed), otherwise false
 async function verifyTokens(): Promise<TokenStatus> {
   const { accessToken, refreshToken } = await loadStoredTokensIntoStore();
+  await updateTokens(accessToken, refreshToken);
 
   if (!accessToken || !refreshToken) {
     return TokenStatus.MISSING;
@@ -84,17 +84,6 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
       (async () => {
         switch (tokenStatus) {
           case TokenStatus.VALID: {
-            const { accessToken, refreshToken } = useAuthStore.getState();
-            saveJwtTokens(accessToken, refreshToken);
-
-            await sendToDom({
-              action: "SET_AUTH_TOKENS",
-              payload: {
-                accessToken,
-                refreshToken,
-              },
-            });
-
             let route = BASE_ROUTE + APP_ROUTE;
             const userData = await apiFetch(USER_ENDPOINT);
             if (!userData?.emailVerified) {
@@ -114,27 +103,7 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
           }
           case TokenStatus.EXPIRED:
           case TokenStatus.MISSING:
-            // these cases only differ in whether the session expired message is shown
-            {
-              await clearJwtTokens();
-              useAuthStore.setState({
-                accessToken: undefined,
-                refreshToken: undefined,
-              });
-              await sendToDom({
-                action: "SET_AUTH_TOKENS",
-                payload: {
-                  accessToken: undefined,
-                  refreshToken: undefined,
-                },
-              });
-              await sendToDom({
-                action: "NAVIGATE",
-                payload: {
-                  path: `/login${tokenStatus === TokenStatus.EXPIRED ? "?sessionExpired=true" : ""}`,
-                },
-              });
-            }
+            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
             break;
         }
 
