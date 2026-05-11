@@ -112,7 +112,7 @@ export const debugStore = {
 };
 
 export function getEffectiveBackendUrl(): string {
-  return useDebugStore.getState().backendUrlOverride ?? environment.backendUrl;
+  return useDebugStore.getState().backendUrlOverride || environment.backendUrl;
 }
 
 // Call once at startup
