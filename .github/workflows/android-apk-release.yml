@@ -48,6 +48,7 @@ jobs:
       - name: Determine build environment
         id: environment
         run: |
+          echo "EAS_VERSION=$(jq -r '.cli.version' little-world-native/eas.json)" >> $GITHUB_ENV
           EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
           if [[ "$EAS_BUILD_TAG" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_OUTPUT
@@ -93,7 +94,7 @@ jobs:
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
-          eas-version: latest
+          eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies (pack and update frontend)
