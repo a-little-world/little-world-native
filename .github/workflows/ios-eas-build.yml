@@ -77,4 +77,4 @@ jobs:
           elif [[ "$STAGING" == "true" ]]; then
             mv ./environments/env.staging.ts ./environments/env.ts
           fi
-          eas build --platform ios --profile ${{ inputs.profile }} --non-interactive --no-wait
+          pnpm exec eas build --platform ios --profile ${{ inputs.profile }} --non-interactive --no-wait
