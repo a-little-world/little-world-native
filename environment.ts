@@ -1,6 +1,4 @@
 export interface Environment {
-  defaultLoginName: string;
-  defaultLoginPassword: string;
   backendUrl: string;
   coreWsPath: string;
   isNative: boolean;
@@ -9,8 +7,6 @@ export interface Environment {
 }
 
 export const environment: Environment = {
-  defaultLoginName: 'benjamin.tim@gmx.de',
-  defaultLoginPassword: 'Test123',
   backendUrl: 'https://little-world.com',
   coreWsPath: '/api/core/ws',
   isNative: true,
