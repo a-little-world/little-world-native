@@ -14,10 +14,10 @@ import {
   VERIFY_EMAIL_ROUTE,
 } from "@/src/routes";
 import { useWebViewStore } from "@/src/store/webViewStore";
-import JWT from "expo-jwt";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useDomCommunicationContext } from "../blocks/DomCommunicationCore";
+import { IS_AUTHENTICATED_ENDPOINT } from "./AuthGuard";
 import LoadingScreen from "./LoadingScreen";
 
 interface Props {
@@ -33,9 +33,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// consider valid as long as their expiry is at least 10 seconds into the future
-const TOKEN_EXPIRY_THRESHOLD = 10;
-
 // returns true if tokens could be verified (and possibly refreshed), otherwise false
 async function verifyTokens(): Promise<TokenStatus> {
   const { accessToken, refreshToken } = await loadStoredTokensIntoStore();
@@ -45,29 +42,11 @@ async function verifyTokens(): Promise<TokenStatus> {
     return TokenStatus.MISSING;
   }
 
-  const now = new Date().getTime() / 1000;
-  const isExpired = (expirationTime: number): boolean =>
-    expirationTime - now < TOKEN_EXPIRY_THRESHOLD;
-  try {
-    const accessTokenExpiry = JWT.decode(accessToken, null).exp ?? 0;
-    if (!isExpired(accessTokenExpiry)) {
-      return TokenStatus.VALID;
-    }
-  } catch (_) {
-    // expo-jwt throws an error if the token is expired because the decode function also performs validation...
+  const authenticated = await apiFetch(IS_AUTHENTICATED_ENDPOINT);
+  if (authenticated) {
+    return TokenStatus.VALID;
   }
-
-  try {
-    const refreshTokenExpiry = JWT.decode(refreshToken, null).exp ?? 0;
-    if (!isExpired(refreshTokenExpiry)) {
-      return TokenStatus.VALID;
-    }
-    return refreshAccessTokens();
-  } catch (_) {
-    // expo-jwt throws an error if the token is expired because the decode function also performs validation...
-  }
-
-  return TokenStatus.EXPIRED;
+  return refreshAccessTokens();
 }
 
 export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
@@ -81,16 +60,21 @@ export function LoadingScreenTokenValidator({ onTokensValidated }: Props) {
 
   useEffect(() => {
     if (webViewReady && tokenStatus !== null) {
+      console.log(webViewReady, tokenStatus);
       (async () => {
         switch (tokenStatus) {
           case TokenStatus.VALID: {
+            console.log("token valid");
             let route = BASE_ROUTE + APP_ROUTE;
+            console.log(route);
             const userData = await apiFetch(USER_ENDPOINT);
+            console.log(userData);
             if (!userData?.emailVerified) {
               route += `/${VERIFY_EMAIL_ROUTE}`;
             } else if (!userData.userFormCompleted) {
               route += `/${USER_FORM_ROUTE}`;
             }
+            console.log(route);
 
             await sendToDom({
               action: "NAVIGATE",
