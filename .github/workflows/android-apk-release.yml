@@ -77,19 +77,14 @@ jobs:
             git curl unzip ca-certificates
           ls -la
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.x
-
-      - name: Install pnpm & cpx
-        run: |
-          npm install -g pnpm@latest-10 cpx
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # omit version, uses version of packageManager in package.json
 
       - name: Install little-world-frontend dependencies
         working-directory: little-world-frontend
         run: |
-          npm ci
+          pnpm install --frozen-lockfile
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
