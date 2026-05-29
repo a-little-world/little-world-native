@@ -12,6 +12,7 @@ import {
   ApiFetchOptions,
   refreshAccessTokens,
 } from "@/src/api/helpers";
+import { useAuthStore } from "@/src/store/authStore";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
@@ -84,6 +85,7 @@ export default function LittleWorldWebLazy(props: {
       registerReceiveHandler={registerReceiveHandler}
       apiFetchNative={fetcher}
       refreshAccessToken={refreshAccessTokens}
+      getAccessToken={() => useAuthStore.getState().accessToken}
     />
   );
 }
