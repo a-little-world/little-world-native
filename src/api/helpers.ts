@@ -16,7 +16,11 @@ import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
 import { authStore, useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
-import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
+import {
+  debugStore,
+  FetchError,
+  getEffectiveBackendUrl,
+} from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
 export async function navigateToLogin(expired: boolean = false): Promise<void> {
@@ -30,7 +34,7 @@ export async function navigateToLogin(expired: boolean = false): Promise<void> {
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-interface ApiFetchOptions {
+export interface ApiFetchOptions {
   method?: HttpMethod;
   body?: object | FormData;
   headers?: Record<string, string>;
@@ -74,6 +78,7 @@ export const formatApiError = (responseBody: any, response: any) => {
 export async function apiFetch<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
+  source: FetchError["source"] = "native",
 ): Promise<T> {
   const {
     method = "GET",
@@ -143,7 +148,7 @@ export async function apiFetch<T = any>(
     if (debugStore.get().debugEnabled) {
       if (error instanceof TypeError) {
         debugStore.get().addFetchError({
-          source: "native",
+          source,
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,
@@ -159,7 +164,7 @@ export async function apiFetch<T = any>(
         });
       } else {
         debugStore.get().addFetchError({
-          source: "native",
+          source,
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,

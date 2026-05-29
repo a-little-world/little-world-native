@@ -5,27 +5,33 @@ import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
 } from "littleplanet";
-import { Ref, lazy, useEffect, useRef } from "react";
+import { lazy, Ref, useEffect, useRef } from "react";
 
+import {
+  apiFetch,
+  ApiFetchOptions,
+  refreshAccessTokens,
+} from "@/src/api/helpers";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
+import { useDomCommunicationContext } from "./DomCommunicationCore";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
 }
 
 const LittleWorldWebNative = lazy(() =>
-  import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative }))
+  import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative })),
 );
 
 export default function LittleWorldWebLazy(props: {
-  sendToReactNative: DomCommunicationMessageFn;
   ref: Ref<LittleWorldDomRef>;
   dom?: import("expo/dom").DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
+  const { sendToReactNative } = useDomCommunicationContext();
 
   // Allow inner component to override how actions are handled
   const registerReceiveHandler = (handler: DomCommunicationMessageFn) => {
@@ -68,11 +74,16 @@ export default function LittleWorldWebLazy(props: {
   // Cast to any so we can pass extra helper prop without TS complaining about external component types
   const LW: any = LittleWorldWebNative;
 
+  const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
+    apiFetch(endpoint, options, "frontend");
+
   return (
     <LW
       dom={{ matchContent: true }}
-      sendMessageToReactNative={props.sendToReactNative}
+      sendMessageToReactNative={sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
+      apiFetchNative={fetcher}
+      refreshAccessToken={refreshAccessTokens}
     />
   );
 }
