@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: little-world-native
+
       - name: Checkout little-world-frontend (sibling)
         uses: actions/checkout@v4
         with:
@@ -37,6 +38,7 @@ jobs:
           ref: ${{ inputs.frontendCommitRef }}
           path: little-world-frontend
           token: ${{ secrets.BOT_PAT }}
+
       - name: environment
         run: |
           echo "EAS_VERSION=$(jq -r '.cli.version' little-world-native/eas.json)" >> $GITHUB_ENV
@@ -47,27 +49,28 @@ jobs:
             echo "PRODUCTION=true" >> $GITHUB_ENV
             echo "STAGING=false" >> $GITHUB_ENV
           fi
-      - name: Install pnpm
-        run: |
-          npm install -g pnpm@latest-10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.x
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # omit version, uses version of packageManager in package.json
+
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Install dependencies
         run: |
           cd little-world-frontend
-          npm ci
+          pnpm install --frozen-lockfile
           cd ../little-world-native
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
           export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
           export USE_WSS_WEBSOCKET=true
           ./_scripts/pack_and_update.sh
+
       - name: Build on EAS
         env:
           IS_CI_BUILD: true

@@ -20,7 +20,7 @@ rm -rf node_modules/.cache 2>/dev/null || true
 
 # Clear React Native cache
 echo "4. Clearing React Native cache..."
-npx react-native start --reset-cache 2>/dev/null || true
+pnpm exec react-native start --reset-cache 2>/dev/null || true
 
 # Reinstall node_modules if needed
 echo "5. Checking node_modules..."

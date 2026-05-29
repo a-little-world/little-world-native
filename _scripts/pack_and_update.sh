@@ -44,7 +44,7 @@ fi
 rm package.json.bak
 
 # Run pnpm pack
-npm run build
+pnpm run build
 
 # Get the generated tarball filename
 TARBALL="littleplanet-$NEW_VERSION.tgz"

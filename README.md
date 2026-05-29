@@ -80,7 +80,7 @@ eas build:run --platform android
 To automatically check the project for any expo warnings run:
 
 ```bash
-pnpm dlx expo-doctor@latest
+pnpm exec expo-doctor
 ```
 
 ## 🌍 Translations
