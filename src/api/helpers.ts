@@ -347,18 +347,10 @@ export async function updateTokens(
   refreshToken: string | undefined,
 ): Promise<void> {
   const { setAccessToken, setRefreshToken } = useAuthStore.getState();
-  const { sendToDom } = domCommunicationStore.get();
 
   setAccessToken(accessToken);
   setRefreshToken(refreshToken);
   await saveJwtTokens(accessToken, refreshToken);
-  await sendToDom?.({
-    action: "SET_AUTH_TOKENS",
-    payload: {
-      accessToken,
-      refreshToken,
-    },
-  });
 }
 
 let accessTokenRefresh: Promise<TokenStatus> | undefined = undefined;

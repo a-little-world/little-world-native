@@ -4,13 +4,15 @@
 import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
+  LittleWorldWebNativeProps,
 } from "littleplanet";
-import { lazy, Ref, useEffect, useRef } from "react";
+import React, { lazy, Ref, useEffect, useRef } from "react";
 
 import {
   apiFetch,
   ApiFetchOptions,
   refreshAccessTokens,
+  updateTokens,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
@@ -72,20 +74,27 @@ export default function LittleWorldWebLazy(props: {
     },
   }));
 
-  // Cast to any so we can pass extra helper prop without TS complaining about external component types
-  const LW: any = LittleWorldWebNative;
+  const LW = LittleWorldWebNative as React.ComponentType<
+    LittleWorldWebNativeProps & { dom?: import("expo/dom").DOMProps }
+  >;
 
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
     apiFetch(endpoint, options, "frontend");
 
+  const setAccessTokens = async (
+    accessToken: string | undefined,
+    refreshToken: string | undefined,
+  ) => await updateTokens(accessToken, refreshToken);
+
   return (
     <LW
-      dom={{ matchContent: true }}
+      dom={{ matchContents: true }}
       sendMessageToReactNative={sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
       apiFetchNative={fetcher}
       refreshAccessToken={refreshAccessTokens}
       getAccessToken={() => useAuthStore.getState().accessToken}
+      setAccessTokens={setAccessTokens}
     />
   );
 }

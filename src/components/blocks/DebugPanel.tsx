@@ -344,10 +344,6 @@ export default function DebugPanel() {
         refreshToken: r ?? undefined,
       });
       await saveJwtTokens(a ?? undefined, r ?? undefined);
-      await sendToDom({
-        action: "SET_AUTH_TOKENS",
-        payload: { accessToken: a ?? undefined, refreshToken: r ?? undefined },
-      });
       result("Debug tokens loaded into regular tokens + SecureStore");
     } catch (e: any) {
       result(`Load failed: ${e}`);
@@ -360,10 +356,6 @@ export default function DebugPanel() {
       useAuthStore.setState({
         accessToken: undefined,
         refreshToken: undefined,
-      });
-      await sendToDom({
-        action: "SET_AUTH_TOKENS",
-        payload: { accessToken: undefined, refreshToken: undefined },
       });
       await sendToDom({ action: "NAVIGATE", payload: { path: "/login" } });
       result("Regular tokens cleared");

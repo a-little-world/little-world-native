@@ -1,4 +1,4 @@
-import { requestIntegrityCheck, saveJwtTokens } from "@/src/api/helpers";
+import { requestIntegrityCheck } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
 import { debugStore, useDebugStore } from "@/src/store/debugStore";
 import { domCommunicationStore } from "@/src/store/domCommunicationStore";
@@ -106,12 +106,6 @@ export function DomCommunicationProvider({
     async (message: DomCommunicationMessage) => {
       const { action, payload } = message;
       switch (action) {
-        case "SET_AUTH_TOKENS": {
-          const { accessToken, refreshToken } = payload;
-          await saveJwtTokens(accessToken, refreshToken);
-          useAuthStore.setState({ accessToken, refreshToken });
-          return { ok: true };
-        }
         case "GET_INTEGRITY_TOKEN": {
           const integrityData = await requestIntegrityCheck();
           return {
@@ -142,15 +136,6 @@ export function DomCommunicationProvider({
           await sendToDom({
             action: "SET_DEBUG_CONFIG",
             payload: { debugEnabled, backendUrlOverride },
-          });
-
-          const { accessToken, refreshToken } = useAuthStore.getState();
-          await sendToDom({
-            action: "SET_AUTH_TOKENS",
-            payload: {
-              accessToken,
-              refreshToken,
-            },
           });
 
           await sendToDom({
