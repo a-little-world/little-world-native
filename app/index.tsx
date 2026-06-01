@@ -1,9 +1,11 @@
 // Page.tsx
+import { loadStoredTokensIntoStore, updateTokens } from "@/src/api/helpers";
 import AuthGuard from "@/src/components/atoms/AuthGuard";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
 import { setupReactErrorTracking } from "@/src/store/debugStore";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,6 +13,11 @@ setupReactErrorTracking();
 
 export default function Page() {
   const insets = useSafeAreaInsets();
+  useEffect(() => {
+    loadStoredTokensIntoStore().then(({ accessToken, refreshToken }) =>
+      updateTokens(accessToken, refreshToken),
+    );
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
