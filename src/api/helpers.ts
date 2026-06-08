@@ -364,6 +364,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
     return accessTokenRefresh;
   }
 
+  useAuthStore.setState({ isTokenRefreshing: true });
   const { refreshToken } = useAuthStore.getState();
   if (!refreshToken) {
     await updateTokens(undefined, undefined);
@@ -424,6 +425,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
       return TokenStatus.EXPIRED;
     } finally {
       accessTokenRefresh = undefined;
+      useAuthStore.setState({ isTokenRefreshing: false });
     }
   })();
 

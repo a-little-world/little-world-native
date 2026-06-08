@@ -1,8 +1,11 @@
-import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
 import useSWR from "swr";
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { data, error, isLoading } = useSWR<boolean>(
+import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
+import { useAuthStore } from "@/src/store/authStore";
+import { ReactNode, useMemo, useRef } from "react";
+
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { data: authenticated, isValidating } = useSWR<boolean>(
     IS_AUTHENTICATED_ENDPOINT,
     {
       refreshInterval: (isAuthenticated) => {
@@ -14,8 +17,22 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       },
     },
   );
+  const { isTokenRefreshing } = useAuthStore();
 
-  const isAuthenticated = data && !isLoading && !error;
+  // Store previous authenticated state to prevent flickering during loading/token refresh
+  const prevAuthenticatedRef = useRef<boolean>(false);
+
+  const isAuthenticated = useMemo(() => {
+    // During loading, maintain previous state
+    if (isValidating || isTokenRefreshing) {
+      return prevAuthenticatedRef.current;
+    }
+
+    prevAuthenticatedRef.current = Boolean(authenticated);
+
+    return Boolean(authenticated);
+  }, [authenticated, isValidating, isTokenRefreshing]);
+
   return isAuthenticated ? children : null;
 }
 
