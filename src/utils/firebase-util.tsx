@@ -5,8 +5,8 @@ import {
 import * as Device from "expo-device";
 import { PermissionStatus, Platform } from "expo-modules-core";
 import { PermissionsAndroid } from "react-native";
-import { apiFetch } from "../api/helpers";
 
+import { apiFetch } from "../api/helpers";
 import { getDeviceId } from "./device";
 
 async function requestPermissionIOS(): Promise<boolean> {
@@ -76,9 +76,9 @@ async function updateFirebaseDeviceRegistration(
 }
 
 export async function registerFirebaseDeviceToken(): Promise<void> {
-  updateFirebaseDeviceRegistration("register");
+  await updateFirebaseDeviceRegistration("register");
 }
 
 export async function unregisterFirebaseDeviceToken(): Promise<void> {
-  updateFirebaseDeviceRegistration("unregister");
+  await updateFirebaseDeviceRegistration("unregister");
 }
