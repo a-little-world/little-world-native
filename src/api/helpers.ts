@@ -13,9 +13,11 @@ import { Platform } from "react-native";
 import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";
 import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
-import { authStore, useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
+import { mutate } from "swr";
+import { IS_AUTHENTICATED_ENDPOINT } from ".";
 import {
   debugStore,
   FetchError,
@@ -104,7 +106,7 @@ export async function apiFetch<T = any>(
   const authHeaders = {
     "X-CSRF-Bypass-Token": "abc",
   } as Record<string, string>;
-  const { accessToken } = authStore.get();
+  const { accessToken } = useAuthStore.getState();
   if (accessToken) {
     authHeaders.Authorization = `Bearer ${accessToken}`;
   }
@@ -350,6 +352,9 @@ export async function updateTokens(
 
   setAccessToken(accessToken);
   setRefreshToken(refreshToken);
+
+  mutate(IS_AUTHENTICATED_ENDPOINT);
+
   await saveJwtTokens(accessToken, refreshToken);
 }
 
