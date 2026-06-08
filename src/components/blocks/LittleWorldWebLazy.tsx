@@ -8,18 +8,11 @@ import type {
 } from "littleplanet";
 import React, { lazy, Ref, useEffect, useRef } from "react";
 
-import {
-  apiFetch,
-  ApiFetchOptions,
-  refreshAccessTokens,
-  updateTokens,
-} from "@/src/api/helpers";
-import { useAuthStore } from "@/src/store/authStore";
+import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
-import { useDomCommunicationContext } from "./DomCommunicationCore";
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -29,12 +22,22 @@ const LittleWorldWebNative = lazy(() =>
   import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative })),
 );
 
+/*
+  IMPORTANT: 
+  - All functions passed to this webview are async, even if they the "original" function is not.
+  - functions created inside this component are bundled and isolated from the rest of the native app:
+      const fetcher = () => apiFetch will use an isolated version of apiFetch that has its own context, tokens, etc.
+*/
 export default function LittleWorldWebLazy(props: {
   ref: Ref<LittleWorldDomRef>;
+  sendToReactNative: DomCommunicationMessageFn;
+  apiFetchNative: typeof apiFetch;
+  refreshAccessToken: typeof refreshAccessTokens;
+  getAccessToken: () => Promise<string | undefined>;
+  setAccessTokens: typeof updateTokens;
   dom?: import("expo/dom").DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
-  const { sendToReactNative } = useDomCommunicationContext();
 
   // Allow inner component to override how actions are handled
   const registerReceiveHandler = (handler: DomCommunicationMessageFn) => {
@@ -78,23 +81,15 @@ export default function LittleWorldWebLazy(props: {
     LittleWorldWebNativeProps & { dom?: import("expo/dom").DOMProps }
   >;
 
-  const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
-    apiFetch(endpoint, options, "frontend");
-
-  const setAccessTokens = async (
-    accessToken: string | undefined,
-    refreshToken: string | undefined,
-  ) => await updateTokens(accessToken, refreshToken);
-
   return (
     <LW
       dom={{ matchContents: true }}
-      sendMessageToReactNative={sendToReactNative}
+      sendMessageToReactNative={props.sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
-      apiFetchNative={fetcher}
-      refreshAccessToken={refreshAccessTokens}
-      getAccessToken={() => useAuthStore.getState().accessToken}
-      setAccessTokens={setAccessTokens}
+      apiFetchNative={props.apiFetchNative}
+      refreshAccessToken={props.refreshAccessToken}
+      getAccessToken={props.getAccessToken}
+      setAccessTokens={props.setAccessTokens}
     />
   );
 }
