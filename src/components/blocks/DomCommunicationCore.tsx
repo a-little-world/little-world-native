@@ -83,7 +83,7 @@ export function DomCommunicationProvider({
           // Set a timeout to reject the promise if no response comes
           setTimeout(() => {
             if (pendingRequestsRef.current.has(requestId)) {
-              console.info("request timeout for requesId", requestId);
+              console.info("request timeout for requesId", requestId, message);
               pendingRequestsRef.current.delete(requestId);
               reject(new Error("Response timeout"));
             }
