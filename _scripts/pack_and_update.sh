@@ -52,14 +52,14 @@ echo "Generated tarball: $TARBALL"
 
 # Navigate back to root directory
 cd ../little-world-native
-mv ../little-world-frontend/$TARBALL .
+rm littleplanet-*.tgz 2>/dev/null || true # delete old packages
+mv ../little-world-frontend/$TARBALL . # copy over new package
 cp ../little-world-frontend/src/environment.ts ./environment.ts
 
 # Update the dependency reference in root package.json
 sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
-rm "littleplanet-$CURRENT_VERSION.tgz" 2>/dev/null || true
 if [ "${CI:-false}" = "true" ]; then
   pnpm install --no-frozen-lockfile
 else
