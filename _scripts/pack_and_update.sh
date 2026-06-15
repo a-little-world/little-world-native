@@ -59,7 +59,11 @@ cp ../little-world-frontend/src/environment.ts ./environment.ts
 sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
 rm package.json.bak
 
-rm "littleplanet-$CURRENT_VERSION.tgz" || true
-pnpm install --no-frozen-lockfile
+rm "littleplanet-$CURRENT_VERSION.tgz" 2>/dev/null || true
+if [ "${CI:-false}" = "true" ]; then
+  pnpm install --no-frozen-lockfile
+else
+  pnpm install --no-frozen-lockfile --offline
+fi
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 
