@@ -60,6 +60,6 @@ sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|"
 rm package.json.bak
 
 rm "littleplanet-$CURRENT_VERSION.tgz" || true
-pnpm install --no-frozen-lockfile
+pnpm install --no-frozen-lockfile --offline
 
 echo "Successfully updated to version $NEW_VERSION and installed the new package" 
