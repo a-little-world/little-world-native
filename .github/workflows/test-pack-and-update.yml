@@ -1,0 +1,42 @@
+name: Tests
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      frontendCommitRef:
+        description: "Frontend commit ref"
+        required: false
+        default: "main"
+
+jobs:
+  test-pack-and-update:
+    name: Test pack and update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+        with:
+          path: little-world-native
+
+      - name: Checkout little-world-frontend (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: a-little-world/little-world-frontend
+          ref: ${{ inputs.frontendCommitRef }}
+          path: little-world-frontend
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: little-world-native/package.json
+          # omit version, uses version of packageManager in package.json
+
+      - name: Install frontend dependencies
+        working-directory: little-world-frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Test pack and update script
+        working-directory: little-world-native
+        env:
+          SETUP_HOST_DOMAIN: "false"
+        run: ./_scripts/pack_and_update.sh
