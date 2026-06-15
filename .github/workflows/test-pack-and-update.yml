@@ -18,12 +18,12 @@ jobs:
         with:
           path: little-world-native
 
-      - name: Checkout little-world-frontend (sibling)
+      - name: Checkout little-world-frontend (submodule)
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
           ref: ${{ inputs.frontendCommitRef }}
-          path: little-world-frontend
+          path: little-world-native/frontend
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -32,7 +32,7 @@ jobs:
           # omit version, uses version of packageManager in package.json
 
       - name: Install frontend dependencies
-        working-directory: little-world-frontend
+        working-directory: little-world-native/frontend
         run: pnpm install --frozen-lockfile
 
       - name: Test pack and update script

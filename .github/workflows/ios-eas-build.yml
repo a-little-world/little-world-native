@@ -31,12 +31,12 @@ jobs:
         with:
           path: little-world-native
 
-      - name: Checkout little-world-frontend (sibling)
+      - name: Checkout little-world-frontend (submodule)
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
           ref: ${{ inputs.frontendCommitRef }}
-          path: little-world-frontend
+          path: little-world-native/frontend
           token: ${{ secrets.BOT_PAT }}
 
       - name: environment
@@ -64,9 +64,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd little-world-frontend
+          cd little-world-native/frontend
           pnpm install --frozen-lockfile
-          cd ../little-world-native
+          cd ..
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
           export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')

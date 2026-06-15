@@ -61,12 +61,12 @@ jobs:
             echo "STAGING=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout little-world-frontend (sibling)
+      - name: Checkout little-world-frontend (submodule)
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
           ref: ${{ github.event.inputs.COMMIT_REF }}
-          path: little-world-frontend
+          path: little-world-native/frontend
           token: ${{ secrets.BOT_PAT }}
 
       - name: Install base packages (act only)
@@ -83,7 +83,7 @@ jobs:
           package_json_file: little-world-native/package.json
 
       - name: Install little-world-frontend dependencies
-        working-directory: little-world-frontend
+        working-directory: little-world-native/frontend
         run: |
           pnpm install --frozen-lockfile
 
@@ -96,7 +96,7 @@ jobs:
       - name: Install dependencies (pack and update frontend)
         run: |
           cd little-world-native
-          cat ../little-world-frontend/package.json
+          cat frontend/package.json
           export SETUP_HOST_DOMAIN=true
           export HTTP_SCHEME="https"
           export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')

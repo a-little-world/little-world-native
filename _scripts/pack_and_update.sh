@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-# Navigate to lw_components directory
-cd ../little-world-frontend || exit 1
+# Navigate to frontend submodule
+cd frontend || exit 1
 
 # Use environment variables if set, otherwise fall back to defaults
 SETUP_HOST_DOMAIN=${SETUP_HOST_DOMAIN:-true}
@@ -51,10 +51,10 @@ TARBALL="littleplanet-$NEW_VERSION.tgz"
 echo "Generated tarball: $TARBALL"
 
 # Navigate back to root directory
-cd ../little-world-native
+cd ..
 rm littleplanet-*.tgz 2>/dev/null || true # delete old packages
-mv ../little-world-frontend/$TARBALL . # copy over new package
-cp ../little-world-frontend/src/environment.ts ./environment.ts
+mv frontend/$TARBALL .
+cp frontend/src/environment.ts ./environment.ts
 
 # Update the dependency reference in root package.json
 sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
