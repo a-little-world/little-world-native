@@ -85,7 +85,7 @@ export function DomCommunicationProvider({
             if (pendingRequestsRef.current.has(requestId)) {
               console.info("request timeout for requesId", requestId, message);
               pendingRequestsRef.current.delete(requestId);
-              reject(new Error("Response timeout"));
+              reject("Response timeout");
             }
           }, REQUEST_TIMEOUT);
         },
