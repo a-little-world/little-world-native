@@ -17,10 +17,6 @@ on:
         description: "Base URL for backend (e.g., https://api.example.com)"
         required: false
         default: ""
-      COMMIT_REF:
-        description: "Frontend commit SHA or branch to checkout"
-        required: false
-        default: "main"
       easBuildTag:
         description: "EAS build type"
         required: false
@@ -40,15 +36,16 @@ jobs:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
     steps:
-      - name: Checkout little-world-native
+      - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
         with:
-          path: little-world-native
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
 
       - name: Determine build environment
         id: environment
         run: |
-          echo "EAS_VERSION=$(jq -r '.cli.version' little-world-native/eas.json)" >> $GITHUB_ENV
+          echo "EAS_VERSION=$(jq -r '.cli.version' eas.json)" >> $GITHUB_ENV
           EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
           if [[ "$EAS_BUILD_TAG" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_OUTPUT
@@ -61,14 +58,6 @@ jobs:
             echo "STAGING=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout little-world-frontend (submodule)
-        uses: actions/checkout@v4
-        with:
-          repository: a-little-world/little-world-frontend
-          ref: ${{ github.event.inputs.COMMIT_REF }}
-          path: little-world-native/frontend
-          token: ${{ secrets.BOT_PAT }}
-
       - name: Install base packages (act only)
         if: ${{ env.ACT }}
         run: |
@@ -80,7 +69,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          package_json_file: little-world-native/package.json
+          package_json_file: package.json
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -214,7 +203,7 @@ jobs:
             echo "No $FILE_EXTENSION file found for $EAS_BUILD_TAG build" >&2
             exit 1
           fi
-          echo "build_file_path=./little-world-native/$BUILD_FILE_PATH" >> $GITHUB_OUTPUT
+          echo "build_file_path=./$BUILD_FILE_PATH" >> $GITHUB_OUTPUT
           echo "file_extension=$FILE_EXTENSION" >> $GITHUB_OUTPUT
           echo "Found $FILE_EXTENSION at $BUILD_FILE_PATH"
 

@@ -16,32 +16,21 @@ on:
         description: "Base URL for backend (e.g., https://little-world.com)"
         required: true
         default: "https://little-world.com"
-      frontendCommitRef:
-        description: "Frontend commit ref"
-        required: true
-        default: "main"
 
 jobs:
   build-ios:
     name: Install and build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout little-world-native
+      - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
         with:
-          path: little-world-native
-
-      - name: Checkout little-world-frontend submodule at requested ref
-        uses: actions/checkout@v4
-        with:
-          repository: a-little-world/little-world-frontend
-          ref: ${{ inputs.frontendCommitRef }}
-          path: little-world-native/frontend
+          submodules: recursive
           token: ${{ secrets.BOT_PAT }}
 
       - name: environment
         run: |
-          echo "EAS_VERSION=$(jq -r '.cli.version' little-world-native/eas.json)" >> $GITHUB_ENV
+          echo "EAS_VERSION=$(jq -r '.cli.version' eas.json)" >> $GITHUB_ENV
           if [[ "${{ inputs.profile }}" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_ENV
             echo "PRODUCTION=false" >> $GITHUB_ENV
@@ -53,7 +42,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          package_json_file: little-world-native/package.json
+          package_json_file: package.json
           # omit version, uses version of packageManager in package.json
 
       - name: Setup Expo and EAS
