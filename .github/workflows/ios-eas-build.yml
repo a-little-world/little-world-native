@@ -45,6 +45,11 @@ jobs:
           package_json_file: package.json
           # omit version, uses version of packageManager in package.json
 
+      - name: Install missing tools (act only)
+        if: ${{ env.ACT }}
+        run: pnpm install -g yarn
+        # yarn is required for expo setup
+
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
