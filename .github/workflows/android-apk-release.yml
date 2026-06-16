@@ -21,20 +21,30 @@ on:
         description: "EAS build type"
         required: false
         default: "preview"
+  pull_request:
+    types: [labeled, synchronize]
 
 permissions:
   contents: write
 
 concurrency:
-  group: android-apk-${{ github.workflow }}-${{ inputs.tag }}
+  group: android-apk-${{ github.workflow }}-${{ github.event.inputs.tag || github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   build-android-apk:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'android') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'android'))
     runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
+      EAS_BUILD_TAG: ${{ github.event.inputs.easBuildTag || 'preview' }}
+      TAG: ${{ github.event.inputs.tag || format('pr-{0}', github.event.pull_request.number) }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || '' }}
+      PRERELEASE: ${{ github.event.inputs.prerelease || 'true' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -46,7 +56,6 @@ jobs:
         id: environment
         run: |
           echo "EAS_VERSION=$(jq -r '.cli.version' eas.json)" >> $GITHUB_ENV
-          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
           if [[ "$EAS_BUILD_TAG" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_OUTPUT
             echo "PRODUCTION=false" >> $GITHUB_OUTPUT
@@ -84,7 +93,6 @@ jobs:
 
       - name: Patch native environment.ts and sync to frontend
         run: |
-          BASE_URL="${{ github.event.inputs.baseUrl }}"
           sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
           if [[ -n "$BASE_URL" && "$BASE_URL" == *ngrok* ]]; then
             sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" environment.ts
@@ -113,9 +121,6 @@ jobs:
           FILE="src/config/environment-native.ts"
           cp "$FILE" "$FILE.bak"
 
-          # Inputs from workflow_dispatch
-          BASE_URL='${{ github.event.inputs.baseUrl }}'
-
           # Only replace when inputs are provided (non-empty)
           if [ -n "${BASE_URL}" ]; then
             # Update backendUrl if present in this config file layout
@@ -137,7 +142,7 @@ jobs:
 
           # Run build and capture output
           set -o pipefail
-          eas build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive | tee build_output.txt
+          eas build --platform android --profile "$EAS_BUILD_TAG" --non-interactive | tee build_output.txt
 
           # Extract URL
           URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(apk|aab)' build_output.txt | tail -n1)
@@ -165,7 +170,6 @@ jobs:
         run: |
           set -euo pipefail
           BUILD_FILE_PATH=""
-          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
 
           # Check for AAB files first (production builds)
           if [ "$EAS_BUILD_TAG" = "production" ]; then
@@ -212,7 +216,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ github.event.inputs.tag }}"
           RUN_NO="${{ github.run_number }}"
           ORIG_PATH="${{ steps.locate_build_file.outputs.build_file_path }}"
           FILE_EXT="${{ steps.locate_build_file.outputs.file_extension }}"
@@ -226,5 +229,5 @@ jobs:
       - name: Upload Android Build File artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ github.event.inputs.tag }}-${{ github.run_number }}
+          name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ env.TAG }}-${{ github.run_number }}
           path: ${{ steps.rename_build_file.outputs.build_file_path }}

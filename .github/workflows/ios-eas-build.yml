@@ -16,11 +16,24 @@ on:
         description: "Base URL for backend (e.g., https://little-world.com)"
         required: true
         default: "https://little-world.com"
+  pull_request:
+    types: [labeled, synchronize]
+
+concurrency:
+  group: ios-eas-${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build-ios:
     name: Install and build
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'ios') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ios'))
     runs-on: ubuntu-latest
+    env:
+      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || 'https://little-world.com' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -31,10 +44,10 @@ jobs:
       - name: environment
         run: |
           echo "EAS_VERSION=$(jq -r '.cli.version' eas.json)" >> $GITHUB_ENV
-          if [[ "${{ inputs.profile }}" == "preview" ]]; then
+          if [[ "$PROFILE" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_ENV
             echo "PRODUCTION=false" >> $GITHUB_ENV
-          elif [[ "${{ inputs.profile }}" == "production" ]]; then
+          elif [[ "$PROFILE" == "production" ]]; then
             echo "PRODUCTION=true" >> $GITHUB_ENV
             echo "STAGING=false" >> $GITHUB_ENV
           fi
@@ -58,7 +71,6 @@ jobs:
 
       - name: Patch native environment.ts and sync to frontend
         run: |
-          BASE_URL="${{ inputs.baseUrl }}"
           sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
           if [[ "$BASE_URL" == *ngrok* ]]; then
             sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" environment.ts
@@ -82,4 +94,4 @@ jobs:
           elif [[ "$STAGING" == "true" ]]; then
             mv ./environments/env.staging.ts ./environments/env.ts
           fi
-          pnpm exec eas build --platform ios --profile ${{ inputs.profile }} --non-interactive --no-wait
+          pnpm exec eas build --platform ios --profile "$PROFILE" --non-interactive --no-wait
