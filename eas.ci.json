@@ -7,9 +7,6 @@
     "development": {
       "developmentClient": true,
       "credentialsSource": "remote",
-      "env": {
-        "EXPO_PUBLIC_LITTLEPLANET_PACKAGED": "true"
-      },
       "ios": {
         "simulator": true
       }
@@ -17,26 +14,17 @@
     "development-device": {
       "developmentClient": true,
       "credentialsSource": "remote",
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_LITTLEPLANET_PACKAGED": "true"
-      }
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal",
       "credentialsSource": "remote",
-      "env": {
-        "EXPO_PUBLIC_LITTLEPLANET_PACKAGED": "true"
-      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
       "credentialsSource": "remote",
-      "env": {
-        "EXPO_PUBLIC_LITTLEPLANET_PACKAGED": "true"
-      },
       "android": {
         "image": "latest",
         "buildType": "app-bundle"

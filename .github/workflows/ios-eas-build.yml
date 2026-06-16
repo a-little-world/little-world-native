@@ -17,7 +17,7 @@ on:
         required: true
         default: "https://little-world.com"
       frontendCommitRef:
-        description: "Fronted commit ref"
+        description: "Frontend commit ref"
         required: true
         default: "main"
 
@@ -31,7 +31,7 @@ jobs:
         with:
           path: little-world-native
 
-      - name: Checkout little-world-frontend (submodule)
+      - name: Checkout little-world-frontend submodule at requested ref
         uses: actions/checkout@v4
         with:
           repository: a-little-world/little-world-frontend
@@ -54,7 +54,7 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           package_json_file: little-world-native/package.json
-        # omit version, uses version of packageManager in package.json
+          # omit version, uses version of packageManager in package.json
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -62,16 +62,24 @@ jobs:
           eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
+      - name: Patch frontend environment for build
+        working-directory: little-world-native/frontend
         run: |
-          cd little-world-native/frontend
-          pnpm install --frozen-lockfile
-          cd ..
-          export SETUP_HOST_DOMAIN=true
-          export HTTP_SCHEME="https"
-          export HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
-          export USE_WSS_WEBSOCKET=true
-          ./_scripts/pack_and_update.sh
+          HOST_DOMAIN=$(echo "${{ inputs.baseUrl }}" | sed 's|^https\?://||')
+          HTTP_SCHEME="https"
+          FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
+          sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
+          if [[ "$HOST_DOMAIN" == *ngrok* ]]; then
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" src/environment.ts
+          else
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" src/environment.ts
+          fi
+          sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
+          rm -f src/environment.ts.bak
+
+      - name: Install workspace dependencies
+        working-directory: little-world-native
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build on EAS
         env:

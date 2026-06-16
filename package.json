@@ -20,11 +20,7 @@
     "web": "expo start --web --port 9000",
     "lint": "expo lint",
     "prebuild": "expo prebuild --clean",
-    "frontend:setup": "./_scripts/setup_local_frontend.sh",
-    "frontend:watch": "./_scripts/frontend-watch.sh",
-    "start:packaged": "EXPO_PUBLIC_LITTLEPLANET_PACKAGED=true expo start --port 9000",
-    "android:packaged": "EXPO_PUBLIC_LITTLEPLANET_PACKAGED=true expo start --android --port 9000",
-    "ios:packaged": "EXPO_PUBLIC_LITTLEPLANET_PACKAGED=true expo start --ios --port 9000"
+    "frontend:setup": "./_scripts/setup_local_frontend.sh"
   },
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.9.0",

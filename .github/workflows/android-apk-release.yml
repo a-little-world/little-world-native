@@ -82,26 +82,32 @@ jobs:
         with:
           package_json_file: little-world-native/package.json
 
-      - name: Install little-world-frontend dependencies
-        working-directory: little-world-native/frontend
-        run: |
-          pnpm install --frozen-lockfile
-
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies (pack and update frontend)
+      - name: Patch frontend environment for build
+        working-directory: little-world-native/frontend
         run: |
-          cd little-world-native
-          cat frontend/package.json
-          export SETUP_HOST_DOMAIN=true
-          export HTTP_SCHEME="https"
-          export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
-          export USE_WSS_WEBSOCKET=true
-          ./_scripts/pack_and_update.sh
+          HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
+          HTTP_SCHEME="https"
+          FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
+          sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
+          if [[ -n "$HOST_DOMAIN" && "$HOST_DOMAIN" == *ngrok* ]]; then
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" src/environment.ts
+          else
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" src/environment.ts
+          fi
+          if [ -n "$HOST_DOMAIN" ]; then
+            sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
+          fi
+          rm -f src/environment.ts.bak
+
+      - name: Install workspace dependencies
+        working-directory: little-world-native
+        run: pnpm install --no-frozen-lockfile
 
       - name: Verify toolchain
         run: |

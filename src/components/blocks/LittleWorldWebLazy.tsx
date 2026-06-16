@@ -5,7 +5,7 @@ import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   LittleWorldWebNativeProps,
-} from "littleplanet";
+} from "../../../frontend/src";
 import React, { lazy, Ref, useEffect, useRef } from "react";
 
 import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
