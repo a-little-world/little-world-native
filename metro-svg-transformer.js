@@ -1,66 +1,55 @@
+const path = require("path");
 const { transform: svgrTransform } = require("@svgr/core");
 
-/**
- * Metro Babel transformer for React Native
- * Prioritizes @react-native/metro-babel-transformer for RN >= 0.73.0
- */
+const FRONTEND_SRC_ABS = path.resolve(__dirname, "frontend/src") + path.sep;
+const FRONTEND_SRC_REL = "frontend" + path.sep + "src" + path.sep;
+
 const getReactNativeTransformer = () => {
   try {
     return require("@react-native/metro-babel-transformer");
-  } catch (error) {
+  } catch (_) {
     return require("metro-react-native-babel-transformer");
   }
 };
 
-/**
- * Expo Babel transformer
- */
 const getExpoTransformer = () => {
   try {
     return require("@expo/metro-config/babel-transformer");
-  } catch (error) {
+  } catch (_) {
     try {
       return require("expo/node_modules/@expo/metro-config/babel-transformer");
-    } catch (nestedError) {
+    } catch (__) {
       return null;
     }
   }
 };
 
-/**
- * Custom Metro transformer for SVG files
- *
- * - SVGs from the frontend ('littleplanet') package are converted to data URIs for <img src="..."> usage
- * - All other SVGs are transformed into React components using SVGR
- * - Non-SVG files are passed through to the default transformer
- */
+const debug = process.env.SVG_TRANSFORM_DEBUG === "1";
+
 async function customTransform({ src, filename, options }) {
   const transformer = getExpoTransformer() || getReactNativeTransformer();
 
-  // Only process SVG files - pass everything else through to default transformer
   if (!filename || !filename.endsWith(".svg")) {
     return transformer.transform({ src, filename, options });
   }
 
-  // Check if this SVG is from the frontend ('littleplanet') package
-  const isFrontendSvg = filename.includes("littleplanet");
-  if (isFrontendSvg) {
-    // Convert to data URI for use with <img src="...">
-    const svgContent = src;
+  // Frontend SVGs are consumed via <img src={url}> — emit a data URI string.
+  // Native SVGs are consumed via <Svg /> components — use SVGR.
+  const isFrontendSvg =
+    filename.startsWith(FRONTEND_SRC_ABS) || filename.startsWith(FRONTEND_SRC_REL);
 
-    // Create a data URI from the SVG content
-    // Remove newlines and extra spaces to make it more compact
-    const minifiedSvg = svgContent
-      .replace(/\n/g, " ")
+  if (debug) {
+    // eslint-disable-next-line no-console
+    console.warn(`[svg-transformer] ${isFrontendSvg ? "DATA-URI" : "SVGR  "} ${filename}`);
+  }
+
+  if (isFrontendSvg) {
+    const minified = src
+      .replace(/\r?\n/g, " ")
       .replace(/\s+/g, " ")
       .replace(/> </g, "><")
       .trim();
-
-    // Encode for use in data URI
-    const base64Svg = Buffer.from(minifiedSvg).toString("base64");
-    const dataUri = `data:image/svg+xml;base64,${base64Svg}`;
-
-    // Export the data URI as a string for use with <img src={...}>
+    const dataUri = `data:image/svg+xml;base64,${Buffer.from(minified).toString("base64")}`;
     return transformer.transform({
       src: `module.exports = ${JSON.stringify(dataUri)};`,
       filename: filename.replace(/\.svg$/, ".js"),
@@ -68,30 +57,29 @@ async function customTransform({ src, filename, options }) {
     });
   }
 
-  // For all other SVGs, use SVGR to create React components
-  const svgrConfig = {
-    native: true,
-    plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
-    svgoConfig: {
-      plugins: [
-        {
-          name: "preset-default",
-          params: {
-            overrides: {
-              inlineStyles: { onlyMatchedOnce: false },
-              removeViewBox: false,
-              removeUnknownsAndDefaults: false,
-              convertColors: false,
+  const transformedSrc = await svgrTransform(
+    src,
+    {
+      native: true,
+      plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
+      svgoConfig: {
+        plugins: [
+          {
+            name: "preset-default",
+            params: {
+              overrides: {
+                inlineStyles: { onlyMatchedOnce: false },
+                removeViewBox: false,
+                removeUnknownsAndDefaults: false,
+                convertColors: false,
+              },
             },
           },
-        },
-      ],
+        ],
+      },
     },
-  };
-
-  const transformedSrc = await svgrTransform(src, svgrConfig, {
-    filePath: filename,
-  });
+    { filePath: filename },
+  );
 
   return transformer.transform({
     src: transformedSrc,
@@ -100,5 +88,4 @@ async function customTransform({ src, filename, options }) {
   });
 }
 
-// Export the transform function directly
 module.exports.transform = customTransform;

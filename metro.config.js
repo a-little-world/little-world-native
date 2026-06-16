@@ -17,7 +17,7 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+    babelTransformerPath: require.resolve("./metro-svg-transformer.js"),
     // Remove minification config that was causing issues
   };
   const isCIBuild = process.env.IS_CI_BUILD === "true";
