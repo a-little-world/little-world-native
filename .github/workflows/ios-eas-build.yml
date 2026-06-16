@@ -52,7 +52,6 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Patch native environment.ts and sync to frontend
-        working-directory: little-world-native
         run: |
           BASE_URL="${{ inputs.baseUrl }}"
           sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
@@ -66,14 +65,12 @@ jobs:
           ./_scripts/setup_local_frontend.sh
 
       - name: Install workspace dependencies
-        working-directory: little-world-native
         run: pnpm install --no-frozen-lockfile
 
       - name: Build on EAS
         env:
           IS_CI_BUILD: true
         run: |
-          cd little-world-native
           mv eas.ci.json eas.json
           if [[ "$PRODUCTION" == "true" ]]; then
             mv ./environments/env.prod.ts ./environments/env.ts
