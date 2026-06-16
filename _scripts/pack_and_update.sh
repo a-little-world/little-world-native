@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+# Decide up-front whether we install the packaged tarball into the native app.
+SHOULD_INSTALL_PACKAGED="false"
+if [ "${CI:-false}" = "true" ] || [ "${EXPO_PUBLIC_LITTLEPLANET_PACKAGED:-false}" = "true" ]; then
+  SHOULD_INSTALL_PACKAGED="true"
+fi
+
 # Navigate to frontend submodule
 cd frontend || exit 1
 
@@ -56,14 +62,24 @@ rm littleplanet-*.tgz 2>/dev/null || true # delete old packages
 mv frontend/$TARBALL .
 cp frontend/src/environment.ts ./environment.ts
 
-# Update the dependency reference in root package.json
-sed -i.bak "s|\"littleplanet\":.*\.tgz\"|\"littleplanet\": \"file:./$TARBALL\"|" package.json
-rm package.json.bak
+# Always strip any existing littleplanet dependency line from the native package.json so
+# local installs don't fail when the tarball isn't present. No-op if it isn't there.
+sed -i.bak '/"littleplanet":/d' package.json
+rm -f package.json.bak
 
-if [ "${CI:-false}" = "true" ]; then
-  pnpm install --no-frozen-lockfile
+if [ "$SHOULD_INSTALL_PACKAGED" = "true" ]; then
+  # Insert the freshly-built tarball reference right after the dependencies opening brace.
+  sed -i.bak '/"dependencies": {/a\
+    "littleplanet": "file:./'"$TARBALL"'",
+' package.json
+  rm -f package.json.bak
+
+  if [ "${CI:-false}" = "true" ]; then
+    pnpm install --no-frozen-lockfile
+  else
+    pnpm install --no-frozen-lockfile --offline
+  fi
+  echo "Successfully updated to version $NEW_VERSION and installed the packaged frontend"
 else
-  pnpm install --no-frozen-lockfile --offline
+  echo "Skipped install (CI=false and EXPO_PUBLIC_LITTLEPLANET_PACKAGED unset). Tarball ready at ./$TARBALL"
 fi
-
-echo "Successfully updated to version $NEW_VERSION and installed the new package" 
