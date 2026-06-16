@@ -88,22 +88,21 @@ jobs:
           eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Patch frontend environment for build
-        working-directory: little-world-native/frontend
+      - name: Patch native environment.ts and sync to frontend
+        working-directory: little-world-native
         run: |
-          HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
-          HTTP_SCHEME="https"
-          FULL_HOST_DOMAIN="$HTTP_SCHEME://$HOST_DOMAIN"
-          sed -i.bak "s|isNative: .*,|isNative: true,|" src/environment.ts
-          if [[ -n "$HOST_DOMAIN" && "$HOST_DOMAIN" == *ngrok* ]]; then
-            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" src/environment.ts
+          BASE_URL="${{ github.event.inputs.baseUrl }}"
+          sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
+          if [[ -n "$BASE_URL" && "$BASE_URL" == *ngrok* ]]; then
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" environment.ts
           else
-            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" src/environment.ts
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
           fi
-          if [ -n "$HOST_DOMAIN" ]; then
-            sed -i.bak "s|backendUrl: '.*'|backendUrl: '$FULL_HOST_DOMAIN'|" src/environment.ts
+          if [ -n "$BASE_URL" ]; then
+            sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
           fi
-          rm -f src/environment.ts.bak
+          rm -f environment.ts.bak
+          ./_scripts/setup_local_frontend.sh
 
       - name: Install workspace dependencies
         working-directory: little-world-native
