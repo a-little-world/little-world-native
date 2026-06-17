@@ -1,0 +1,99 @@
+name: PR Version Label
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  enforce-single-bump-label:
+    name: Require exactly one version bump label
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exactly one of patch/minor/major
+        env:
+          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+        run: ./_scripts/get-bump-label.sh
+
+  forbid-manual-version-edits:
+    name: Forbid manual version edits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Fail if version fields diverge from main or merge-base
+        run: |
+          set -euo pipefail
+
+          # A branch is allowed to carry one of two values per version field:
+          #   - the value currently on main (e.g., picked up by merging or rebasing main in), or
+          #   - the value at the branch point (i.e., not touched since the branch was created).
+          # Anything else is a manual edit.
+
+          MAIN_REF="origin/main"
+          HEAD_REF="HEAD"
+          MERGE_BASE=$(git merge-base "$MAIN_REF" "$HEAD_REF")
+
+          extract_string_field() {
+            local ref="$1" key="$2"
+            git show "${ref}:app.config.ts" 2>/dev/null \
+              | grep -E "^[[:space:]]*${key}:[[:space:]]*\"[0-9]+\.[0-9]+\.[0-9]+\"" \
+              | head -1 \
+              | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/'
+          }
+          extract_int_field() {
+            local ref="$1" key="$2"
+            git show "${ref}:app.config.ts" 2>/dev/null \
+              | grep -E "^[[:space:]]*${key}:[[:space:]]*[0-9]+" \
+              | head -1 \
+              | sed -E "s/.*${key}:[[:space:]]*([0-9]+).*/\1/"
+          }
+          extract_pkg_version() {
+            git show "${1}:package.json" 2>/dev/null | jq -r '.version // ""'
+          }
+
+          FAIL=0
+          check() {
+            local label="$1" head_val="$2" main_val="$3" mb_val="$4"
+            echo "${label}: head=${head_val} main=${main_val} merge-base=${mb_val}"
+            if [[ "$head_val" != "$main_val" && "$head_val" != "$mb_val" ]]; then
+              echo "::error::Manual edit detected on ${label} (head=${head_val}, main=${main_val}, merge-base=${mb_val})."
+              FAIL=1
+            fi
+          }
+
+          check "app.config.ts version" \
+            "$(extract_string_field "$HEAD_REF"   version)" \
+            "$(extract_string_field "$MAIN_REF"   version)" \
+            "$(extract_string_field "$MERGE_BASE" version)"
+
+          check "app.config.ts buildNumber" \
+            "$(extract_string_field "$HEAD_REF"   buildNumber)" \
+            "$(extract_string_field "$MAIN_REF"   buildNumber)" \
+            "$(extract_string_field "$MERGE_BASE" buildNumber)"
+
+          check "app.config.ts versionCode" \
+            "$(extract_int_field "$HEAD_REF"   versionCode)" \
+            "$(extract_int_field "$MAIN_REF"   versionCode)" \
+            "$(extract_int_field "$MERGE_BASE" versionCode)"
+
+          check "package.json version" \
+            "$(extract_pkg_version "$HEAD_REF")" \
+            "$(extract_pkg_version "$MAIN_REF")" \
+            "$(extract_pkg_version "$MERGE_BASE")"
+
+          if [[ "$FAIL" -eq 1 ]]; then
+            echo "Versions are bumped automatically on merge based on the patch/minor/major label. Do not edit them by hand."
+            exit 1
+          fi
+
+          echo "All version fields match either main or the merge-base."

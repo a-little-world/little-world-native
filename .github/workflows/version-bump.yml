@@ -1,0 +1,64 @@
+name: Version Bump on Merge to main
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+# Serialize bumps so two merges in quick succession can't race the push to main.
+concurrency:
+  group: version-bump-main
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump version on merge
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.BOT_PAT }}
+          fetch-depth: 0
+
+      - name: Determine bump type from PR labels
+        id: bump
+        env:
+          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          set -euo pipefail
+          BUMP_TYPE=$(./_scripts/get-bump-label.sh)
+          echo "bump_type=$BUMP_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run bump
+        run: ./_scripts/bump-version.sh "${{ steps.bump.outputs.bump_type }}"
+
+      - name: Commit and push
+        env:
+          BUMP_TYPE: ${{ steps.bump.outputs.bump_type }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- app.config.ts package.json; then
+            echo "No version changes detected; skipping commit."
+            exit 0
+          fi
+
+          NEW_VERSION=$(jq -r .version package.json)
+
+          git add app.config.ts package.json
+          git commit -m "chore(release): bump ${BUMP_TYPE} to ${NEW_VERSION} (PR #${PR_NUMBER})"
+          git push origin HEAD:main
