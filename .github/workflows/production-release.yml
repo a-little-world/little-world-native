@@ -1,0 +1,182 @@
+name: Production Release
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch:
+    inputs:
+      baseUrl:
+        description: "Base URL for backend"
+        required: false
+        default: "https://little-world.com"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BASE_URL: ${{ github.event.inputs.baseUrl || 'https://little-world.com' }}
+
+jobs:
+  setup:
+    name: Prepare workspace
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      eas_version: ${{ steps.version.outputs.eas_version }}
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Read app semver and EAS version
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Could not read version from package.json" >&2
+            exit 1
+          fi
+          EAS_VERSION=$(jq -r '.cli.version' eas.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "eas_version=$EAS_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Patch native environment.ts and sync to frontend
+        run: |
+          sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
+          sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
+          sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
+          rm -f environment.ts.bak
+          ./_scripts/setup_local_frontend.sh
+
+      - name: Switch to CI EAS config and production env
+        run: |
+          mv eas.ci.json eas.json
+          mv ./environments/env.prod.ts ./environments/env.ts
+
+      - name: Package prepared workspace
+        run: |
+          tar --exclude='./.git' --exclude='./node_modules' --exclude='./**/node_modules' \
+              -czf /tmp/workspace.tar.gz .
+
+      - name: Upload prepared workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-workspace
+          path: /tmp/workspace.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  build-android:
+    name: Build Android (production)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+    steps:
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-workspace
+          path: /tmp/workspace
+
+      - name: Extract prepared workspace
+        run: tar -xzf /tmp/workspace/workspace.tar.gz -C .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: ${{ needs.setup.outputs.eas_version }}
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build Android (EAS, production)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform android --profile production --non-interactive | tee build_output.txt
+          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(aab|apk)' build_output.txt | tail -n1)
+          if [ -z "$URL" ]; then
+            echo "Could not find android artifact URL" >&2
+            exit 1
+          fi
+          EXT="${URL##*.}"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${{ needs.setup.outputs.version }}-android.${EXT}"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+
+      - name: Upload android release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ needs.setup.outputs.version }}-android
+          path: release-artifacts/*
+          if-no-files-found: error
+
+  build-ios:
+    name: Build iOS (production)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+    steps:
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-workspace
+          path: /tmp/workspace
+
+      - name: Extract prepared workspace
+        run: tar -xzf /tmp/workspace/workspace.tar.gz -C .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: ${{ needs.setup.outputs.eas_version }}
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build iOS (EAS, production)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform ios --profile production --non-interactive | tee build_output.txt
+          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.ipa' build_output.txt | tail -n1)
+          if [ -z "$URL" ]; then
+            echo "Could not find iOS artifact URL" >&2
+            exit 1
+          fi
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${{ needs.setup.outputs.version }}-ios.ipa"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+
+      - name: Upload iOS release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ needs.setup.outputs.version }}-ios
+          path: release-artifacts/*
+          if-no-files-found: error
