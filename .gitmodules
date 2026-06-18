@@ -1,6 +1,3 @@
-[submodule "lw_components"]
-	path = lw_components
-	url = https://github.com/a-little-world/little-world-design-system-native
 [submodule "frontend"]
 	path = frontend
 	url = git@github.com:a-little-world/little-world-frontend.git
