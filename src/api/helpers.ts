@@ -8,7 +8,7 @@ import type {
   IntegrityCheckRequestDataAndroid,
   IntegrityCheckRequestDataIOS,
   IntegrityCheckRequestDataWeb,
-} from "littleplanet";
+} from "@/frontend/src";
 import { Platform } from "react-native";
 import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";

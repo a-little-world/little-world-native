@@ -11,7 +11,7 @@ import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   DomCommunicationResponse,
-} from "littleplanet";
+} from "@/frontend/src";
 import {
   createContext,
   ReactNode,
