@@ -224,3 +224,41 @@ jobs:
             exit 1
           fi
           eas submit --platform ios --profile production --non-interactive --path "$FILE"
+
+  notify-sentry:
+    name: Notify Sentry of production deploy
+    needs: [build-ios, submit-android, submit-ios]
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: a-little-world-gug
+      SENTRY_PROJECT: lw-prod-backend
+      BUNDLE_ID: com.littleworld.littleworldapp
+      VERSION: ${{ needs.build-ios.outputs.version }}
+    steps:
+      - name: Checkout (full history for --auto commit detection)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create + finalize + deploy Sentry releases
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS='.' read -r MAJ MIN PAT <<< "$VERSION"
+          ANDROID_VERSION_CODE=$((MAJ * 10000 + MIN * 100 + PAT))
+
+          IOS_RELEASE="${BUNDLE_ID}@${VERSION}+${VERSION}"
+          ANDROID_RELEASE="${BUNDLE_ID}@${VERSION}+${ANDROID_VERSION_CODE}"
+
+          for RELEASE in "$IOS_RELEASE" "$ANDROID_RELEASE"; do
+            echo "::group::Sentry release $RELEASE"
+            sentry-cli releases new "$RELEASE"
+            sentry-cli releases set-commits "$RELEASE" --auto
+            sentry-cli releases finalize "$RELEASE"
+            sentry-cli releases deploys "$RELEASE" new -e production
+            echo "::endgroup::"
+          done
