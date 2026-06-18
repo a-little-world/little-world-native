@@ -12,93 +12,12 @@ env:
   BASE_URL: https://stage.little-world.com
 
 jobs:
-  setup:
-    name: Prepare workspace
-    if: >
-      (github.event.action == 'labeled' &&
-        (github.event.label.name == 'build-android' || github.event.label.name == 'build-ios')) ||
-      (github.event.action == 'synchronize' &&
-        (contains(github.event.pull_request.labels.*.name, 'build-android') ||
-         contains(github.event.pull_request.labels.*.name, 'build-ios')))
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      eas_version: ${{ steps.version.outputs.eas_version }}
-      build_android: ${{ steps.platforms.outputs.build_android }}
-      build_ios: ${{ steps.platforms.outputs.build_ios }}
-    steps:
-      - name: Determine platforms to build
-        id: platforms
-        shell: bash
-        env:
-          EVENT_ACTION: ${{ github.event.action }}
-          LABEL_NAME: ${{ github.event.label.name }}
-          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
-        run: |
-          set -euo pipefail
-          BUILD_ANDROID=false
-          BUILD_IOS=false
-          if [[ "$EVENT_ACTION" == "labeled" ]]; then
-            case "$LABEL_NAME" in
-              build-android) BUILD_ANDROID=true ;;
-              build-ios) BUILD_IOS=true ;;
-            esac
-          else
-            if echo "$PR_LABELS" | grep -q '"build-android"'; then BUILD_ANDROID=true; fi
-            if echo "$PR_LABELS" | grep -q '"build-ios"'; then BUILD_IOS=true; fi
-          fi
-          echo "build_android=$BUILD_ANDROID" >> "$GITHUB_OUTPUT"
-          echo "build_ios=$BUILD_IOS" >> "$GITHUB_OUTPUT"
-          echo "android=$BUILD_ANDROID ios=$BUILD_IOS"
-
-      - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
-
-      - name: Read app semver and EAS version
-        id: version
-        run: |
-          VERSION=$(jq -r '.version' package.json)
-          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-            echo "Could not read version from package.json" >&2
-            exit 1
-          fi
-          EAS_VERSION=$(jq -r '.cli.version' eas.json)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "eas_version=$EAS_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Patch native environment.ts and sync to frontend
-        run: |
-          sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
-          sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
-          sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
-          rm -f environment.ts.bak
-          ./_scripts/setup_local_frontend.sh
-
-      - name: Switch to CI EAS config and staging env
-        run: |
-          mv eas.ci.json eas.json
-          mv ./environments/env.staging.ts ./environments/env.ts
-
-      - name: Package prepared workspace
-        run: |
-          tar --exclude='./.git' --exclude='./node_modules' --exclude='./**/node_modules' \
-              -czf /tmp/workspace.tar.gz .
-
-      - name: Upload prepared workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: prepared-workspace
-          path: /tmp/workspace.tar.gz
-          if-no-files-found: error
-          retention-days: 1
-
   build-android:
     name: Build Android (preview)
-    needs: setup
-    if: needs.setup.outputs.build_android == 'true'
+    if: >
+      (github.event.action == 'labeled' && github.event.label.name == 'build-android') ||
+      (github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-android'))
     runs-on: ubuntu-latest
     concurrency:
       group: preview-build-android-${{ github.event.pull_request.number }}
@@ -108,34 +27,25 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
     steps:
-      - name: Download prepared workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
         with:
-          name: prepared-workspace
-          path: /tmp/workspace
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
 
-      - name: Extract prepared workspace
-        run: tar -xzf /tmp/workspace/workspace.tar.gz -C .
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
         with:
-          package_json_file: package.json
-
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: ${{ needs.setup.outputs.eas_version }}
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install workspace dependencies
-        run: pnpm install --no-frozen-lockfile
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android (EAS, preview)
         id: build
         shell: bash
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ steps.setup.outputs.version }}
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
@@ -155,30 +65,42 @@ jobs:
       - name: Upload android preview artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ needs.setup.outputs.version }}-preview-android
+          name: little-world-app_${{ steps.setup.outputs.version }}-preview-android
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Comment Android download link on PR
+      - name: Update preview builds table in PR description (android)
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           URL: ${{ steps.build.outputs.url }}
           EXT: ${{ steps.build.outputs.ext }}
-          VERSION: ${{ needs.setup.outputs.version }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PLATFORM: android
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr comment "$PR_NUMBER" --body "**Android preview build ready**
-
-          [Download .$EXT]($URL) — \`little-world-app_${VERSION}-preview-android.$EXT\`
-
-          Base URL: \`$BASE_URL\` · [Run]($RUN_URL)"
+          set -euo pipefail
+          export COMMIT_SHA="$HEAD_SHA"
+          export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
+          export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          for attempt in 1 2 3; do
+            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
+            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
+              echo "PR body updated on attempt $attempt"
+              break
+            fi
+            echo "Attempt $attempt failed, retrying"
+            sleep $((RANDOM % 11 + 5))
+          done
 
   build-ios:
     name: Build iOS (preview)
-    needs: setup
-    if: needs.setup.outputs.build_ios == 'true'
+    if: >
+      (github.event.action == 'labeled' && github.event.label.name == 'build-ios') ||
+      (github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-ios'))
     runs-on: ubuntu-latest
     concurrency:
       group: preview-build-ios-${{ github.event.pull_request.number }}
@@ -187,34 +109,25 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
     steps:
-      - name: Download prepared workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
         with:
-          name: prepared-workspace
-          path: /tmp/workspace
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
 
-      - name: Extract prepared workspace
-        run: tar -xzf /tmp/workspace/workspace.tar.gz -C .
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
         with:
-          package_json_file: package.json
-
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: ${{ needs.setup.outputs.eas_version }}
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install workspace dependencies
-        run: pnpm install --no-frozen-lockfile
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build iOS (EAS, preview)
         id: build
         shell: bash
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ steps.setup.outputs.version }}
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
@@ -232,21 +145,32 @@ jobs:
       - name: Upload iOS preview artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ needs.setup.outputs.version }}-preview-ios
+          name: little-world-app_${{ steps.setup.outputs.version }}-preview-ios
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Comment iOS download link on PR
+      - name: Update preview builds table in PR description (ios)
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           URL: ${{ steps.build.outputs.url }}
-          VERSION: ${{ needs.setup.outputs.version }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EXT: ipa
+          PLATFORM: ios
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
         run: |
-          gh pr comment "$PR_NUMBER" --body "**iOS preview build ready**
-
-          [Download .ipa]($URL) — \`little-world-app_${VERSION}-preview-ios.ipa\`
-
-          Base URL: \`$BASE_URL\` · [Run]($RUN_URL)"
+          set -euo pipefail
+          export COMMIT_SHA="$HEAD_SHA"
+          export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
+          export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          for attempt in 1 2 3; do
+            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
+            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
+              echo "PR body updated on attempt $attempt"
+              break
+            fi
+            echo "Attempt $attempt failed, retrying"
+            sleep $((RANDOM % 11 + 20))
+          done

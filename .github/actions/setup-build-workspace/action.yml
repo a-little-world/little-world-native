@@ -1,0 +1,74 @@
+name: Setup build workspace
+description: Patch environment, swap CI EAS config, install workspace deps. Assumes the repo (with submodules) is already checked out.
+
+inputs:
+  base-url:
+    required: true
+    description: "Backend base URL, written into environment.ts"
+  env-file:
+    required: true
+    description: "Environment file in ./environments to promote to env.ts (e.g. env.prod.ts or env.staging.ts)"
+  expo-token:
+    required: true
+    description: "Expo access token for EAS auth"
+
+outputs:
+  version:
+    description: "App semver from package.json"
+    value: ${{ steps.version.outputs.version }}
+  eas-version:
+    description: "EAS CLI version from eas.json"
+    value: ${{ steps.version.outputs.eas_version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read app semver and EAS version
+      id: version
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION=$(jq -r '.version' package.json)
+        if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+          echo "Could not read version from package.json" >&2
+          exit 1
+        fi
+        EAS_VERSION=$(jq -r '.cli.version' eas.json)
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "eas_version=$EAS_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Patch native environment.ts and sync to frontend
+      shell: bash
+      env:
+        BASE_URL: ${{ inputs.base-url }}
+      run: |
+        set -euo pipefail
+        sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
+        sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
+        sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
+        rm -f environment.ts.bak
+        ./_scripts/setup_local_frontend.sh
+
+    - name: Switch to CI EAS config and selected env
+      shell: bash
+      env:
+        ENV_FILE: ${{ inputs.env-file }}
+      run: |
+        set -euo pipefail
+        mv eas.ci.json eas.json
+        mv "./environments/$ENV_FILE" ./environments/env.ts
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: package.json
+
+    - name: Setup Expo and EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: ${{ steps.version.outputs.eas_version }}
+        token: ${{ inputs.expo-token }}
+
+    - name: Install workspace dependencies
+      shell: bash
+      run: pnpm install --no-frozen-lockfile
