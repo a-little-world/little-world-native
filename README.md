@@ -14,18 +14,15 @@ This is the native expo app for Little World.
 
 ### Installation & Setup
 
-```bash
-# Clone both repositories
-git clone https://github.com/a-little-world/little-world-frontend
-git clone https://github.com/a-little-world/little-world-native
+The `little-world-frontend` repository is included as a git submodule under `./frontend`. There is no longer a separate clone or pack/update step — `pnpm run start` syncs your local `environment.ts` into the submodule automatically (see `_scripts/setup_local_frontend.sh`).
 
-# Navigate to the native app
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/a-little-world/little-world-native
 cd little-world-native
 
-# Run the pack and update script
-# This basicly packs our little-world-frontend ( from the parent dir ) into a local npm package
-# That package is then installed inside the little-world-native repo
-./_scripts/pack_and_update.sh
+# (Or, if you already cloned without --recurse-submodules:)
+git submodule update --init --recursive
 
 # Install dependencies
 pnpm install
@@ -33,6 +30,12 @@ pnpm install
 # Start the development server
 pnpm run start
 ```
+
+#### Configuring environment variables
+
+Edit `environment.ts` at the repo root to point the app at the backend you want to use (e.g. local, staging, production). On every `pnpm run start`, this file is copied to `frontend/src/environment.ts` so the shared frontend code picks up the same values.
+
+Do not edit `frontend/src/environment.ts` directly — it is overwritten on each start.
 
 ## 🌐 Development Proxy for WebSocket Testing
 

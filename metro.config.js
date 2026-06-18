@@ -6,6 +6,7 @@ const {
 } = require("@sentry/react-native/metro");
 
 const proxyRequests = false;
+const frontendPath = path.resolve(__dirname, "frontend");
 
 module.exports = (() => {
   const config = getSentryExpoConfig(__dirname);
@@ -14,7 +15,7 @@ module.exports = (() => {
 
   config.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+    babelTransformerPath: require.resolve("./metro-svg-transformer.js"),
     // Remove minification config that was causing issues
   };
   const isCIBuild = process.env.IS_CI_BUILD === "true";
@@ -42,6 +43,17 @@ module.exports = (() => {
     // Ensure project root is properly resolved for DOM components
     projectRoot: __dirname,
     // Remove problematic blockList that was causing issues
+  };
+
+  config.watchFolders = [...(config.watchFolders ?? []), frontendPath];
+  // Follow pnpm symlinks so the workspace virtual store resolves to one physical file per package.
+  config.resolver.unstable_enableSymlinks = true;
+
+  config.resolver.resolveRequest = (context, moduleName, platform) => {
+    if (moduleName.endsWith(".css")) {
+      return { type: "sourceFile", filePath: path.resolve(__dirname, "_metro_css_stub.js") };
+    }
+    return context.resolveRequest(context, moduleName, platform);
   };
 
   // Configure serializer to handle DOM components better

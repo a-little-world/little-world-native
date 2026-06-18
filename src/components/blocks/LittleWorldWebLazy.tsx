@@ -5,7 +5,7 @@ import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   LittleWorldWebNativeProps,
-} from "littleplanet";
+} from "../../../frontend/src";
 import React, { lazy, Ref, useEffect, useRef } from "react";
 
 import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
@@ -18,9 +18,16 @@ export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
 }
 
-const LittleWorldWebNative = lazy(() =>
-  import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative })),
-);
+const LittleWorldWebNative = lazy(() => {
+  // SSR (Expo Router static generation) must not evaluate the frontend bundle —
+  // "use dom" components are client-only and react-dom/server would fail on hooks.
+  // if (typeof window === "undefined") {
+  //   return Promise.resolve({ default: () => null });
+  // }
+  return import("../../../frontend/src").then((m) => ({
+    default: m.LittleWorldWebNative,
+  }));
+});
 
 /*
   IMPORTANT: 
