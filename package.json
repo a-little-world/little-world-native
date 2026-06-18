@@ -19,6 +19,8 @@
     "ios:dev-build": "EXPO_PUBLIC_USE_EXPO_GO=false expo start --ios --port 9000",
     "web": "expo start --web --port 9000",
     "lint": "expo lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prebuild": "expo prebuild --clean",
     "frontend:setup": "./_scripts/setup_local_frontend.sh",
     "export-web": "expo export --platform web --output-dir native_build"
@@ -96,6 +98,7 @@
     "babel-preset-expo": "^55.0.18",
     "eas-cli": "18.7.0",
     "metro-minify-terser": "^0.83.1",
+    "prettier": "^2.8.8",
     "react-dom": "19.2.4",
     "react-native-svg-transformer": "^1.5.1",
     "react-test-renderer": "19.2.4",

@@ -1,0 +1,21 @@
+# Submodules
+frontend/
+
+# Build / cache outputs
+node_modules/
+.expo/
+dist/
+web-build/
+.metro-cache/
+
+# Native platform projects
+android/
+ios/
+
+# Generated / vendored
+*.lock
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+expo-env.d.ts
+CHANGELOG.md
