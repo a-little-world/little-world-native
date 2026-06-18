@@ -63,6 +63,12 @@ runs:
       with:
         package_json_file: package.json
 
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
     - name: Setup Expo and EAS
       uses: expo/expo-github-action@v8
       with:
