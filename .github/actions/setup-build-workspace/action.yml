@@ -14,7 +14,7 @@ inputs:
     description: "Expo access token for EAS auth"
   sync-frontend:
     required: false
-    default: 'true'
+    default: "true"
     description: "Patch environment.ts and copy it into the frontend submodule. Set to 'false' for submit-only jobs that don't need the JS bundle."
 
 outputs:

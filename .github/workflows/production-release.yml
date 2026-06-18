@@ -25,6 +25,9 @@ jobs:
   build-android:
     name: Build Android (production)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      artifact-name: little-world-app_${{ steps.setup.outputs.version }}-android
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -45,7 +48,6 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android (EAS, production)
-        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
@@ -63,7 +65,6 @@ jobs:
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-android.${EXT}"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
-          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload android release artifact
         uses: actions/upload-artifact@v4
@@ -72,15 +73,47 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Submit Android to Play Store
+  submit-android:
+    name: Submit Android to Play Store
+    needs: build-android
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: "false"
+
+      - name: Download android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-android.outputs.artifact-name }}
+          path: release-artifacts
+
+      - name: Submit to Play Store
         shell: bash
         run: |
           set -euo pipefail
-          eas submit --platform android --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
+          FILE=$(ls release-artifacts/little-world-app_*-android.* | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No android artifact found in release-artifacts/" >&2
+            exit 1
+          fi
+          eas submit --platform android --profile production --non-interactive --path "$FILE"
 
   build-ios:
     name: Build iOS (production)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      artifact-name: little-world-app_${{ steps.setup.outputs.version }}-ios
     env:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
@@ -100,7 +133,6 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build iOS (EAS, production)
-        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
@@ -117,7 +149,6 @@ jobs:
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-ios.ipa"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
-          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS release artifact
         uses: actions/upload-artifact@v4
@@ -126,8 +157,37 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Submit iOS to App Store
+  submit-ios:
+    name: Submit iOS to App Store
+    needs: build-ios
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: "false"
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact-name }}
+          path: release-artifacts
+
+      - name: Submit to App Store
         shell: bash
         run: |
           set -euo pipefail
-          eas submit --platform ios --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
+          FILE=$(ls release-artifacts/little-world-app_*-ios.ipa | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No iOS artifact found in release-artifacts/" >&2
+            exit 1
+          fi
+          eas submit --platform ios --profile production --non-interactive --path "$FILE"
