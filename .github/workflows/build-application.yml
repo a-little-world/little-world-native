@@ -1,4 +1,4 @@
-name: Preview Build (PR)
+name: Build Application
 
 on:
   pull_request:
