@@ -1,4 +1,4 @@
-import { DomCommunicationMessageFn } from "littleplanet";
+import { DomCommunicationMessageFn } from "@/frontend/src";
 import { create } from "zustand";
 
 interface DomCommunicationState {
