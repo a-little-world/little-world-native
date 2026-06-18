@@ -17,39 +17,45 @@ on:
         description: "Base URL for backend (e.g., https://api.example.com)"
         required: false
         default: ""
-      COMMIT_REF:
-        description: "Frontend commit SHA or branch to checkout"
-        required: false
-        default: "main"
       easBuildTag:
         description: "EAS build type"
         required: false
         default: "preview"
+  pull_request:
+    types: [labeled, synchronize]
 
 permissions:
   contents: write
 
 concurrency:
-  group: android-apk-${{ github.workflow }}-${{ inputs.tag }}
+  group: android-apk-${{ github.workflow }}-${{ github.event.inputs.tag || github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   build-android-apk:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'android') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'android'))
     runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
+      EAS_BUILD_TAG: ${{ github.event.inputs.easBuildTag || 'preview' }}
+      TAG: ${{ github.event.inputs.tag || format('pr-{0}', github.event.pull_request.number) }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || '' }}
+      PRERELEASE: ${{ github.event.inputs.prerelease || 'true' }}
     steps:
-      - name: Checkout little-world-native
+      - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
         with:
-          path: little-world-native
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
 
       - name: Determine build environment
         id: environment
         run: |
-          echo "EAS_VERSION=$(jq -r '.cli.version' little-world-native/eas.json)" >> $GITHUB_ENV
-          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
+          echo "EAS_VERSION=$(jq -r '.cli.version' eas.json)" >> $GITHUB_ENV
           if [[ "$EAS_BUILD_TAG" == "preview" ]]; then
             echo "STAGING=true" >> $GITHUB_OUTPUT
             echo "PRODUCTION=false" >> $GITHUB_OUTPUT
@@ -60,14 +66,6 @@ jobs:
             echo "PRODUCTION=false" >> $GITHUB_OUTPUT
             echo "STAGING=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Checkout little-world-frontend (sibling)
-        uses: actions/checkout@v4
-        with:
-          repository: a-little-world/little-world-frontend
-          ref: ${{ github.event.inputs.COMMIT_REF }}
-          path: little-world-frontend
-          token: ${{ secrets.BOT_PAT }}
 
       - name: Install base packages (act only)
         if: ${{ env.ACT }}
@@ -80,12 +78,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          package_json_file: little-world-native/package.json
+          package_json_file: package.json
 
-      - name: Install little-world-frontend dependencies
-        working-directory: little-world-frontend
-        run: |
-          pnpm install --frozen-lockfile
+      - name: Install missing tools (act only)
+        if: ${{ env.ACT }}
+        run: pnpm install -g yarn
+        # yarn is required for expo setup
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -93,15 +91,22 @@ jobs:
           eas-version: ${{ env.EAS_VERSION }}
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies (pack and update frontend)
+      - name: Patch native environment.ts and sync to frontend
         run: |
-          cd little-world-native
-          cat ../little-world-frontend/package.json
-          export SETUP_HOST_DOMAIN=true
-          export HTTP_SCHEME="https"
-          export HOST_DOMAIN=$(echo "${{ github.event.inputs.baseUrl }}" | sed 's|^https\?://||')
-          export USE_WSS_WEBSOCKET=true
-          ./_scripts/pack_and_update.sh
+          sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
+          if [[ -n "$BASE_URL" && "$BASE_URL" == *ngrok* ]]; then
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: true,|" environment.ts
+          else
+            sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
+          fi
+          if [ -n "$BASE_URL" ]; then
+            sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
+          fi
+          rm -f environment.ts.bak
+          ./_scripts/setup_local_frontend.sh
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Verify toolchain
         run: |
@@ -110,15 +115,11 @@ jobs:
           eas whoami || true
 
       - name: Inject base URL into src/config/environment-native.ts
-        working-directory: little-world-native
         shell: bash
         run: |
           set -euo pipefail
           FILE="src/config/environment-native.ts"
           cp "$FILE" "$FILE.bak"
-
-          # Inputs from workflow_dispatch
-          BASE_URL='${{ github.event.inputs.baseUrl }}'
 
           # Only replace when inputs are provided (non-empty)
           if [ -n "${BASE_URL}" ]; then
@@ -128,7 +129,6 @@ jobs:
           echo "Injected base URL value into $FILE"
 
       - name: Build Android APK (EAS Cloud)
-        working-directory: little-world-native
         env:
           IS_CI_BUILD: true
         run: |
@@ -142,7 +142,7 @@ jobs:
 
           # Run build and capture output
           set -o pipefail
-          eas build --platform android --profile "${{ github.event.inputs.easBuildTag }}" --non-interactive | tee build_output.txt
+          eas build --platform android --profile "$EAS_BUILD_TAG" --non-interactive | tee build_output.txt
 
           # Extract URL
           URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(apk|aab)' build_output.txt | tail -n1)
@@ -166,12 +166,10 @@ jobs:
 
       - name: Locate Android Build File
         id: locate_build_file
-        working-directory: little-world-native
         shell: bash
         run: |
           set -euo pipefail
           BUILD_FILE_PATH=""
-          EAS_BUILD_TAG="${{ github.event.inputs.easBuildTag }}"
 
           # Check for AAB files first (production builds)
           if [ "$EAS_BUILD_TAG" = "production" ]; then
@@ -209,7 +207,7 @@ jobs:
             echo "No $FILE_EXTENSION file found for $EAS_BUILD_TAG build" >&2
             exit 1
           fi
-          echo "build_file_path=./little-world-native/$BUILD_FILE_PATH" >> $GITHUB_OUTPUT
+          echo "build_file_path=./$BUILD_FILE_PATH" >> $GITHUB_OUTPUT
           echo "file_extension=$FILE_EXTENSION" >> $GITHUB_OUTPUT
           echo "Found $FILE_EXTENSION at $BUILD_FILE_PATH"
 
@@ -218,7 +216,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ github.event.inputs.tag }}"
           RUN_NO="${{ github.run_number }}"
           ORIG_PATH="${{ steps.locate_build_file.outputs.build_file_path }}"
           FILE_EXT="${{ steps.locate_build_file.outputs.file_extension }}"
@@ -232,5 +229,5 @@ jobs:
       - name: Upload Android Build File artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ github.event.inputs.tag }}-${{ github.run_number }}
+          name: android-${{ steps.locate_build_file.outputs.file_extension }}-${{ env.TAG }}-${{ github.run_number }}
           path: ${{ steps.rename_build_file.outputs.build_file_path }}
