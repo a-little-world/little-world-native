@@ -52,10 +52,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform android --profile production --non-interactive | tee build_output.txt
-          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(aab|apk)' build_output.txt | tail -n1)
+          eas build --platform android --profile production --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find android artifact URL" >&2
+            cat build_output.json >&2
             exit 1
           fi
           EXT="${URL##*.}"
@@ -106,10 +107,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform ios --profile production --non-interactive | tee build_output.txt
-          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.ipa' build_output.txt | tail -n1)
+          eas build --platform ios --profile production --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find iOS artifact URL" >&2
+            cat build_output.json >&2
             exit 1
           fi
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-ios.ipa"
