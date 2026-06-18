@@ -1,0 +1,29 @@
+name: Block Manual Version Changes
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Block manual version bumps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify version-bearing fields unchanged
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$BASE_REF" --depth=1
+          BASE="origin/$BASE_REF" PR_AUTHOR="$PR_AUTHOR" HEAD_REF="$HEAD_REF" \
+            bash .github/scripts/check-version-changes.sh
