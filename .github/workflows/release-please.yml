@@ -24,3 +24,5 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Use a PAT so created releases trigger downstream workflows (release event from default GITHUB_TOKEN is suppressed).
+          token: ${{ secrets.BOT_PAT }}
