@@ -3,29 +3,55 @@ name: Preview Build (PR)
 on:
   pull_request:
     types: [labeled, synchronize]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - development
+          - development-device
+          - preview
+          - production
+      baseUrl:
+        description: "Backend base URL"
+        required: true
+        default: "https://stage.little-world.com"
+      buildAndroid:
+        description: "Build Android"
+        required: true
+        default: true
+        type: boolean
+      buildIos:
+        description: "Build iOS"
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
   pull-requests: write
 
-env:
-  BASE_URL: https://stage.little-world.com
-
 jobs:
   build-android:
-    name: Build Android (preview)
+    name: Build Android (${{ github.event.inputs.profile || 'preview' }})
     if: >
-      (github.event.action == 'labeled' && github.event.label.name == 'build-android') ||
-      (github.event.action == 'synchronize' &&
-        contains(github.event.pull_request.labels.*.name, 'build-android'))
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-android') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-android')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.buildAndroid == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: preview-build-android-${{ github.event.pull_request.number }}
+      group: preview-build-android-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
+      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -33,15 +59,25 @@ jobs:
           submodules: recursive
           token: ${{ secrets.BOT_PAT }}
 
+      - name: Resolve env-file from profile
+        id: envfile
+        shell: bash
+        run: |
+          case "$PROFILE" in
+            production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
+            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Setup build workspace
         id: setup
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.staging.ts
+          env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android (EAS, preview)
+      - name: Build Android (EAS)
         id: build
         shell: bash
         env:
@@ -49,7 +85,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform android --profile preview --non-interactive --json > build_output.json
+          eas build --platform android --profile "$PROFILE" --non-interactive --json > build_output.json
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find android artifact URL" >&2
@@ -57,21 +93,21 @@ jobs:
             exit 1
           fi
           EXT="${URL##*.}"
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-preview-android.${EXT}"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-android.${EXT}"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "ext=$EXT" >> "$GITHUB_OUTPUT"
 
-      - name: Upload android preview artifact
+      - name: Upload android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ steps.setup.outputs.version }}-preview-android
+          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
           path: release-artifacts/*
           if-no-files-found: error
 
       - name: Update preview builds table in PR description (android)
-        if: success()
+        if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -97,18 +133,21 @@ jobs:
           done
 
   build-ios:
-    name: Build iOS (preview)
+    name: Build iOS (${{ github.event.inputs.profile || 'preview' }})
     if: >
-      (github.event.action == 'labeled' && github.event.label.name == 'build-ios') ||
-      (github.event.action == 'synchronize' &&
-        contains(github.event.pull_request.labels.*.name, 'build-ios'))
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-ios') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-ios')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.buildIos == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: preview-build-ios-${{ github.event.pull_request.number }}
+      group: preview-build-ios-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     env:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
+      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -116,15 +155,25 @@ jobs:
           submodules: recursive
           token: ${{ secrets.BOT_PAT }}
 
+      - name: Resolve env-file from profile
+        id: envfile
+        shell: bash
+        run: |
+          case "$PROFILE" in
+            production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
+            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Setup build workspace
         id: setup
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.staging.ts
+          env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build iOS (EAS, preview)
+      - name: Build iOS (EAS)
         id: build
         shell: bash
         env:
@@ -132,27 +181,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform ios --profile preview --non-interactive --json > build_output.json
+          eas build --platform ios --profile "$PROFILE" --non-interactive --json > build_output.json
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find iOS artifact URL" >&2
             cat build_output.json >&2
             exit 1
           fi
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-preview-ios.ipa"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-ios.ipa"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
-      - name: Upload iOS preview artifact
+      - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ steps.setup.outputs.version }}-preview-ios
+          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
           path: release-artifacts/*
           if-no-files-found: error
 
       - name: Update preview builds table in PR description (ios)
-        if: success()
+        if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
