@@ -159,6 +159,37 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
+  attach-release-assets:
+    name: Attach build artifacts to GitHub release
+    if: github.event_name == 'release'
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-android.outputs.artifact-name }}
+          path: artifacts/android
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact-name }}
+          path: artifacts/ios
+
+      - name: Upload assets to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            artifacts/android/* \
+            artifacts/ios/* \
+            --clobber --repo "$GITHUB_REPOSITORY"
+
   submit-ios:
     name: Submit iOS to App Store
     needs: build-ios
