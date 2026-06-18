@@ -1,33 +1,12 @@
-import {
-  apiFetch,
-  navigateToLogin,
-  refreshAccessTokens,
-  TokenStatus,
-} from "@/src/api/helpers";
+import useSWR from "swr";
+
+import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
 import { useAuthStore } from "@/src/store/authStore";
-import { useEffect } from "react";
-import useSWR, { mutate } from "swr";
+import { ReactNode, useMemo, useRef } from "react";
 
-const IS_AUTHENTICATED_ENDPOINT = "/api/user/authenticated";
-
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { data, error, isLoading } = useSWR<boolean>(
+function AuthGuard({ children }: { children: ReactNode }) {
+  const { data: authenticated, isValidating } = useSWR<boolean>(
     IS_AUTHENTICATED_ENDPOINT,
-    (endpoint) =>
-      apiFetch(endpoint).then(async (isAuthenticated) => {
-        if (!isAuthenticated) {
-          const tokenStatus = await refreshAccessTokens();
-          if (
-            tokenStatus === TokenStatus.EXPIRED ||
-            tokenStatus === TokenStatus.MISSING
-          ) {
-            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
-            return false;
-          }
-          return true;
-        }
-        return true;
-      }),
     {
       refreshInterval: (isAuthenticated) => {
         // keep polling every 3s until authenticated
@@ -38,15 +17,22 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       },
     },
   );
+  const { isTokenRefreshing } = useAuthStore();
 
-  const { refreshToken } = useAuthStore();
+  // Store previous authenticated state to prevent flickering during loading/token refresh
+  const prevAuthenticatedRef = useRef<boolean>(false);
 
-  // check authentication status when tokens change
-  useEffect(() => {
-    mutate(IS_AUTHENTICATED_ENDPOINT);
-  }, [refreshToken]);
+  const isAuthenticated = useMemo(() => {
+    // During loading, maintain previous state
+    if (isValidating || isTokenRefreshing) {
+      return prevAuthenticatedRef.current;
+    }
 
-  const isAuthenticated = data && !isLoading && !error;
+    prevAuthenticatedRef.current = Boolean(authenticated);
+
+    return Boolean(authenticated);
+  }, [authenticated, isValidating, isTokenRefreshing]);
+
   return isAuthenticated ? children : null;
 }
 

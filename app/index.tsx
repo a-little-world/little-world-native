@@ -1,16 +1,29 @@
 // Page.tsx
+import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
+import { loadStoredTokensIntoStore } from "@/src/api/helpers";
 import AuthGuard from "@/src/components/atoms/AuthGuard";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
 import { setupReactErrorTracking } from "@/src/store/debugStore";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { mutate } from "swr";
 
 setupReactErrorTracking();
 
 export default function Page() {
+  const [tokensLoaded, setTokensLoaded] = useState(false);
+
   const insets = useSafeAreaInsets();
+  useEffect(() => {
+    (async () => {
+      await loadStoredTokensIntoStore();
+      setTokensLoaded(true);
+      mutate(IS_AUTHENTICATED_ENDPOINT);
+    })();
+  }, [setTokensLoaded]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -18,7 +31,7 @@ export default function Page() {
       <View style={{ height: insets.top, backgroundColor: "#fff" }} />
       <StatusBar style="dark" />
       <View style={{ flex: 1, width: "100%", display: "block" }}>
-        <DomWebViewHost />
+        {tokensLoaded && <DomWebViewHost />}
       </View>
     </View>
   );

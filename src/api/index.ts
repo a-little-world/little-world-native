@@ -1,1 +1,1 @@
-export const USER_ENDPOINT = "/api/user";
+export const IS_AUTHENTICATED_ENDPOINT = "/api/user/authenticated";

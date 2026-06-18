@@ -52,6 +52,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          package_json_file: little-world-native/package.json
         # omit version, uses version of packageManager in package.json
 
       - name: Setup Expo and EAS
