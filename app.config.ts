@@ -2,18 +2,22 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 import "tsx"; // Enable import of TypeScript files
 import environmentNative from "./environments/env";
 
+const APP_VERSION = "1.0.30"; // x-release-please-version
+const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split(".").map(Number);
+const ANDROID_VERSION_CODE = APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "little-world-app",
   slug: "little-world-app",
-  version: "1.0.30",
+  version: APP_VERSION,
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
   scheme: "little-world-app",
   userInterfaceStyle: "automatic",
   owner: "little-world",
   ios: {
-    buildNumber: "1.0.30",
+    buildNumber: APP_VERSION,
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
@@ -44,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.littleworld.littleworldapp",
-    versionCode: 30,
+    versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
       foregroundImage: "./src/assets/images/logo-image.png",

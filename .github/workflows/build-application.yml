@@ -1,0 +1,227 @@
+name: Build Application
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - development
+          - development-device
+          - preview
+          - production
+      baseUrl:
+        description: "Backend base URL"
+        required: true
+        default: "https://stage.little-world.com"
+      buildAndroid:
+        description: "Build Android"
+        required: true
+        default: true
+        type: boolean
+      buildIos:
+        description: "Build iOS"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-android:
+    name: Build Android (${{ github.event.inputs.profile || 'preview' }})
+    if: >
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-android') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-android')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.buildAndroid == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: preview-build-android-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    env:
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Resolve env-file from profile
+        id: envfile
+        shell: bash
+        run: |
+          case "$PROFILE" in
+            production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
+            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: ${{ steps.envfile.outputs.name }}
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android (EAS)
+        id: build
+        shell: bash
+        env:
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform android --profile "$PROFILE" --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+          if [ -z "$URL" ]; then
+            echo "Could not find android artifact URL" >&2
+            cat build_output.json >&2
+            exit 1
+          fi
+          EXT="${URL##*.}"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-android.${EXT}"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
+          path: release-artifacts/*
+          if-no-files-found: error
+
+      - name: Update preview builds table in PR description (android)
+        if: success() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          URL: ${{ steps.build.outputs.url }}
+          EXT: ${{ steps.build.outputs.ext }}
+          PLATFORM: android
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          export COMMIT_SHA="$HEAD_SHA"
+          export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
+          export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          for attempt in 1 2 3; do
+            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
+            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
+              echo "PR body updated on attempt $attempt"
+              break
+            fi
+            echo "Attempt $attempt failed, retrying"
+            sleep $((RANDOM % 11 + 5))
+          done
+
+  build-ios:
+    name: Build iOS (${{ github.event.inputs.profile || 'preview' }})
+    if: >
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-ios') ||
+      (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+        contains(github.event.pull_request.labels.*.name, 'build-ios')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.buildIos == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: preview-build-ios-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Resolve env-file from profile
+        id: envfile
+        shell: bash
+        run: |
+          case "$PROFILE" in
+            production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
+            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: ${{ steps.envfile.outputs.name }}
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS (EAS)
+        id: build
+        shell: bash
+        env:
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform ios --profile "$PROFILE" --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+          if [ -z "$URL" ]; then
+            echo "Could not find iOS artifact URL" >&2
+            cat build_output.json >&2
+            exit 1
+          fi
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-ios.ipa"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
+          path: release-artifacts/*
+          if-no-files-found: error
+
+      - name: Update preview builds table in PR description (ios)
+        if: success() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          URL: ${{ steps.build.outputs.url }}
+          EXT: ipa
+          PLATFORM: ios
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          export COMMIT_SHA="$HEAD_SHA"
+          export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
+          export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          for attempt in 1 2 3; do
+            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
+            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
+              echo "PR body updated on attempt $attempt"
+              break
+            fi
+            echo "Attempt $attempt failed, retrying"
+            sleep $((RANDOM % 11 + 20))
+          done

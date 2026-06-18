@@ -250,11 +250,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^2.15.1
+        specifier: ^2.18.1
         version: 2.18.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
-      '@a-little-world/little-world-design-system-core':
-        specifier: ^1.11.0
-        version: 1.14.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@babel/core':
         specifier: ^7.20.12
         version: 7.28.6
@@ -9568,7 +9565,7 @@ snapshots:
 
   '@a-little-world/little-world-design-system-core@1.14.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.7
       csstype: 3.2.3
       lodash: 4.17.23
       react: 19.2.4
@@ -11987,7 +11984,7 @@ snapshots:
 
   '@floating-ui/core@1.7.4':
     dependencies:
-      '@floating-ui/utils': 0.2.10
+      '@floating-ui/utils': 0.2.11
 
   '@floating-ui/core@1.7.5':
     dependencies:
@@ -12001,7 +11998,7 @@ snapshots:
   '@floating-ui/dom@1.7.5':
     dependencies:
       '@floating-ui/core': 1.7.4
-      '@floating-ui/utils': 0.2.10
+      '@floating-ui/utils': 0.2.11
 
   '@floating-ui/dom@1.7.6':
     dependencies:

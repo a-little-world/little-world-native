@@ -1,0 +1,131 @@
+name: Production Release
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch:
+    inputs:
+      baseUrl:
+        description: "Base URL for backend"
+        required: false
+        default: "https://little-world.com"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release
+  cancel-in-progress: true
+
+env:
+  BASE_URL: ${{ github.event.inputs.baseUrl || 'https://little-world.com' }}
+
+jobs:
+  build-android:
+    name: Build Android (production)
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android (EAS, production)
+        id: build
+        shell: bash
+        env:
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform android --profile production --non-interactive | tee build_output.txt
+          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(aab|apk)' build_output.txt | tail -n1)
+          if [ -z "$URL" ]; then
+            echo "Could not find android artifact URL" >&2
+            exit 1
+          fi
+          EXT="${URL##*.}"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-android.${EXT}"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload android release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ steps.setup.outputs.version }}-android
+          path: release-artifacts/*
+          if-no-files-found: error
+
+      - name: Submit Android to Play Store
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas submit --platform android --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
+
+  build-ios:
+    name: Build iOS (production)
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: "true"
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS (EAS, production)
+        id: build
+        shell: bash
+        env:
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
+          eas build --platform ios --profile production --non-interactive | tee build_output.txt
+          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.ipa' build_output.txt | tail -n1)
+          if [ -z "$URL" ]; then
+            echo "Could not find iOS artifact URL" >&2
+            exit 1
+          fi
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-ios.ipa"
+          curl -fL -o "$OUT" "$URL"
+          ls -lh "$OUT"
+          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload iOS release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-world-app_${{ steps.setup.outputs.version }}-ios
+          path: release-artifacts/*
+          if-no-files-found: error
+
+      - name: Submit iOS to App Store
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas submit --platform ios --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
