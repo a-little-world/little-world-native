@@ -15,8 +15,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-release-${{ github.ref }}
-  cancel-in-progress: false
+  group: production-release
+  cancel-in-progress: true
 
 env:
   BASE_URL: ${{ github.event.inputs.baseUrl || 'https://little-world.com' }}
