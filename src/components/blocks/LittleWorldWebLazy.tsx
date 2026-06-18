@@ -4,9 +4,11 @@
 import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
+  LittleWorldWebNativeProps,
 } from "littleplanet";
-import { Ref, lazy, useEffect, useRef } from "react";
+import React, { lazy, Ref, useEffect, useRef } from "react";
 
+import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
 import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
@@ -17,12 +19,22 @@ export interface LittleWorldDomRef extends DOMImperativeFactory {
 }
 
 const LittleWorldWebNative = lazy(() =>
-  import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative }))
+  import("littleplanet").then((m) => ({ default: m.LittleWorldWebNative })),
 );
 
+/*
+  IMPORTANT: 
+  - All functions passed to this webview are async, even if they the "original" function is not.
+  - functions created inside this component are bundled and isolated from the rest of the native app:
+      const fetcher = () => apiFetch will use an isolated version of apiFetch that has its own context, tokens, etc.
+*/
 export default function LittleWorldWebLazy(props: {
-  sendToReactNative: DomCommunicationMessageFn;
   ref: Ref<LittleWorldDomRef>;
+  sendToReactNative: DomCommunicationMessageFn;
+  apiFetchNative: typeof apiFetch;
+  refreshAccessToken: typeof refreshAccessTokens;
+  getAccessToken: () => Promise<string | undefined>;
+  setAccessTokens: typeof updateTokens;
   dom?: import("expo/dom").DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
@@ -65,14 +77,19 @@ export default function LittleWorldWebLazy(props: {
     },
   }));
 
-  // Cast to any so we can pass extra helper prop without TS complaining about external component types
-  const LW: any = LittleWorldWebNative;
+  const LW = LittleWorldWebNative as React.ComponentType<
+    LittleWorldWebNativeProps & { dom?: import("expo/dom").DOMProps }
+  >;
 
   return (
     <LW
-      dom={{ matchContent: true }}
+      dom={{ matchContents: true }}
       sendMessageToReactNative={props.sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
+      apiFetchNative={props.apiFetchNative}
+      refreshAccessToken={props.refreshAccessToken}
+      getAccessToken={props.getAccessToken}
+      setAccessTokens={props.setAccessTokens}
     />
   );
 }

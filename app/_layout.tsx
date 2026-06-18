@@ -6,7 +6,6 @@ import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/litt
 import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
 import environmentNative from "@/environments/env";
-import LoadingScreenTokenValidator from "@/src/components/atoms/LoadingScreenTokenValidator";
 import DebugPanel from "@/src/components/blocks/DebugPanel";
 import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
 import * as Sentry from "@sentry/react-native";
@@ -33,7 +32,6 @@ if (environmentNative.sentryUrl) {
 
 export default Sentry.wrap(function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [tokensValidated, setTokensValidated] = useState(false);
 
   useEffect(() => {
     loadFonts()
@@ -48,10 +46,6 @@ export default Sentry.wrap(function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  const onTokensValidated = useCallback(async () => {
-    setTokensValidated(true);
-  }, [setTokensValidated]);
-
   return (
     <SafeAreaProvider>
       <View
@@ -61,12 +55,7 @@ export default Sentry.wrap(function RootLayout() {
         <NativeThemeProvider>
           <DomCommunicationProvider>
             <DebugPanel />
-            {!tokensValidated && (
-              <LoadingScreenTokenValidator
-                onTokensValidated={onTokensValidated}
-              />
-            )}
-            {fontsLoaded && ( // start rendering as early as possible and overlay loading screen on top
+            {fontsLoaded && ( // start rendering as early as possible
               <Stack
                 screenOptions={{
                   headerShown: false,

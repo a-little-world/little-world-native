@@ -13,10 +13,16 @@ import { Platform } from "react-native";
 import { API_FIELDS } from "../constants";
 import { Cookies } from "../constants/CookieMock";
 import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
-import { authStore, useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/authStore";
 
 import environmentNative from "@/environments/env";
-import { debugStore, getEffectiveBackendUrl } from "../store/debugStore";
+import { mutate } from "swr";
+import { IS_AUTHENTICATED_ENDPOINT } from ".";
+import {
+  debugStore,
+  FetchError,
+  getEffectiveBackendUrl,
+} from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
 export async function navigateToLogin(expired: boolean = false): Promise<void> {
@@ -30,7 +36,7 @@ export async function navigateToLogin(expired: boolean = false): Promise<void> {
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-interface ApiFetchOptions {
+export interface ApiFetchOptions {
   method?: HttpMethod;
   body?: object | FormData;
   headers?: Record<string, string>;
@@ -74,13 +80,8 @@ export const formatApiError = (responseBody: any, response: any) => {
 export async function apiFetch<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
+  source: FetchError["source"] = "native",
 ): Promise<T> {
-  if (accessTokenRefresh) {
-    // in case we are already loading a new token, wait before sending any new requests. They would fail anyway due to the
-    // invalid access token
-    await accessTokenRefresh;
-  }
-
   const {
     method = "GET",
     body,
@@ -105,7 +106,7 @@ export async function apiFetch<T = any>(
   const authHeaders = {
     "X-CSRF-Bypass-Token": "abc",
   } as Record<string, string>;
-  const { accessToken } = authStore.get();
+  const { accessToken } = useAuthStore.getState();
   if (accessToken) {
     authHeaders.Authorization = `Bearer ${accessToken}`;
   }
@@ -149,7 +150,7 @@ export async function apiFetch<T = any>(
     if (debugStore.get().debugEnabled) {
       if (error instanceof TypeError) {
         debugStore.get().addFetchError({
-          source: "native",
+          source,
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,
@@ -165,7 +166,7 @@ export async function apiFetch<T = any>(
         });
       } else {
         debugStore.get().addFetchError({
-          source: "native",
+          source,
           method,
           endpoint,
           url: `${getEffectiveBackendUrl()}${endpoint}`,
@@ -174,30 +175,6 @@ export async function apiFetch<T = any>(
           status: (error as any)?.status,
           error,
         });
-      }
-    }
-
-    const tokenExpired = error?.code === "token_not_valid";
-    const noTokenPresent =
-      error?.status === 403 &&
-      useAuthStore.getState().accessToken === undefined;
-    if (tokenExpired || noTokenPresent) {
-      try {
-        const tokenStatus = await refreshAccessTokens();
-        switch (tokenStatus) {
-          case TokenStatus.VALID: {
-            return apiFetch(endpoint, options);
-          }
-          case TokenStatus.EXPIRED:
-          case TokenStatus.MISSING: {
-            await navigateToLogin(tokenStatus === TokenStatus.EXPIRED);
-            break;
-          }
-        }
-      } catch (err: any) {
-        const response = err.cause;
-        const errorData = await response.json().catch(() => ({}));
-        throw formatApiError(errorData, response);
       }
     }
 
@@ -372,18 +349,13 @@ export async function updateTokens(
   refreshToken: string | undefined,
 ): Promise<void> {
   const { setAccessToken, setRefreshToken } = useAuthStore.getState();
-  const { sendToDom } = domCommunicationStore.get();
 
   setAccessToken(accessToken);
   setRefreshToken(refreshToken);
+
+  mutate(IS_AUTHENTICATED_ENDPOINT);
+
   await saveJwtTokens(accessToken, refreshToken);
-  await sendToDom?.({
-    action: "SET_AUTH_TOKENS",
-    payload: {
-      accessToken,
-      refreshToken,
-    },
-  });
 }
 
 let accessTokenRefresh: Promise<TokenStatus> | undefined = undefined;
@@ -392,6 +364,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
     return accessTokenRefresh;
   }
 
+  useAuthStore.setState({ isTokenRefreshing: true });
   const { refreshToken } = useAuthStore.getState();
   if (!refreshToken) {
     await updateTokens(undefined, undefined);
@@ -452,6 +425,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
       return TokenStatus.EXPIRED;
     } finally {
       accessTokenRefresh = undefined;
+      useAuthStore.setState({ isTokenRefreshing: false });
     }
   })();
 
