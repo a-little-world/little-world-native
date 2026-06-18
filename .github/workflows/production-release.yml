@@ -45,6 +45,7 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android (EAS, production)
+        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
@@ -61,6 +62,7 @@ jobs:
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-android.${EXT}"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
+          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload android release artifact
         uses: actions/upload-artifact@v4
@@ -68,6 +70,12 @@ jobs:
           name: little-world-app_${{ steps.setup.outputs.version }}-android
           path: release-artifacts/*
           if-no-files-found: error
+
+      - name: Submit Android to Play Store
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas submit --platform android --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
 
   build-ios:
     name: Build iOS (production)
@@ -91,6 +99,7 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build iOS (EAS, production)
+        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
@@ -106,6 +115,7 @@ jobs:
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-ios.ipa"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
+          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS release artifact
         uses: actions/upload-artifact@v4
@@ -113,3 +123,9 @@ jobs:
           name: little-world-app_${{ steps.setup.outputs.version }}-ios
           path: release-artifacts/*
           if-no-files-found: error
+
+      - name: Submit iOS to App Store
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas submit --platform ios --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
