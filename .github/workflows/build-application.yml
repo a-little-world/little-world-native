@@ -106,7 +106,7 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Update preview builds table in PR description (android)
+      - name: Update preview builds sticky comment (android)
         if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -121,12 +121,29 @@ jobs:
           export COMMIT_SHA="$HEAD_SHA"
           export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
           export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          MARKER="<!-- preview-builds:start -->"
           for attempt in 1 2 3; do
-            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
-            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
-            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
-              echo "PR body updated on attempt $attempt"
-              break
+            COMMENT_JSON=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+              --jq "[.[] | select(.body | contains(\"$MARKER\"))] | .[0] // empty")
+            if [ -n "$COMMENT_JSON" ]; then
+              COMMENT_ID=$(echo "$COMMENT_JSON" | jq -r '.id')
+              export CURRENT_BODY=$(echo "$COMMENT_JSON" | jq -r '.body')
+            else
+              COMMENT_ID=""
+              export CURRENT_BODY=""
+            fi
+            python3 .github/scripts/update-pr-preview-table.py > new_comment.md
+            if [ -n "$COMMENT_ID" ]; then
+              if jq -Rs '{body: .}' new_comment.md | \
+                  gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" --input -; then
+                echo "Comment updated on attempt $attempt"
+                break
+              fi
+            else
+              if gh pr comment "$PR_NUMBER" --body-file new_comment.md; then
+                echo "Comment created on attempt $attempt"
+                break
+              fi
             fi
             echo "Attempt $attempt failed, retrying"
             sleep $((RANDOM % 11 + 5))
@@ -200,7 +217,7 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Update preview builds table in PR description (ios)
+      - name: Update preview builds sticky comment (ios)
         if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -215,12 +232,29 @@ jobs:
           export COMMIT_SHA="$HEAD_SHA"
           export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
           export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
+          MARKER="<!-- preview-builds:start -->"
           for attempt in 1 2 3; do
-            export CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
-            python3 .github/scripts/update-pr-preview-table.py > new_body.txt
-            if gh pr edit "$PR_NUMBER" --body-file new_body.txt; then
-              echo "PR body updated on attempt $attempt"
-              break
+            COMMENT_JSON=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+              --jq "[.[] | select(.body | contains(\"$MARKER\"))] | .[0] // empty")
+            if [ -n "$COMMENT_JSON" ]; then
+              COMMENT_ID=$(echo "$COMMENT_JSON" | jq -r '.id')
+              export CURRENT_BODY=$(echo "$COMMENT_JSON" | jq -r '.body')
+            else
+              COMMENT_ID=""
+              export CURRENT_BODY=""
+            fi
+            python3 .github/scripts/update-pr-preview-table.py > new_comment.md
+            if [ -n "$COMMENT_ID" ]; then
+              if jq -Rs '{body: .}' new_comment.md | \
+                  gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" --input -; then
+                echo "Comment updated on attempt $attempt"
+                break
+              fi
+            else
+              if gh pr comment "$PR_NUMBER" --body-file new_comment.md; then
+                echo "Comment created on attempt $attempt"
+                break
+              fi
             fi
             echo "Attempt $attempt failed, retrying"
             sleep $((RANDOM % 11 + 20))
