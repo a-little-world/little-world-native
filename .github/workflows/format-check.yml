@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   format-check:
-    name: prettier --check
+    name: prettier format check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

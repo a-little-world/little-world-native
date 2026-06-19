@@ -193,8 +193,8 @@ importers:
         version: 5.0.12(@types/react@19.1.17)(immer@11.1.3)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@a-little-world/little-world-prettier-config':
-        specifier: ^1.2.0
-        version: 1.2.0(prettier@2.8.8)
+        specifier: ^2.0.0
+        version: 2.0.0(prettier@3.8.4)
       '@babel/core':
         specifier: ^7.28.6
         version: 7.28.6
@@ -232,8 +232,8 @@ importers:
         specifier: ^0.83.1
         version: 0.83.3
       prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
+        specifier: ^3.0.0
+        version: 3.8.4
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
@@ -547,6 +547,11 @@ packages:
 
   '@a-little-world/little-world-prettier-config@1.2.0':
     resolution: {integrity: sha512-RSYiiHU0uQv1IhoZIV9RALXj6QTL4k0w8iJ1hDDZmM7RLfozRkKKd2sUOZkggMcw4Xpznhf86LfudW2A6mM0Ng==}
+
+  '@a-little-world/little-world-prettier-config@2.0.0':
+    resolution: {integrity: sha512-44c860Mgc6Pc4514+OGEiBfcHRre5MzdBYOEeCz4P/AKlI6pb91kS5oQiKuexwUMooqf4cvQ3jLZpHb003FZsw==}
+    peerDependencies:
+      prettier: ^3.0.0
 
   '@babel/code-frame@7.10.4':
     resolution: {integrity: sha512-vG6SvB6oYEhvgisZNFRmRCUkLz11c7rp+tbNTynGqc6mS1d5ATd/sGyV6W0KZZnXRKMTzZDRgQT3Ou9jhpAfUg==}
@@ -1637,7 +1642,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@55.0.24':
     resolution: {integrity: sha512-Z6Xh0WNTg1LvoZQ77zO3snF2cFiv1xf0VguDlwTL1Ql87oMOp30f7mjl9jeaSHqoWkgiAbmxgCKKIGjVX/keiA==}
@@ -2242,6 +2247,24 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@ianvs/prettier-plugin-sort-imports@4.7.1':
+    resolution: {integrity: sha512-jmTNYGlg95tlsoG3JLCcuC4BrFELJtLirLAkQW/71lXSyOhVt/Xj7xWbbGcuVbNq1gwWgSyMrPjJc9Z30hynVw==}
+    peerDependencies:
+      '@prettier/plugin-oxc': ^0.0.4 || ^0.1.0
+      '@vue/compiler-sfc': 2.7.x || 3.x
+      content-tag: ^4.0.0
+      prettier: 2 || 3 || ^4.0.0-0
+      prettier-plugin-ember-template-tag: ^2.1.0
+    peerDependenciesMeta:
+      '@prettier/plugin-oxc':
+        optional: true
+      '@vue/compiler-sfc':
+        optional: true
+      content-tag:
+        optional: true
+      prettier-plugin-ember-template-tag:
+        optional: true
 
   '@inquirer/external-editor@1.0.3':
     resolution: {integrity: sha512-RWbSrDiYmO4LbejWY7ttpxczuwQyZLBUyygsA9Nsv95hpzUWwnNTVQmAq3xuh7vNwCp07UTmE5i11XAEExx4RA==}
@@ -7969,6 +7992,11 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
+  prettier@3.8.4:
+    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   pretty-error@4.0.0:
     resolution: {integrity: sha512-AoJ5YMAcXKYxKhuJGdcvse+Voc6v1RgnsR3nWcYU7q4t6z0Q6T86sv5Zq8VIRbOWWFpvdGE83LtdSMNd+6Y0xw==}
 
@@ -9655,6 +9683,17 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/compiler-sfc'
       - prettier
+      - supports-color
+
+  '@a-little-world/little-world-prettier-config@2.0.0(prettier@3.8.4)':
+    dependencies:
+      '@ianvs/prettier-plugin-sort-imports': 4.7.1(prettier@3.8.4)
+      prettier: 3.8.4
+    transitivePeerDependencies:
+      - '@prettier/plugin-oxc'
+      - '@vue/compiler-sfc'
+      - content-tag
+      - prettier-plugin-ember-template-tag
       - supports-color
 
   '@babel/code-frame@7.10.4':
@@ -12055,6 +12094,17 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.4)':
+    dependencies:
+      '@babel/generator': 7.29.1
+      '@babel/parser': 7.29.2
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.29.0
+      prettier: 3.8.4
+      semver: 7.7.3
+    transitivePeerDependencies:
+      - supports-color
 
   '@inquirer/external-editor@1.0.3(@types/node@18.19.130)':
     dependencies:
@@ -18903,6 +18953,8 @@ snapshots:
       fast-diff: 1.3.0
 
   prettier@2.8.8: {}
+
+  prettier@3.8.4: {}
 
   pretty-error@4.0.0:
     dependencies:

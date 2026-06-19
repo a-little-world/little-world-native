@@ -19,3 +19,4 @@ package-lock.json
 yarn.lock
 expo-env.d.ts
 CHANGELOG.md
+certs/
