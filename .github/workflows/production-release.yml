@@ -204,7 +204,7 @@ jobs:
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: a-little-world-gug
-      SENTRY_PROJECT: lw-prod-backend
+      SENTRY_PROJECT: lw-prod-native
       BUNDLE_ID: com.littleworld.littleworldapp
       VERSION: ${{ needs.build-ios.outputs.version }}
     steps:
