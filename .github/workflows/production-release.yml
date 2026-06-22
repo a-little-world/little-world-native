@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - production
-      - fix-ci-workflow
   workflow_dispatch:
     inputs:
       baseUrl:
