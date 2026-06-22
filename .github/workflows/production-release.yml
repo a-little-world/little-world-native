@@ -216,8 +216,11 @@ jobs:
 
       - name: Submit to App Store
         shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         run: |
           set -euo pipefail
+          printf '%s' "$APP_STORE_CONNECT_API_KEY" > app-store-connect-api-key.p8
           FILE=$(ls release-artifacts/little-world-app_*-ios.ipa | head -n1)
           if [ -z "$FILE" ]; then
             echo "No iOS artifact found in release-artifacts/" >&2
