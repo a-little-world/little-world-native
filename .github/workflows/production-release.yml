@@ -101,8 +101,11 @@ jobs:
 
       - name: Submit to Play Store
         shell: bash
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
         run: |
           set -euo pipefail
+          printf '%s' "$GOOGLE_SERVICE_ACCOUNT_KEY" > google-service-account-key.json
           FILE=$(ls release-artifacts/little-world-app_*-android.* | head -n1)
           if [ -z "$FILE" ]; then
             echo "No android artifact found in release-artifacts/" >&2

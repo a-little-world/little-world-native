@@ -43,7 +43,8 @@
         "ascApiKeyPath": "app-store-connect-api-key.p8"
       },
       "android": {
-        "track": "internal"
+        "track": "internal",
+        "serviceAccountKeyPath": "google-service-account-key.json"
       }
     }
   }
