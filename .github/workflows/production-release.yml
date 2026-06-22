@@ -1,6 +1,8 @@
 name: Production Release
 
 on:
+  release:
+    types: [published]
   push:
     branches:
       - production
@@ -25,6 +27,9 @@ jobs:
   build-android:
     name: Build Android (production)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      artifact-name: little-world-app_${{ steps.setup.outputs.version }}-android
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -45,24 +50,23 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android (EAS, production)
-        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform android --profile production --non-interactive | tee build_output.txt
-          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.(aab|apk)' build_output.txt | tail -n1)
+          eas build --platform android --profile production --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find android artifact URL" >&2
+            cat build_output.json >&2
             exit 1
           fi
           EXT="${URL##*.}"
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-android.${EXT}"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
-          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload android release artifact
         uses: actions/upload-artifact@v4
@@ -71,15 +75,50 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Submit Android to Play Store
+  submit-android:
+    name: Submit Android to Play Store
+    needs: build-android
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: "false"
+
+      - name: Download android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-android.outputs.artifact-name }}
+          path: release-artifacts
+
+      - name: Submit to Play Store
         shell: bash
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
         run: |
           set -euo pipefail
-          eas submit --platform android --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
+          printf '%s' "$GOOGLE_SERVICE_ACCOUNT_KEY" > google-service-account-key.json
+          FILE=$(ls release-artifacts/little-world-app_*-android.* | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No android artifact found in release-artifacts/" >&2
+            exit 1
+          fi
+          eas submit --platform android --profile production --non-interactive --path "$FILE"
 
   build-ios:
     name: Build iOS (production)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      artifact-name: little-world-app_${{ steps.setup.outputs.version }}-ios
     env:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
@@ -99,23 +138,22 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build iOS (EAS, production)
-        id: build
         shell: bash
         env:
           VERSION: ${{ steps.setup.outputs.version }}
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform ios --profile production --non-interactive | tee build_output.txt
-          URL=$(grep -oE 'https://expo\.dev/artifacts/eas/[a-zA-Z0-9._-]+\.ipa' build_output.txt | tail -n1)
+          eas build --platform ios --profile production --non-interactive --json > build_output.json
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
             echo "Could not find iOS artifact URL" >&2
+            cat build_output.json >&2
             exit 1
           fi
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-ios.ipa"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
-          echo "application-path=$OUT" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS release artifact
         uses: actions/upload-artifact@v4
@@ -124,8 +162,109 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Submit iOS to App Store
+  attach-release-assets:
+    name: Attach build artifacts to GitHub release
+    if: github.event_name == 'release'
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-android.outputs.artifact-name }}
+          path: artifacts/android
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact-name }}
+          path: artifacts/ios
+
+      - name: Upload assets to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            artifacts/android/* \
+            artifacts/ios/* \
+            --clobber --repo "$GITHUB_REPOSITORY"
+
+  submit-ios:
+    name: Submit iOS to App Store
+    needs: build-ios
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.prod.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: "false"
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact-name }}
+          path: release-artifacts
+
+      - name: Submit to App Store
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$APP_STORE_CONNECT_API_KEY" > app-store-connect-api-key.p8
+          FILE=$(ls release-artifacts/little-world-app_*-ios.ipa | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No iOS artifact found in release-artifacts/" >&2
+            exit 1
+          fi
+          eas submit --platform ios --profile production --non-interactive --path "$FILE"
+
+  notify-sentry:
+    name: Notify Sentry of production deploy
+    needs: [build-ios, submit-android, submit-ios]
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: a-little-world-gug
+      SENTRY_PROJECT: lw-prod-backend
+      BUNDLE_ID: com.littleworld.littleworldapp
+      VERSION: ${{ needs.build-ios.outputs.version }}
+    steps:
+      - name: Checkout (full history for --auto commit detection)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create + finalize + deploy Sentry releases
         shell: bash
         run: |
           set -euo pipefail
-          eas submit --platform ios --profile production --non-interactive --path "${{ steps.build.outputs.application-path }}"
+          IFS='.' read -r MAJ MIN PAT <<< "$VERSION"
+          ANDROID_VERSION_CODE=$((MAJ * 10000 + MIN * 100 + PAT))
+
+          IOS_RELEASE="${BUNDLE_ID}@${VERSION}+${VERSION}"
+          ANDROID_RELEASE="${BUNDLE_ID}@${VERSION}+${ANDROID_VERSION_CODE}"
+
+          for RELEASE in "$IOS_RELEASE" "$ANDROID_RELEASE"; do
+            echo "::group::Sentry release $RELEASE"
+            sentry-cli releases new "$RELEASE"
+            sentry-cli releases set-commits "$RELEASE" --auto
+            sentry-cli releases finalize "$RELEASE"
+            sentry-cli releases deploys "$RELEASE" new -e production
+            echo "::endgroup::"
+          done

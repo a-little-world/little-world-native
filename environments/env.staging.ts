@@ -5,8 +5,9 @@ const environmentNative: EnvironmentNative = {
   googleServiceInfoFileIOS: "./certs/google/GoogleService-Info-staging.plist",
   googleServiceInfoFileAndroid: "./certs/google/google-services-staging.json",
   appleEnvironment: "production",
+  sentryProject: "lw-staging-native",
   sentryUrl:
-    "https://5b7832a26c656c8d809e8a3b26f57756@o4506032071507968.ingest.us.sentry.io/4506633212067840",
+    "https://7e10fe05f019ff371532eacc968a552c@o4506032071507968.ingest.us.sentry.io/4511608020860928",
 };
 
 export default environmentNative;

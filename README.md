@@ -86,6 +86,87 @@ To automatically check the project for any expo warnings run:
 pnpm exec expo-doctor
 ```
 
+## 🔀 Pull Requests
+
+We use [release-please](https://github.com/googleapis/release-please) to automate versioning and changelog generation. It reads the **PR title** of every merged PR and uses [Conventional Commits](https://www.conventionalcommits.org/) to decide what the next release looks like. Formatting your PRs correctly is therefore required for releases to work.
+
+### PR title format
+
+```
+<type>[optional scope]: <subject>
+```
+
+The title is linted by `.github/workflows/lint-pr-title.yml`. Allowed types:
+
+| Type       | When to use                                                         | Affects release? |
+| ---------- | ------------------------------------------------------------------- | ---------------- |
+| `feat`     | New user-facing feature                                             | minor bump       |
+| `fix`      | Bug fix                                                             | patch bump       |
+| `perf`     | Performance improvement                                             | patch bump       |
+| `refactor` | Internal restructuring with no behavior change                      | no bump          |
+| `docs`     | Documentation only                                                  | no bump          |
+| `test`     | Tests only                                                          | no bump          |
+| `build`    | Build system / dependencies                                         | no bump          |
+| `ci`       | CI configuration                                                    | no bump          |
+| `chore`    | Other maintenance (renames, formatting, dependency bumps that don't fit `build`) | no bump          |
+| `style`    | Code style / formatting                                             | no bump          |
+
+Scope is optional and free-form (e.g. `feat(auth):`, `fix(android):`).
+
+The subject must start with a letter, no trailing period, ideally under ~70 chars.
+
+✅ `feat: add automatic login on app start`
+✅ `fix(ios): correct keyboard avoidance on chat screen`
+❌ `Update auth stuff`                ← no type
+❌ `feat:`                            ← missing subject
+❌ `feat: Updated auth.`              ← past tense + trailing period (not strictly enforced, but avoid)
+
+### PR description (body)
+
+Whatever you write in the PR description becomes the body of the merge commit (because the repo is configured with `merge_commit_message: PR_BODY`). It is shown in expanded changelog notes and in `git show <sha>`. Use it freely for context:
+
+- bullet list of changes
+- "why" and motivation
+- screenshots, links, test plan, anything
+
+Markdown, links, headings — all fine. The conventional-commits parser only reads the **subject** and the **footer**; everything in between is just human context.
+
+### Footers
+
+Footers are key/value lines at the **very end** of the PR description, separated from the body by a blank line, with nothing after them. They drive semver bumps and GitHub side effects.
+
+```
+feat(auth): overhaul login flow
+
+- add automatic login on app start using a stored refresh token
+- replace generic "Something went wrong" with field-specific error messages
+- refresh the session gracefully when the token expires mid-session
+
+BREAKING CHANGE: the /auth/v1 endpoint and the `legacyLogin()` client helper have been removed. Consumers must call `login()` from `@little-world/auth`.
+Closes #123
+```
+
+| Footer            | Effect                                                                 |
+| ----------------- | ---------------------------------------------------------------------- |
+| `BREAKING CHANGE: <desc>` | Forces a **major** version bump and shows up in the changelog under "⚠ BREAKING CHANGES". |
+| `Closes #N` / `Fixes #N`  | GitHub auto-closes the linked issue when the PR merges.                |
+
+Shorthand: `feat!:` in the subject also marks a breaking change, but the `BREAKING CHANGE:` footer is preferred because it lets you describe *what* broke.
+
+**Rules to remember:**
+
+- The footer must be the **last paragraph**. Anything after it (a stray link, a screenshot) will break footer detection.
+- One blank line separates body from footer.
+- `BREAKING CHANGE` is case-sensitive (uppercase, space, hyphen).
+
+### One PR, one type
+
+If a PR mixes a new feature and an unrelated bugfix, split it into two PRs. Release-please routes by the type in the subject — you can only pick one. Bundle bullets in the body only when they describe one cohesive change.
+
+### Merge strategy
+
+The repo only allows **merge commits** — squash and rebase are disabled. The merge commit is configured to use the **PR title** as its subject (`merge_commit_title: PR_TITLE`) and the **PR description** as its body (`merge_commit_message: PR_BODY`), so release-please reads the PR title verbatim. Make sure the PR title is conventional; individual commits on the feature branch don't need to be.
+
 ## 🌍 Translations
 
 This app uses i18next for internationalization and merges translations from two sources:

@@ -6,11 +6,16 @@ inputs:
     required: true
     description: "Backend base URL, written into environment.ts"
   env-file:
-    required: true
+    required: false
+    default: ""
     description: "Environment file in ./environments to promote to env.ts (e.g. env.prod.ts or env.staging.ts)"
   expo-token:
     required: true
     description: "Expo access token for EAS auth"
+  sync-frontend:
+    required: false
+    default: "true"
+    description: "Patch environment.ts and copy it into the frontend submodule. Set to 'false' for submit-only jobs that don't need the JS bundle."
 
 outputs:
   version:
@@ -38,6 +43,7 @@ runs:
         echo "eas_version=$EAS_VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Patch native environment.ts and sync to frontend
+      if: inputs.sync-frontend == "true"
       shell: bash
       env:
         BASE_URL: ${{ inputs.base-url }}
@@ -56,7 +62,9 @@ runs:
       run: |
         set -euo pipefail
         mv eas.ci.json eas.json
-        mv "./environments/$ENV_FILE" ./environments/env.ts
+        if [ -n "$ENV_FILE" ]; then
+          mv "./environments/$ENV_FILE" ./environments/env.ts
+        fi
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v4
@@ -68,6 +76,11 @@ runs:
       with:
         node-version-file: .nvmrc
         cache: pnpm
+
+    - name: Install missing tools (act only)
+      if: ${{ env.ACT }}
+      run: pnpm install -g yarn
+      # yarn is required for expo setup
 
     - name: Setup Expo and EAS
       uses: expo/expo-github-action@v8

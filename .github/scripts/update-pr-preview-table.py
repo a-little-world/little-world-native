@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manage the preview-builds Markdown table inside a PR description."""
+"""Render the preview-builds Markdown table, merging the new build row into any existing block read from CURRENT_BODY."""
 from __future__ import annotations
 
 import os

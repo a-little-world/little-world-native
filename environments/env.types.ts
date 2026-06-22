@@ -3,5 +3,6 @@ export interface EnvironmentNative {
   googleServiceInfoFileIOS: string;
   googleServiceInfoFileAndroid: string;
   appleEnvironment: "development" | "production";
+  sentryProject?: string;
   sentryUrl?: string;
 }

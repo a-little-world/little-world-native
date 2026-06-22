@@ -17,6 +17,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Release keys
+google-service-account-key.json
+app-store-connect-api-key.p8
+
 # Metro
 .metro-health-check*
 
