@@ -7,6 +7,7 @@ const environmentNative: EnvironmentNative = {
   googleServiceInfoFileAndroid:
     "./certs/google/google-services-development.json",
   appleEnvironment: "development",
+  sentryProject: undefined,
   sentryUrl: undefined,
 };
 

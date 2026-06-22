@@ -7,8 +7,9 @@ const environmentNative: EnvironmentNative = {
   googleServiceInfoFileAndroid:
     "./certs/google/google-services-production.json",
   appleEnvironment: "production",
+  sentryProject: "lw-prod-native",
   sentryUrl:
-    "https://5b7832a26c656c8d809e8a3b26f57756@o4506032071507968.ingest.us.sentry.io/4506633212067840",
+    "https://471ed1aed9372af87fa86d3eb7ee95c7@o4506032071507968.ingest.us.sentry.io/4511607774117888",
 };
 
 export default environmentNative;
