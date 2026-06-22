@@ -1,7 +1,7 @@
 {
   "name": "little-world-app",
   "main": "expo-router/entry",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "scripts": {
     "start": "pnpm run frontend:setup && expo start --port 9000",
     "start:tunnel": "expo start --port 9000 --tunnel",
