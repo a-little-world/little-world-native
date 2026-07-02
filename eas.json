@@ -36,6 +36,17 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6751417631",
+        "ascApiKeyId": "Z9A9L2UQBX",
+        "ascApiKeyIssuerId": "b6a04981-688e-4d91-8859-04f1611bd3ff",
+        "ascApiKeyPath": "app-store-connect-api-key.p8"
+      },
+      "android": {
+        "track": "internal",
+        "serviceAccountKeyPath": "google-service-account-key.json"
+      }
+    }
   }
 }

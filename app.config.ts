@@ -8,12 +8,12 @@ const ANDROID_VERSION_CODE = APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "little-world-app",
+  name: environmentNative.displayName,
   slug: "little-world-app",
   version: APP_VERSION,
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
-  scheme: "little-world-app",
+  scheme: environmentNative.urlScheme,
   userInterfaceStyle: "automatic",
   owner: "little-world",
   ios: {
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
-    bundleIdentifier: "com.littleworld.littleworldapp",
+    bundleIdentifier: environmentNative.bundleId,
     appleTeamId: "3Z662F5MW8",
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: "./assets/images/icons/app.icon",
@@ -47,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: "com.littleworld.littleworldapp",
+    package: environmentNative.bundleId,
     versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
