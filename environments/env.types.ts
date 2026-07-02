@@ -1,7 +1,6 @@
 export interface EnvironmentNative {
   bundleId: string;
   displayName: string;
-  urlScheme: string;
   googleCloudProjectNumber: string;
   googleServiceInfoFileIOS: string;
   googleServiceInfoFileAndroid: string;

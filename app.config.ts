@@ -13,7 +13,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: APP_VERSION,
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
-  scheme: environmentNative.urlScheme,
   userInterfaceStyle: "automatic",
   owner: "little-world",
   ios: {
