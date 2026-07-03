@@ -8,12 +8,12 @@ on:
       profile:
         description: "EAS build profile"
         required: true
-        default: "preview"
+        default: "staging"
         type: choice
         options:
           - development
           - development-device
-          - preview
+          - staging
           - production
       baseUrl:
         description: "Backend base URL"
@@ -36,7 +36,7 @@ permissions:
 
 jobs:
   build-android:
-    name: Build Android (${{ github.event.inputs.profile || 'preview' }})
+    name: Build Android (${{ github.event.inputs.profile || 'staging' }})
     if: >
       (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-android') ||
       (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
@@ -44,13 +44,13 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.buildAndroid == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: preview-build-android-${{ github.event.pull_request.number || github.run_id }}
+      group: staging-build-android-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
-      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
@@ -65,7 +65,7 @@ jobs:
         run: |
           case "$PROFILE" in
             production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
-            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            staging)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
             *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
           esac
 
@@ -106,7 +106,7 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Update preview builds sticky comment (android)
+      - name: Update staging builds sticky comment (android)
         if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -121,7 +121,7 @@ jobs:
           export COMMIT_SHA="$HEAD_SHA"
           export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
           export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
-          MARKER="<!-- preview-builds:start -->"
+          MARKER="<!-- staging-builds:start -->"
           for attempt in 1 2 3; do
             COMMENT_JSON=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
               --jq "[.[] | select(.body | contains(\"$MARKER\"))] | .[0] // empty")
@@ -132,7 +132,7 @@ jobs:
               COMMENT_ID=""
               export CURRENT_BODY=""
             fi
-            python3 .github/scripts/update-pr-preview-table.py > new_comment.md
+            python3 .github/scripts/update-pr-staging-table.py > new_comment.md
             if [ -n "$COMMENT_ID" ]; then
               if jq -Rs '{body: .}' new_comment.md | \
                   gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" --input -; then
@@ -150,7 +150,7 @@ jobs:
           done
 
   build-ios:
-    name: Build iOS (${{ github.event.inputs.profile || 'preview' }})
+    name: Build iOS (${{ github.event.inputs.profile || 'staging' }})
     if: >
       (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'build-ios') ||
       (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
@@ -158,12 +158,12 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.buildIos == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: preview-build-ios-${{ github.event.pull_request.number || github.run_id }}
+      group: staging-build-ios-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     env:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
-      PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
@@ -178,7 +178,7 @@ jobs:
         run: |
           case "$PROFILE" in
             production) echo "name=env.prod.ts" >> "$GITHUB_OUTPUT" ;;
-            preview)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
+            staging)    echo "name=env.staging.ts" >> "$GITHUB_OUTPUT" ;;
             *)          echo "name=" >> "$GITHUB_OUTPUT" ;;
           esac
 
@@ -217,7 +217,7 @@ jobs:
           path: release-artifacts/*
           if-no-files-found: error
 
-      - name: Update preview builds sticky comment (ios)
+      - name: Update staging builds sticky comment (ios)
         if: success() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -232,7 +232,7 @@ jobs:
           export COMMIT_SHA="$HEAD_SHA"
           export COMMIT_MSG=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA" --jq '.commit.message')
           export TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M")
-          MARKER="<!-- preview-builds:start -->"
+          MARKER="<!-- staging-builds:start -->"
           for attempt in 1 2 3; do
             COMMENT_JSON=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
               --jq "[.[] | select(.body | contains(\"$MARKER\"))] | .[0] // empty")
@@ -243,7 +243,7 @@ jobs:
               COMMENT_ID=""
               export CURRENT_BODY=""
             fi
-            python3 .github/scripts/update-pr-preview-table.py > new_comment.md
+            python3 .github/scripts/update-pr-staging-table.py > new_comment.md
             if [ -n "$COMMENT_ID" ]; then
               if jq -Rs '{body: .}' new_comment.md | \
                   gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" --input -; then
