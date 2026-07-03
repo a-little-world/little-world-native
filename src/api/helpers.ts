@@ -22,6 +22,7 @@ import {
   debugStore,
   FetchError,
   getEffectiveBackendUrl,
+  useDebugStore,
 } from "../store/debugStore";
 import { domCommunicationStore } from "../store/domCommunicationStore";
 
@@ -188,6 +189,12 @@ export async function apiFetch<T = any>(
 const APP_INTEGRITY_KEY_ID_KEY = "APP_INTEGRITY_KEY_ID";
 
 export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
+  const { bypassIntegrityChecks, integrityBypassToken } =
+    useDebugStore.getState();
+  if (bypassIntegrityChecks && integrityBypassToken) {
+    return bypassIntegrityCheck(integrityBypassToken);
+  }
+
   switch (Platform.OS) {
     case "android":
       return requestIntegrityCheckAndroid();
@@ -196,6 +203,35 @@ export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
       return requestIntegrityCheckIOS();
     case "web":
       return requestIntegrityCheckWeb();
+    default:
+      throw new Error(
+        `Platform ${Platform.OS} not supported for integrity check`,
+      );
+  }
+}
+
+async function bypassIntegrityCheck(
+  bypassToken: string,
+): Promise<IntegrityCheck> {
+  switch (Platform.OS) {
+    case 'android':
+      return {
+        platform: 'android',
+        challengeId: 'bypass',
+        integrityToken: 'bypass',
+        bypassToken,
+      };
+    case 'macos':
+    case 'ios':
+      return {
+        platform: 'ios',
+        keyId: 'bypass',
+        challengeId: 'bypass',
+        attestationObject: 'bypass',
+        bypassToken,
+      };
+    case 'web':
+      return { platform: 'web', bypassToken };
     default:
       throw new Error(
         `Platform ${Platform.OS} not supported for integrity check`,
@@ -259,6 +295,7 @@ export function getIntegrityCheckRequestData(
     return {
       challenge_id: integrityCheck.challengeId,
       integrity_token: integrityCheck.integrityToken,
+      bypass_token: integrityCheck.bypassToken,
     } satisfies IntegrityCheckRequestDataAndroid;
   }
   if (integrityCheck.platform === "ios") {
@@ -266,6 +303,7 @@ export function getIntegrityCheckRequestData(
       key_id: integrityCheck.keyId,
       challenge_id: integrityCheck.challengeId,
       attestation_object: integrityCheck.attestationObject,
+      bypass_token: integrityCheck.bypassToken,
     } satisfies IntegrityCheckRequestDataIOS;
   }
   if (integrityCheck.platform === "web") {
@@ -280,6 +318,7 @@ export function getIntegrityCheckRequestData(
 
 const ACCESS_TOKEN_KEY = "dom_auth_access_token";
 const REFRESH_TOKEN_KEY = "dom_auth_refresh_token";
+const INTEGRITY_BYPASS_TOKEN_KEY = "dom_auth_integrity_bypass_token";
 
 export async function getAccessJwtToken() {
   try {
@@ -329,11 +368,34 @@ export async function clearJwtTokens() {
   } catch {}
 }
 
+export async function getIntegrityBypassToken() {
+  try {
+    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
+      return SecureStore.getItemAsync(INTEGRITY_BYPASS_TOKEN_KEY);
+    }
+  } catch {}
+  return null;
+}
+
+export async function saveIntegrityBypassToken(token: string | null) {
+  try {
+    if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
+      if (token) {
+        await SecureStore.setItemAsync(INTEGRITY_BYPASS_TOKEN_KEY, token);
+      } else {
+        await SecureStore.deleteItemAsync(INTEGRITY_BYPASS_TOKEN_KEY);
+      }
+    }
+  } catch {}
+}
+
 export async function loadStoredTokensIntoStore() {
   const accessToken = (await getAccessJwtToken()) ?? undefined;
   const refreshToken = (await getRefreshJwtToken()) ?? undefined;
+  const integrityBypassToken = await getIntegrityBypassToken();
 
   useAuthStore.setState({ accessToken, refreshToken });
+  useDebugStore.setState({ integrityBypassToken });
 
   return { accessToken, refreshToken };
 }
