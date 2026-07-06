@@ -32,6 +32,8 @@ jobs:
       build-id: ${{ steps.build.outputs.build_id }}
       build-url: ${{ steps.build.outputs.build_url }}
       build-ext: ${{ steps.build.outputs.build_ext }}
+      app-version: ${{ steps.build.outputs.app_version }}
+      app-build-version: ${{ steps.build.outputs.app_build_version }}
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
@@ -59,14 +61,18 @@ jobs:
           eas build --platform android --profile production --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
-          if [ -z "$BUILD_ID" ] || [ -z "$URL" ]; then
-            echo "Could not find android build id/url" >&2
+          APP_VERSION=$(jq -r '.[0].appVersion // empty' build_output.json)
+          APP_BUILD_VERSION=$(jq -r '.[0].appBuildVersion // empty' build_output.json)
+          if [ -z "$BUILD_ID" ] || [ -z "$URL" ] || [ -z "$APP_VERSION" ] || [ -z "$APP_BUILD_VERSION" ]; then
+            echo "Could not find android build id/url/version" >&2
             cat build_output.json >&2
             exit 1
           fi
           echo "build_id=$BUILD_ID" >> "$GITHUB_OUTPUT"
           echo "build_url=$URL" >> "$GITHUB_OUTPUT"
           echo "build_ext=${URL##*.}" >> "$GITHUB_OUTPUT"
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "app_build_version=$APP_BUILD_VERSION" >> "$GITHUB_OUTPUT"
 
   submit-android:
     name: Submit Android to Play Store
@@ -103,6 +109,8 @@ jobs:
       version: ${{ steps.setup.outputs.version }}
       build-id: ${{ steps.build.outputs.build_id }}
       build-url: ${{ steps.build.outputs.build_url }}
+      app-version: ${{ steps.build.outputs.app_version }}
+      app-build-version: ${{ steps.build.outputs.app_build_version }}
     env:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: "true"
@@ -129,13 +137,17 @@ jobs:
           eas build --platform ios --profile production --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
-          if [ -z "$BUILD_ID" ] || [ -z "$URL" ]; then
-            echo "Could not find iOS build id/url" >&2
+          APP_VERSION=$(jq -r '.[0].appVersion // empty' build_output.json)
+          APP_BUILD_VERSION=$(jq -r '.[0].appBuildVersion // empty' build_output.json)
+          if [ -z "$BUILD_ID" ] || [ -z "$URL" ] || [ -z "$APP_VERSION" ] || [ -z "$APP_BUILD_VERSION" ]; then
+            echo "Could not find iOS build id/url/version" >&2
             cat build_output.json >&2
             exit 1
           fi
           echo "build_id=$BUILD_ID" >> "$GITHUB_OUTPUT"
           echo "build_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "app_build_version=$APP_BUILD_VERSION" >> "$GITHUB_OUTPUT"
 
   attach-release-assets:
     name: Attach build artifacts to GitHub release
@@ -199,14 +211,18 @@ jobs:
 
   notify-sentry:
     name: Notify Sentry of production deploy
-    needs: [build-ios, submit-android, submit-ios]
+    needs: [build-android, build-ios, submit-android, submit-ios]
     runs-on: ubuntu-latest
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: a-little-world-gug
       SENTRY_PROJECT: lw-prod-native
       BUNDLE_ID: com.littleworld.littleworldapp
-      VERSION: ${{ needs.build-ios.outputs.version }}
+      # Exact version/build numbers baked into each artifact, straight from `eas build --json`
+      IOS_VERSION: ${{ needs.build-ios.outputs.app-version }}
+      IOS_BUILD: ${{ needs.build-ios.outputs.app-build-version }}
+      ANDROID_VERSION: ${{ needs.build-android.outputs.app-version }}
+      ANDROID_BUILD: ${{ needs.build-android.outputs.app-build-version }}
     steps:
       - name: Checkout (full history for --auto commit detection)
         uses: actions/checkout@v4
@@ -220,11 +236,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          IFS='.' read -r MAJ MIN PAT <<< "$VERSION"
-          ANDROID_VERSION_CODE=$((MAJ * 10000 + MIN * 100 + PAT))
-
-          IOS_RELEASE="${BUNDLE_ID}@${VERSION}+${VERSION}"
-          ANDROID_RELEASE="${BUNDLE_ID}@${VERSION}+${ANDROID_VERSION_CODE}"
+          IOS_RELEASE="${BUNDLE_ID}@${IOS_VERSION}+${IOS_BUILD}"
+          ANDROID_RELEASE="${BUNDLE_ID}@${ANDROID_VERSION}+${ANDROID_BUILD}"
 
           for RELEASE in "$IOS_RELEASE" "$ANDROID_RELEASE"; do
             echo "::group::Sentry release $RELEASE"
