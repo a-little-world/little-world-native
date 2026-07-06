@@ -17,13 +17,6 @@
       "credentialsSource": "remote",
       "distribution": "internal"
     },
-    "preview": {
-      "distribution": "internal",
-      "credentialsSource": "remote",
-      "android": {
-        "buildType": "apk"
-      }
-    },
     "staging": {
       "credentialsSource": "remote",
       "android": {
