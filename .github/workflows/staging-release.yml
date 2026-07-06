@@ -54,6 +54,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Monotonic build counter so repeated betas at the same marketing version don't collide
+          export EAS_BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          echo "Beta Android build number: $EAS_BUILD_NUMBER"
           eas build --platform android --profile staging --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
@@ -131,6 +134,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Monotonic build counter so repeated betas at the same marketing version don't collide
+          export EAS_BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          echo "Beta iOS build number: $EAS_BUILD_NUMBER"
           eas build --platform ios --profile staging --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)

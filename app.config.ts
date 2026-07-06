@@ -4,7 +4,15 @@ import environmentNative from "./environments/env";
 
 const APP_VERSION = "1.0.31"; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split(".").map(Number);
-const ANDROID_VERSION_CODE = APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
+
+// The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
+// Staging/beta dispatches inject a unique EAS_BUILD_NUMBER (the CI run number) at build time so
+// repeated betas at the same marketing version don't collide in TestFlight / Play. Unset for
+// prod/dev builds, which derive it from the semver (prod ships each version once).
+const IOS_BUILD_NUMBER = process.env.EAS_BUILD_NUMBER || APP_VERSION;
+const ANDROID_VERSION_CODE = process.env.EAS_BUILD_NUMBER
+  ? Number(process.env.EAS_BUILD_NUMBER)
+  : APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -16,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: "automatic",
   owner: "little-world",
   ios: {
-    buildNumber: APP_VERSION,
+    buildNumber: IOS_BUILD_NUMBER,
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
