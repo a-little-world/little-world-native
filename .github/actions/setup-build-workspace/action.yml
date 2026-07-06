@@ -61,7 +61,6 @@ runs:
         ENV_FILE: ${{ inputs.env-file }}
       run: |
         set -euo pipefail
-        mv eas.ci.json eas.json
         if [ -n "$ENV_FILE" ]; then
           mv "./environments/$ENV_FILE" ./environments/env.ts
         fi
