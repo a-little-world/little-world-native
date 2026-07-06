@@ -1,0 +1,240 @@
+name: Staging (Beta) Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseUrl:
+        description: 'Base URL for backend'
+        required: false
+        default: 'https://stage.little-world.com'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-release
+  cancel-in-progress: true
+
+env:
+  BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
+
+jobs:
+  build-android:
+    name: Build Android (staging)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      build-id: ${{ steps.build.outputs.build_id }}
+      build-url: ${{ steps.build.outputs.build_url }}
+      build-ext: ${{ steps.build.outputs.build_ext }}
+    env:
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: 'true'
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android (EAS, staging)
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build --platform android --profile staging --non-interactive --json > build_output.json
+          BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+          if [ -z "$BUILD_ID" ] || [ -z "$URL" ]; then
+            echo "Could not find android build id/url" >&2
+            cat build_output.json >&2
+            exit 1
+          fi
+          echo "build_id=$BUILD_ID" >> "$GITHUB_OUTPUT"
+          echo "build_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "build_ext=${URL##*.}" >> "$GITHUB_OUTPUT"
+
+  submit-android:
+    name: Submit Android to Play Store (internal)
+    needs: build-android
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: 'false'
+
+      - name: Submit to Play Store (internal track)
+        shell: bash
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          BUILD_ID: ${{ needs.build-android.outputs.build-id }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GOOGLE_SERVICE_ACCOUNT_KEY" > google-service-account-key.json
+          eas submit --platform android --profile staging --non-interactive --id "$BUILD_ID"
+
+  build-ios:
+    name: Build iOS (staging)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      build-id: ${{ steps.build.outputs.build_id }}
+      build-url: ${{ steps.build.outputs.build_url }}
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: 'true'
+    steps:
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS (EAS, staging)
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas build --platform ios --profile staging --non-interactive --json > build_output.json
+          BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
+          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+          if [ -z "$BUILD_ID" ] || [ -z "$URL" ]; then
+            echo "Could not find iOS build id/url" >&2
+            cat build_output.json >&2
+            exit 1
+          fi
+          echo "build_id=$BUILD_ID" >> "$GITHUB_OUTPUT"
+          echo "build_url=$URL" >> "$GITHUB_OUTPUT"
+
+  attach-release-assets:
+    name: Attach build artifacts to beta GitHub release
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.build-ios.outputs.version }}
+      ANDROID_URL: ${{ needs.build-android.outputs.build-url }}
+      ANDROID_EXT: ${{ needs.build-android.outputs.build-ext }}
+      IOS_URL: ${{ needs.build-ios.outputs.build-url }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Download artifacts from EAS
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          ANDROID_OUT="artifacts/little-world-app_${VERSION}-beta-android.${ANDROID_EXT}"
+          IOS_OUT="artifacts/little-world-app_${VERSION}-beta-ios.ipa"
+          curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$ANDROID_OUT" "$ANDROID_URL"
+          curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$IOS_OUT" "$IOS_URL"
+          ls -lh artifacts
+
+      - name: Create beta prerelease and upload assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}-beta.${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" artifacts/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Beta v${VERSION} (build ${GITHUB_RUN_NUMBER})" \
+            --prerelease \
+            --notes "Beta build from staging-release workflow (run ${GITHUB_RUN_NUMBER})."
+
+  submit-ios:
+    name: Submit iOS to TestFlight
+    needs: build-ios
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+    steps:
+      - name: Checkout little-world-native
+        uses: actions/checkout@v4
+
+      - name: Setup workspace (submit-only)
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: ${{ env.BASE_URL }}
+          env-file: env.staging.ts
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+          sync-frontend: 'false'
+
+      - name: Submit to App Store (TestFlight)
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          BUILD_ID: ${{ needs.build-ios.outputs.build-id }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$APP_STORE_CONNECT_API_KEY" > app-store-connect-api-key.p8
+          eas submit --platform ios --profile staging --non-interactive --id "$BUILD_ID"
+
+  notify-sentry:
+    name: Notify Sentry of staging deploy
+    needs: [build-ios, submit-android, submit-ios]
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: a-little-world-gug
+      SENTRY_PROJECT: lw-staging-native
+      BUNDLE_ID: com.littleworld.littleworldapp.beta
+      VERSION: ${{ needs.build-ios.outputs.version }}
+    steps:
+      - name: Checkout (full history for --auto commit detection)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create + finalize + deploy Sentry releases
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS='.' read -r MAJ MIN PAT <<< "$VERSION"
+          ANDROID_VERSION_CODE=$((MAJ * 10000 + MIN * 100 + PAT))
+
+          IOS_RELEASE="${BUNDLE_ID}@${VERSION}+${VERSION}"
+          ANDROID_RELEASE="${BUNDLE_ID}@${VERSION}+${ANDROID_VERSION_CODE}"
+
+          for RELEASE in "$IOS_RELEASE" "$ANDROID_RELEASE"; do
+            echo "::group::Sentry release $RELEASE"
+            sentry-cli releases new "$RELEASE"
+            sentry-cli releases set-commits "$RELEASE" --auto
+            sentry-cli releases finalize "$RELEASE"
+            sentry-cli releases deploys "$RELEASE" new -e staging
+            echo "::endgroup::"
+          done
