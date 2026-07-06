@@ -179,6 +179,15 @@ jobs:
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$IOS_OUT" "$IOS_URL"
           ls -lh artifacts
 
+      - name: Build signed universal APK from the AAB
+        uses: ./.github/actions/build-signed-apk
+        with:
+          aab-path: artifacts/little-world-app_${{ needs.build-ios.outputs.version }}-beta-android.aab
+          apk-path: artifacts/little-world-app_${{ needs.build-ios.outputs.version }}-beta-android.apk
+          keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+
       - name: Create beta prerelease and upload assets
         shell: bash
         run: |

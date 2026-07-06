@@ -200,6 +200,16 @@ Run it as often as you like between production releases - each run gets a fresh 
   - **Beta** injects the CI run number (`EAS_BUILD_NUMBER`) at build time, so repeated betas at the same marketing version don't collide.
 - Both stores **require the build number to strictly increase** per upload (across all tracks of an app), and beta/prod are separate apps with independent sequences.
 
+### Verifiable Android APK
+
+Every production release attaches a **universal APK** signed with our own key. It's generated from the same AAB via `bundletool` (no second build) and uploaded to the GitHub release, so it can be sideloaded and verified. Verify a download:
+
+```bash
+apksigner verify --print-certs little-world-app_<version>-android.apk
+```
+
+Compare the printed SHA-256 against the fingerprint published in the release notes.
+
 ## 🌍 Translations
 
 This app uses i18next for internationalization and merges translations from two sources:
