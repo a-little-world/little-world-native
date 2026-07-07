@@ -69,11 +69,11 @@ eas login
 # Configure EAS (first time only)
 eas build:configure
 
-# Create development build for iOS
-eas build --platform ios --profile development
+# Create a simulator build for iOS
+eas build --platform ios --profile simulator
 eas build:run --platform ios
 
-# Create development build for Android
+# Create a development build for Android (device / emulator)
 eas build --platform android --profile development
 eas build:run --platform android
 ```

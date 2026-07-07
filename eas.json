@@ -4,14 +4,14 @@
     "appVersionSource": "local"
   },
   "build": {
-    "development": {
+    "simulator": {
       "developmentClient": true,
       "credentialsSource": "remote",
       "ios": {
         "simulator": true
       }
     },
-    "development-device": {
+    "development": {
       "developmentClient": true,
       "credentialsSource": "remote",
       "distribution": "internal"

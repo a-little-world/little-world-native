@@ -11,8 +11,8 @@ on:
         default: "staging"
         type: choice
         options:
+          - simulator
           - development
-          - development-device
           - staging
           - production
       baseUrl:
