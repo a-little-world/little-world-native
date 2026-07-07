@@ -121,14 +121,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         icon: "./src/assets/images/logo-image.png",
       },
     ],
-    [
-      "@sentry/react-native/expo",
-      {
-        url: "https://sentry.io/",
-        project: environmentNative.sentryProject,
-        organization: "a-little-world-gug",
-      },
-    ],
+    ...(environmentNative.sentryProject
+      ? [
+          [
+            "@sentry/react-native/expo",
+            {
+              project: environmentNative.sentryProject,
+              organization: "a-little-world-gug",
+            },
+          ] satisfies NonNullable<ExpoConfig["plugins"]>[number],
+        ]
+      : []),
     "@react-native-firebase/app",
     "@react-native-firebase/messaging",
   ],
