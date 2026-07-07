@@ -1,31 +1,33 @@
 {
   "cli": {
     "version": "18.7.0",
-    "appVersionSource": "local",
-    "promptToConfigurePushNotifications": false
+    "appVersionSource": "local"
   },
   "build": {
-    "development": {
+    "simulator": {
       "developmentClient": true,
-      "credentialsSource": "local",
+      "credentialsSource": "remote",
       "ios": {
         "simulator": true
       }
     },
-    "development-device": {
+    "development": {
       "developmentClient": true,
-      "credentialsSource": "local",
+      "credentialsSource": "remote",
       "distribution": "internal"
     },
-    "preview": {
-      "distribution": "internal",
-      "credentialsSource": "local",
+    "staging": {
+      "credentialsSource": "remote",
       "android": {
-        "buildType": "apk"
+        "image": "latest",
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "image": "latest"
       }
     },
     "production": {
-      "credentialsSource": "local",
+      "credentialsSource": "remote",
       "android": {
         "image": "latest",
         "buildType": "app-bundle"
@@ -36,6 +38,29 @@
     }
   },
   "submit": {
-    "production": {}
+    "staging": {
+      "ios": {
+        "ascAppId": "6787037898",
+        "ascApiKeyId": "Z9A9L2UQBX",
+        "ascApiKeyIssuerId": "b6a04981-688e-4d91-8859-04f1611bd3ff",
+        "ascApiKeyPath": "app-store-connect-api-key.p8"
+      },
+      "android": {
+        "track": "internal",
+        "serviceAccountKeyPath": "google-service-account-key.json"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascAppId": "6751417631",
+        "ascApiKeyId": "Z9A9L2UQBX",
+        "ascApiKeyIssuerId": "b6a04981-688e-4d91-8859-04f1611bd3ff",
+        "ascApiKeyPath": "app-store-connect-api-key.p8"
+      },
+      "android": {
+        "track": "internal",
+        "serviceAccountKeyPath": "google-service-account-key.json"
+      }
+    }
   }
 }

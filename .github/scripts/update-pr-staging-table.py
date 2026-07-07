@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Render the preview-builds Markdown table, merging the new build row into any existing block read from CURRENT_BODY."""
+"""Render the staging-builds Markdown table, merging the new build row into any existing block read from CURRENT_BODY."""
 from __future__ import annotations
 
 import os
 import re
 import sys
 
-MARK_START = "<!-- preview-builds:start -->"
-MARK_END = "<!-- preview-builds:end -->"
-HEADING = "### Preview builds"
+MARK_START = "<!-- staging-builds:start -->"
+MARK_END = "<!-- staging-builds:end -->"
+HEADING = "### Staging builds"
 HEADER_ROW = "| Built (UTC) | Commit | Android | iOS |"
 SEP_ROW = "|---|---|---|---|"
 EMPTY_CELL = "—"

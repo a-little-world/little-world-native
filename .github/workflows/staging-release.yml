@@ -1,31 +1,27 @@
-name: Production Release
+name: Staging (Beta) Release
 
 on:
-  release:
-    types: [published]
-  push:
-    branches:
-      - production
   workflow_dispatch:
     inputs:
       baseUrl:
-        description: "Base URL for backend"
+        description: 'Base URL for backend'
         required: false
-        default: "https://little-world.com"
+        default: 'https://stage.little-world.com'
 
 permissions:
   contents: read
 
 concurrency:
-  group: production-release
+  group: staging-release
   cancel-in-progress: true
 
 env:
-  BASE_URL: ${{ github.event.inputs.baseUrl || 'https://little-world.com' }}
+  BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
 
 jobs:
   build-android:
-    name: Build Android (production)
+    name: Build Android (staging)
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.setup.outputs.version }}
@@ -37,7 +33,7 @@ jobs:
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -50,15 +46,18 @@ jobs:
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.prod.ts
+          env-file: env.staging.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android (EAS, production)
+      - name: Build Android (EAS, staging)
         id: build
         shell: bash
         run: |
           set -euo pipefail
-          eas build --platform android --profile production --non-interactive --json > build_output.json
+          # Monotonic build counter so repeated betas at the same marketing version don't collide
+          export EAS_BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          echo "Beta Android build number: $EAS_BUILD_NUMBER"
+          eas build --platform android --profile staging --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           APP_VERSION=$(jq -r '.[0].appVersion // empty' build_output.json)
@@ -75,7 +74,7 @@ jobs:
           echo "app_build_version=$APP_BUILD_VERSION" >> "$GITHUB_OUTPUT"
 
   submit-android:
-    name: Submit Android to Play Store
+    name: Submit Android to Play Store (internal)
     needs: build-android
     runs-on: ubuntu-latest
     env:
@@ -88,11 +87,11 @@ jobs:
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.prod.ts
+          env-file: env.staging.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
-          sync-frontend: "false"
+          sync-frontend: 'false'
 
-      - name: Submit to Play Store
+      - name: Submit to Play Store (internal track)
         shell: bash
         env:
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
@@ -100,10 +99,11 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$GOOGLE_SERVICE_ACCOUNT_KEY" > google-service-account-key.json
-          eas submit --platform android --profile production --non-interactive --id "$BUILD_ID"
+          eas submit --platform android --profile staging --non-interactive --id "$BUILD_ID"
 
   build-ios:
-    name: Build iOS (production)
+    name: Build iOS (staging)
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.setup.outputs.version }}
@@ -113,7 +113,7 @@ jobs:
       app-build-version: ${{ steps.build.outputs.app_build_version }}
     env:
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -126,15 +126,18 @@ jobs:
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.prod.ts
+          env-file: env.staging.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build iOS (EAS, production)
+      - name: Build iOS (EAS, staging)
         id: build
         shell: bash
         run: |
           set -euo pipefail
-          eas build --platform ios --profile production --non-interactive --json > build_output.json
+          # Monotonic build counter so repeated betas at the same marketing version don't collide
+          export EAS_BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          echo "Beta iOS build number: $EAS_BUILD_NUMBER"
+          eas build --platform ios --profile staging --non-interactive --json > build_output.json
           BUILD_ID=$(jq -r '.[0].id // empty' build_output.json)
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           APP_VERSION=$(jq -r '.[0].appVersion // empty' build_output.json)
@@ -150,28 +153,28 @@ jobs:
           echo "app_build_version=$APP_BUILD_VERSION" >> "$GITHUB_OUTPUT"
 
   attach-release-assets:
-    name: Attach build artifacts to GitHub release
-    if: github.event_name == 'release'
+    name: Attach build artifacts to beta GitHub release
     needs: [build-android, build-ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      VERSION: ${{ needs.build-ios.outputs.version }}
+      ANDROID_URL: ${{ needs.build-android.outputs.build-url }}
+      ANDROID_EXT: ${{ needs.build-android.outputs.build-ext }}
+      IOS_URL: ${{ needs.build-ios.outputs.build-url }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout little-world-native
         uses: actions/checkout@v4
 
       - name: Download artifacts from EAS
         shell: bash
-        env:
-          VERSION: ${{ needs.build-ios.outputs.version }}
-          ANDROID_URL: ${{ needs.build-android.outputs.build-url }}
-          ANDROID_EXT: ${{ needs.build-android.outputs.build-ext }}
-          IOS_URL: ${{ needs.build-ios.outputs.build-url }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          ANDROID_OUT="artifacts/little-world_${VERSION}-android.${ANDROID_EXT}"
-          IOS_OUT="artifacts/little-world_${VERSION}-ios.ipa"
+          ANDROID_OUT="artifacts/little-world_${VERSION}-beta-android.${ANDROID_EXT}"
+          IOS_OUT="artifacts/little-world_${VERSION}-beta-ios.ipa"
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$ANDROID_OUT" "$ANDROID_URL"
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$IOS_OUT" "$IOS_URL"
           ls -lh artifacts
@@ -179,22 +182,26 @@ jobs:
       - name: Build signed universal APK from the AAB
         uses: ./.github/actions/build-signed-apk
         with:
-          aab-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-android.aab
-          apk-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-android.apk
+          aab-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-beta-android.aab
+          apk-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-beta-android.apk
           keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
 
-      - name: Upload assets to GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name }}
+      - name: Create beta prerelease and upload assets
+        shell: bash
         run: |
           set -euo pipefail
-          gh release upload "$TAG" artifacts/* --clobber --repo "$GITHUB_REPOSITORY"
+          TAG="v${VERSION}-beta.${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" artifacts/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Beta v${VERSION} (build ${GITHUB_RUN_NUMBER})" \
+            --prerelease \
+            --notes "Beta build from staging-release workflow (run ${GITHUB_RUN_NUMBER})."
 
   submit-ios:
-    name: Submit iOS to App Store
+    name: Submit iOS to TestFlight
     needs: build-ios
     runs-on: ubuntu-latest
     env:
@@ -207,11 +214,11 @@ jobs:
         uses: ./.github/actions/setup-build-workspace
         with:
           base-url: ${{ env.BASE_URL }}
-          env-file: env.prod.ts
+          env-file: env.staging.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
-          sync-frontend: "false"
+          sync-frontend: 'false'
 
-      - name: Submit to App Store
+      - name: Submit to App Store (TestFlight)
         shell: bash
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -219,17 +226,17 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$APP_STORE_CONNECT_API_KEY" > app-store-connect-api-key.p8
-          eas submit --platform ios --profile production --non-interactive --id "$BUILD_ID"
+          eas submit --platform ios --profile staging --non-interactive --id "$BUILD_ID"
 
   notify-sentry:
-    name: Notify Sentry of production deploy
+    name: Notify Sentry of staging deploy
     needs: [build-android, build-ios, submit-android, submit-ios]
     runs-on: ubuntu-latest
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: a-little-world-gug
-      SENTRY_PROJECT: lw-prod-native
-      BUNDLE_ID: com.littleworld.littleworldapp
+      SENTRY_PROJECT: lw-staging-native
+      BUNDLE_ID: com.littleworld.littleworldapp.beta
       # Exact version/build numbers baked into each artifact, straight from `eas build --json`
       IOS_VERSION: ${{ needs.build-ios.outputs.app-version }}
       IOS_BUILD: ${{ needs.build-ios.outputs.app-build-version }}
@@ -256,6 +263,6 @@ jobs:
             sentry-cli releases new "$RELEASE"
             sentry-cli releases set-commits "$RELEASE" --auto
             sentry-cli releases finalize "$RELEASE"
-            sentry-cli releases deploys "$RELEASE" new -e production
+            sentry-cli releases deploys "$RELEASE" new -e staging
             echo "::endgroup::"
           done

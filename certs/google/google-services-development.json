@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:728125212622:android:4f7e2b3018768cdfaa8d9f",
+        "mobilesdk_app_id": "1:728125212622:android:35c8fe293d9e7450aa8d9f",
         "android_client_info": {
-          "package_name": "com.littleworld.littleworldapp"
+          "package_name": "com.littleworld.littleworldapp.dev"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "728125212622-79dhh2i6n5bh393t3plj1tv6lbtbchfk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDoD4fj-dYZSPZCGbwzrRl-bBqfFdP_wAQ"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "728125212622-79dhh2i6n5bh393t3plj1tv6lbtbchfk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

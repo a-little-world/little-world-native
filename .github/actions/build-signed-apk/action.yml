@@ -1,0 +1,65 @@
+name: Build signed universal APK
+description: Generate a universal APK from an AAB with bundletool and sign it with the provided keystore.
+
+inputs:
+  aab-path:
+    required: true
+    description: Path to the input .aab
+  apk-path:
+    required: true
+    description: Path to write the signed universal .apk
+  keystore-base64:
+    required: true
+    description: Base64-encoded signing keystore
+  keystore-password:
+    required: true
+    description: Keystore password (PKCS12 keystore => also the key password)
+  key-alias:
+    required: true
+    description: Key alias inside the keystore
+  bundletool-version:
+    required: false
+    default: "1.17.2"
+    description: bundletool release to use
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK (for bundletool)
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: "17"
+
+    - name: Build signed universal APK
+      shell: bash
+      env:
+        AAB_PATH: ${{ inputs.aab-path }}
+        APK_PATH: ${{ inputs.apk-path }}
+        BUNDLETOOL_VERSION: ${{ inputs.bundletool-version }}
+        KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+        KEYSTORE_PASSWORD: ${{ inputs.keystore-password }}
+        KEY_ALIAS: ${{ inputs.key-alias }}
+      run: |
+        set -euo pipefail
+        if [ ! -f "$AAB_PATH" ]; then
+          echo "Expected AAB not found: $AAB_PATH" >&2
+          ls -lh "$(dirname "$AAB_PATH")" >&2 || true
+          exit 1
+        fi
+        curl -fL --retry 5 --retry-all-errors -o bundletool.jar \
+          "https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
+        printf '%s' "$KEYSTORE_BASE64" | base64 -d > release.keystore
+        # PKCS12 keystore: key password == store password
+        java -jar bundletool.jar build-apks \
+          --bundle="$AAB_PATH" \
+          --output=app.apks \
+          --mode=universal \
+          --ks=release.keystore \
+          --ks-key-alias="$KEY_ALIAS" \
+          --ks-pass="pass:${KEYSTORE_PASSWORD}" \
+          --key-pass="pass:${KEYSTORE_PASSWORD}"
+        unzip -p app.apks universal.apk > "$APK_PATH"
+        rm -f release.keystore app.apks bundletool.jar
+        echo "SHA-256 fingerprint of the signing cert:"
+        keytool -printcert -jarfile "$APK_PATH" | grep -i "SHA256:" || true

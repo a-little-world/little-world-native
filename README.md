@@ -69,11 +69,11 @@ eas login
 # Configure EAS (first time only)
 eas build:configure
 
-# Create development build for iOS
-eas build --platform ios --profile development
+# Create a simulator build for iOS
+eas build --platform ios --profile simulator
 eas build:run --platform ios
 
-# Create development build for Android
+# Create a development build for Android (device / emulator)
 eas build --platform android --profile development
 eas build:run --platform android
 ```
@@ -98,18 +98,18 @@ We use [release-please](https://github.com/googleapis/release-please) to automat
 
 The title is linted by `.github/workflows/lint-pr-title.yml`. Allowed types:
 
-| Type       | When to use                                                         | Affects release? |
-| ---------- | ------------------------------------------------------------------- | ---------------- |
-| `feat`     | New user-facing feature                                             | minor bump       |
-| `fix`      | Bug fix                                                             | patch bump       |
-| `perf`     | Performance improvement                                             | patch bump       |
-| `refactor` | Internal restructuring with no behavior change                      | no bump          |
-| `docs`     | Documentation only                                                  | no bump          |
-| `test`     | Tests only                                                          | no bump          |
-| `build`    | Build system / dependencies                                         | no bump          |
-| `ci`       | CI configuration                                                    | no bump          |
+| Type       | When to use                                                                      | Affects release? |
+| ---------- | -------------------------------------------------------------------------------- | ---------------- |
+| `feat`     | New user-facing feature                                                          | minor bump       |
+| `fix`      | Bug fix                                                                          | patch bump       |
+| `perf`     | Performance improvement                                                          | patch bump       |
+| `refactor` | Internal restructuring with no behavior change                                   | no bump          |
+| `docs`     | Documentation only                                                               | no bump          |
+| `test`     | Tests only                                                                       | no bump          |
+| `build`    | Build system / dependencies                                                      | no bump          |
+| `ci`       | CI configuration                                                                 | no bump          |
 | `chore`    | Other maintenance (renames, formatting, dependency bumps that don't fit `build`) | no bump          |
-| `style`    | Code style / formatting                                             | no bump          |
+| `style`    | Code style / formatting                                                          | no bump          |
 
 Scope is optional and free-form (e.g. `feat(auth):`, `fix(android):`).
 
@@ -117,9 +117,9 @@ The subject must start with a letter, no trailing period, ideally under ~70 char
 
 ✅ `feat: add automatic login on app start`
 ✅ `fix(ios): correct keyboard avoidance on chat screen`
-❌ `Update auth stuff`                ← no type
-❌ `feat:`                            ← missing subject
-❌ `feat: Updated auth.`              ← past tense + trailing period (not strictly enforced, but avoid)
+❌ `Update auth stuff` ← no type
+❌ `feat:` ← missing subject
+❌ `feat: Updated auth.` ← past tense + trailing period (not strictly enforced, but avoid)
 
 ### PR description (body)
 
@@ -146,12 +146,12 @@ BREAKING CHANGE: the /auth/v1 endpoint and the `legacyLogin()` client helper hav
 Closes #123
 ```
 
-| Footer            | Effect                                                                 |
-| ----------------- | ---------------------------------------------------------------------- |
+| Footer                    | Effect                                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
 | `BREAKING CHANGE: <desc>` | Forces a **major** version bump and shows up in the changelog under "⚠ BREAKING CHANGES". |
-| `Closes #N` / `Fixes #N`  | GitHub auto-closes the linked issue when the PR merges.                |
+| `Closes #N` / `Fixes #N`  | GitHub auto-closes the linked issue when the PR merges.                                   |
 
-Shorthand: `feat!:` in the subject also marks a breaking change, but the `BREAKING CHANGE:` footer is preferred because it lets you describe *what* broke.
+Shorthand: `feat!:` in the subject also marks a breaking change, but the `BREAKING CHANGE:` footer is preferred because it lets you describe _what_ broke.
 
 **Rules to remember:**
 
@@ -166,6 +166,49 @@ If a PR mixes a new feature and an unrelated bugfix, split it into two PRs. Rele
 ### Merge strategy
 
 The repo only allows **merge commits** — squash and rebase are disabled. The merge commit is configured to use the **PR title** as its subject (`merge_commit_title: PR_TITLE`) and the **PR description** as its body (`merge_commit_message: PR_BODY`), so release-please reads the PR title verbatim. Make sure the PR title is conventional; individual commits on the feature branch don't need to be.
+
+## 🚢 Releases
+
+The app ships in three independent variants, each a separate store app with its own bundle ID (configured per environment in `environments/`):
+
+| Variant | Bundle ID                             | Name                | Distribution                   |
+| ------- | ------------------------------------- | ------------------- | ------------------------------ |
+| Dev     | `com.littleworld.littleworldapp.dev`  | Little World (Dev)  | Local / ad-hoc only (no store) |
+| Beta    | `com.littleworld.littleworldapp.beta` | Little World (Beta) | TestFlight + Play internal     |
+| Prod    | `com.littleworld.littleworldapp`      | Little World        | App Store + Play production    |
+
+**Beta and production are two independent tracks.** Production is driven by automated release-please workflow; beta is a manual workflow. Releasing a beta does not touch the `main` branch or bump the version.
+
+### Shipping to production
+
+1. Merge PRs with conventional titles (see [Pull Requests](#-pull-requests)). release-please maintains a **Release PR** that bumps the version in `app.config.ts` and updates the changelog.
+2. Merge that Release PR. release-please tags the commit and publishes a GitHub release `vX.Y.Z`.
+3. The published release triggers **`production-release.yml`**, which builds both platforms with the `production` EAS profile, submits to the App Store + Play production track, attaches the `.ipa`/`.aab` to the release, and notifies Sentry.
+
+### Releasing a beta
+
+1. **Actions → Staging (Beta) Release → Run workflow** (from `main`).
+2. It builds the current `main` with the `staging` EAS profile, submits to TestFlight + Play internal, attaches artifacts to a GitHub **pre-release** `vX.Y.Z-beta.<run>`, and notifies Sentry (`lw-staging-native`).
+
+Run it as often as you like between production releases - each run gets a fresh build number so uploads never collide.
+
+### Versions & build numbers
+
+- **Marketing version** (`1.0.31`, shown to users) comes from `APP_VERSION` in `app.config.ts` and is owned by release-please. Betas carry whatever version `main` is currently at.
+- **Build number** (`CFBundleVersion` / Android `versionCode`) is a monotonic "which upload" counter, separate from the marketing version:
+  - **Prod** derives it from the semver - each version ships once, so it stays unique.
+  - **Beta** injects the CI run number (`EAS_BUILD_NUMBER`) at build time, so repeated betas at the same marketing version don't collide.
+- Both stores **require the build number to strictly increase** per upload (across all tracks of an app), and beta/prod are separate apps with independent sequences.
+
+### Verifiable Android APK
+
+Every production release attaches a **universal APK** signed with our own key. It's generated from the same AAB via `bundletool` (no second build) and uploaded to the GitHub release, so it can be sideloaded and verified. Verify a download:
+
+```bash
+apksigner verify --print-certs little-world_<version>-android.apk
+```
+
+Compare the printed SHA-256 against the fingerprint published in the release notes.
 
 ## 🌍 Translations
 

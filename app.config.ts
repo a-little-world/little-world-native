@@ -4,24 +4,31 @@ import environmentNative from "./environments/env";
 
 const APP_VERSION = "1.0.31"; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split(".").map(Number);
-const ANDROID_VERSION_CODE = APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
+
+// The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
+// Staging/beta dispatches inject a unique EAS_BUILD_NUMBER (the CI run number) at build time so
+// repeated betas at the same marketing version don't collide in TestFlight / Play. Unset for
+// prod/dev builds, which derive it from the semver (prod ships each version once).
+const IOS_BUILD_NUMBER = process.env.EAS_BUILD_NUMBER || APP_VERSION;
+const ANDROID_VERSION_CODE = process.env.EAS_BUILD_NUMBER
+  ? Number(process.env.EAS_BUILD_NUMBER)
+  : APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "little-world-app",
+  name: environmentNative.displayName,
   slug: "little-world-app",
   version: APP_VERSION,
   orientation: "portrait",
   icon: "./src/assets/images/logo-image.png",
-  scheme: "little-world-app",
   userInterfaceStyle: "automatic",
   owner: "little-world",
   ios: {
-    buildNumber: APP_VERSION,
+    buildNumber: IOS_BUILD_NUMBER,
     supportsTablet: true,
     backgroundColor: "#ffffff",
     bitcode: false,
-    bundleIdentifier: "com.littleworld.littleworldapp",
+    bundleIdentifier: environmentNative.bundleId,
     appleTeamId: "3Z662F5MW8",
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: "./assets/images/icons/app.icon",
@@ -47,7 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: "com.littleworld.littleworldapp",
+    package: environmentNative.bundleId,
     versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
@@ -114,14 +121,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         icon: "./src/assets/images/logo-image.png",
       },
     ],
-    [
-      "@sentry/react-native/expo",
-      {
-        url: "https://sentry.io/",
-        project: environmentNative.sentryProject,
-        organization: "a-little-world-gug",
-      },
-    ],
+    ...(environmentNative.sentryProject
+      ? [
+          [
+            "@sentry/react-native/expo",
+            {
+              project: environmentNative.sentryProject,
+              organization: "a-little-world-gug",
+            },
+          ] satisfies NonNullable<ExpoConfig["plugins"]>[number],
+        ]
+      : []),
     "@react-native-firebase/app",
     "@react-native-firebase/messaging",
   ],
