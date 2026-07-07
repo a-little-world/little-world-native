@@ -59,8 +59,11 @@ export default Sentry.wrap(function RootLayout() {
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  gestureEnabled: true,
-                  fullScreenGestureEnabled: true,
+                  // ponytail: single native route — nothing to pop. Back nav is
+                  // handled inside the WebView (iOS: allowsBackForwardNavigationGestures,
+                  // Android: BackHandler bridge). Native gesture disabled so it doesn't
+                  // swallow the edge-pan.
+                  gestureEnabled: false,
                 }}
               />
             )}

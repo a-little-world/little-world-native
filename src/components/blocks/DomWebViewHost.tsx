@@ -5,12 +5,33 @@ import {
   updateTokens,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
-import { View } from "react-native";
+import { useEffect } from "react";
+import { BackHandler, Platform, View } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
 import LittleWorldWebLazy from "./LittleWorldWebLazy";
 
 export default function DomWebViewHost() {
-  const { domRef, sendToReactNative } = useDomCommunicationContext();
+  const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
+
+  // Android hardware/gesture back → forward into the WebView's history.
+  // iOS is handled at the WebView layer (allowsBackForwardNavigationGestures).
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const onBack = () => {
+      // Consume the event synchronously so react-navigation doesn't exit the
+      // app, then decide asynchronously whether the WebView actually went back.
+      sendToDom({ action: "NAVIGATE_BACK", payload: {} })
+        .then((res) => {
+          if (!res?.ok || !(res.data as { handled?: boolean })?.handled) {
+            BackHandler.exitApp();
+          }
+        })
+        .catch(() => BackHandler.exitApp());
+      return true;
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
+    return () => sub.remove();
+  }, [sendToDom]);
 
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
     apiFetch(endpoint, options, "frontend");
