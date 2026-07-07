@@ -170,8 +170,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          ANDROID_OUT="artifacts/little-world-app_${VERSION}-android.${ANDROID_EXT}"
-          IOS_OUT="artifacts/little-world-app_${VERSION}-ios.ipa"
+          ANDROID_OUT="artifacts/little-world_${VERSION}-android.${ANDROID_EXT}"
+          IOS_OUT="artifacts/little-world_${VERSION}-ios.ipa"
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$ANDROID_OUT" "$ANDROID_URL"
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$IOS_OUT" "$IOS_URL"
           ls -lh artifacts
@@ -179,8 +179,8 @@ jobs:
       - name: Build signed universal APK from the AAB
         uses: ./.github/actions/build-signed-apk
         with:
-          aab-path: artifacts/little-world-app_${{ needs.build-ios.outputs.version }}-android.aab
-          apk-path: artifacts/little-world-app_${{ needs.build-ios.outputs.version }}-android.apk
+          aab-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-android.aab
+          apk-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-android.apk
           keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}

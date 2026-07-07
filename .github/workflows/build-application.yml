@@ -93,7 +93,7 @@ jobs:
             exit 1
           fi
           EXT="${URL##*.}"
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-android.${EXT}"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-android.${EXT}"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
@@ -102,7 +102,7 @@ jobs:
       - name: Upload android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
+          name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
           path: release-artifacts/*
           if-no-files-found: error
 
@@ -205,7 +205,7 @@ jobs:
             cat build_output.json >&2
             exit 1
           fi
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world-app_${VERSION}-${PROFILE}-ios.ipa"
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-ios.ipa"
           curl -fL -o "$OUT" "$URL"
           ls -lh "$OUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
@@ -213,7 +213,7 @@ jobs:
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: little-world-app_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
+          name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
           path: release-artifacts/*
           if-no-files-found: error
 

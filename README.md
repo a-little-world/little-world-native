@@ -205,7 +205,7 @@ Run it as often as you like between production releases - each run gets a fresh 
 Every production release attaches a **universal APK** signed with our own key. It's generated from the same AAB via `bundletool` (no second build) and uploaded to the GitHub release, so it can be sideloaded and verified. Verify a download:
 
 ```bash
-apksigner verify --print-certs little-world-app_<version>-android.apk
+apksigner verify --print-certs little-world_<version>-android.apk
 ```
 
 Compare the printed SHA-256 against the fingerprint published in the release notes.
