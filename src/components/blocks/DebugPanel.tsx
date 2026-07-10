@@ -1,10 +1,16 @@
 import { environment } from "@/environment";
-import { apiFetch, clearJwtTokens, saveJwtTokens } from "@/src/api/helpers";
+import {
+  apiFetch,
+  clearJwtTokens,
+  saveIntegrityBypassToken,
+  saveJwtTokens,
+} from "@/src/api/helpers";
 import {
   getBackendUrl,
   secureStoreIsAvailable,
   supportsAppIntegrity,
 } from "@/src/helpers/appInfos";
+import { decryptBypassToken } from "@/src/helpers/bypassToken";
 import { useAuthStore } from "@/src/store/authStore";
 import {
   FetchError,
@@ -111,6 +117,23 @@ function Btn({
       <Text style={[styles.btnText, small && styles.btnTextSmall]}>
         {label}
       </Text>
+    </TouchableOpacity>
+  );
+}
+
+function Checkbox({
+  label,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.checkboxRow} onPress={onToggle}>
+      <Text style={styles.checkboxBox}>{checked ? "☑" : "☐"}</Text>
+      <Text style={styles.checkboxLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -234,6 +257,8 @@ export default function DebugPanel() {
     backendUrlOverride,
     debugAccessToken,
     debugRefreshToken,
+    bypassIntegrityChecks,
+    integrityBypassToken,
     fetchErrors,
     reactErrors,
   } = useDebugStore();
@@ -437,6 +462,18 @@ export default function DebugPanel() {
       secretInput,
     );
     if (digest === DEVELOPER_SECRET_DIGEST) {
+      try {
+        const bypassToken = await decryptBypassToken(secretInput);
+        debugStore.get().setIntegrityBypassToken(bypassToken);
+        await saveIntegrityBypassToken(bypassToken);
+      } catch (e) {
+        debugStore.get().addReactError({
+          source: "native",
+          message: "Error during bypass token decryption",
+          stack: String(e),
+        });
+        console.error(e);
+      }
       debugStore.get().setDebugEnabled(true);
       setSecretDialogVisible(false);
       setVisible(true);
@@ -581,9 +618,9 @@ export default function DebugPanel() {
               </View>
             </Section>
 
-            {/* ── Auth Tokens ── */}
+            {/* ── Auth ── */}
             <Section
-              title="Auth Tokens"
+              title="Auth"
               expanded={expanded.tokens}
               onToggle={() => toggle("tokens")}
             >
@@ -629,6 +666,19 @@ export default function DebugPanel() {
                   small
                 />
               </View>
+              <Text style={[styles.subLabel, { marginTop: 8 }]}>Integrity</Text>
+              <Checkbox
+                label="Bypass integrity checks"
+                checked={bypassIntegrityChecks}
+                onToggle={() =>
+                  debugStore
+                    .get()
+                    .setBypassIntegrityChecks(!bypassIntegrityChecks)
+                }
+              />
+              <Text style={[styles.subLabel, { marginTop: 8 }]}>
+                Bypass token: {integrityBypassToken}
+              </Text>
             </Section>
 
             {/* ── DOM Communication ── */}
@@ -868,6 +918,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   rowValue: { fontSize: 11, color: "#333", fontFamily: "monospace", flex: 1 },
+  checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+  checkboxBox: { fontSize: 16, marginRight: 6, color: "#333" },
+  checkboxLabel: { fontSize: 12, color: "#333", flex: 1 },
 
   input: {
     borderWidth: 1,
