@@ -127,11 +127,13 @@ jobs:
           DJ_AWS_STATIC_BUCKET_NAME=
           DJ_AWS_REGION_NAME=
           EOF
-          # ci compose doesn't declare the native integrity-bypass token; inject it.
+          # ci compose declares neither the native integrity-bypass allow flag nor
+          # the token; inject both (both required for /api/user/native-login/web).
           cat > docker-compose.override.yaml <<'EOF'
           services:
             all:
               environment:
+                DJ_NATIVE_APP_INTEGRITY_ALLOW_BYPASS: "1"
                 DJ_NATIVE_APP_INTEGRITY_BYPASS_TOKEN: "bypassChangeMe!"
           EOF
           # --no-build: use the buildx image we just tagged as APP_IMAGE_URL.
