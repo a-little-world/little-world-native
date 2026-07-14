@@ -3,15 +3,16 @@ name: E2E
 # Runs the e2e suite against a backend built + started INSIDE
 # this pipeline, pinned to a single backend ref (`.backend-ref`, overridable via
 # the workflow_dispatch input). The backend repo is checked out ephemerally
-# (no working-tree clutter here) and built frontend-free, with Docker layer
-# caching via the GitHub Actions cache.
+# (no working-tree clutter here) and built with only the frontend it needs, with
+# Docker layer caching via the GitHub Actions cache.
 #
-# Optimisation: the backend's Dockerfile.full builds three webpack frontends and
-# COPYs them into the final image. The e2e suite only needs the JSON API
-# (the native app is served separately from dist/), so we mechanically strip the
-# frontend stages from Dockerfile.full and build only the `backend` target. We
-# then run it via the backend's own ci compose (`--no-build`) so the container
-# env + redis wiring stay in lockstep with the backend (no drift).
+# Optimisation: the backend's Dockerfile.full builds three webpack frontends
+# (admin_panel, main, cookie_banner) and COPYs them into the final image. The e2e
+# suite serves the native app separately from dist/, so we strip the admin_panel +
+# main_frontend COPYs — those stages then go unreferenced and BuildKit skips them.
+# cookie_banner is kept: the backend won't start without it built + served. We run
+# the image via the backend's own ci compose (`--no-build`) so the container env +
+# redis wiring stay in lockstep with the backend (no drift).
 
 on:
   workflow_dispatch:
@@ -68,9 +69,10 @@ jobs:
           ref: ${{ steps.ref.outputs.ref }}
           path: backend
           token: ${{ secrets.BOT_PAT }}
-          # No submodules: frontends aren't built, and _cookie_consent_repo is
-          # web-only (native has no consent banner) so the API path doesn't need it.
-          submodules: false
+          # Recursive: the backend won't start without its cookie-consent submodule.
+          # Frontend submodules get cloned too but are never built (stages stripped
+          # below), so this is clone cost only — and checkout wires submodule auth.
+          submodules: recursive
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -80,11 +82,16 @@ jobs:
         run: |
           set -euo pipefail
           echo "${{ secrets.BOT_PAT }}" | docker login ghcr.io -u littleworld-bot --password-stdin
-          # Strip the frontend stages: keep from the `backend` stage onward and
-          # drop the `COPY --from=*_frontend_image` + matching mkdir lines.
-          sed -n '/AS backend$/,$p' Dockerfile.full \
-            | sed '/_frontend_image/d; /mkdir -p \.\/static\/dist\/.*_frontend/d' > Dockerfile.backend-slim
-          grep -q 'AS backend' Dockerfile.backend-slim || { echo "strip failed: no backend stage found" >&2; exit 1; }
+          # Drop only the admin_panel + main_frontend COPYs (and their mkdirs) from
+          # the backend stage. Those stages then go unreferenced and BuildKit skips
+          # building them. We keep cookie_banner_frontend: the backend won't start
+          # without it built + served. Stage definitions are left intact — cheaper to
+          # leave them than risk corrupting the file by deleting multi-line stages.
+          sed -E '/COPY --from=(admin_panel|main)_frontend_image/d; /mkdir -p \.\/static\/dist\/(admin_panel|main)_frontend/d' \
+            Dockerfile.full > Dockerfile.backend-slim
+          grep -q 'AS backend' Dockerfile.backend-slim || { echo "strip failed: no backend stage" >&2; exit 1; }
+          grep -q 'COPY --from=cookie_banner_frontend_image' Dockerfile.backend-slim || { echo "strip failed: cookie_banner COPY missing" >&2; exit 1; }
+          ! grep -q 'COPY --from=main_frontend_image' Dockerfile.backend-slim || { echo "strip failed: main_frontend not stripped" >&2; exit 1; }
           docker buildx build \
             --target backend \
             --build-arg DEVELOPMENT=false \
