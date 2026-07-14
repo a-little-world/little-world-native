@@ -22,7 +22,7 @@ on:
         required: false
         default: ''
   pull_request:
-    types: [labeled, synchronize]
+    types: [opened, reopened, labeled, synchronize]
 
 concurrency:
   group: e2e-${{ github.event.pull_request.number || github.run_id }}
@@ -34,8 +34,11 @@ permissions:
 jobs:
   e2e:
     name: E2E
+    # PRs to main: run when labeled `e2e` (iteration check, tests against .backend-ref).
+    # PRs to prod: always run (the merge gate — forced against backend main, see Resolve).
     if: >
       github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.base.ref == 'prod' ||
       (github.event.action == 'labeled' && github.event.label.name == 'e2e') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'e2e'))
     runs-on: ubuntu-latest
@@ -55,7 +58,12 @@ jobs:
         run: |
           set -euo pipefail
           REF="${{ github.event.inputs.backendRef }}"
-          if [ -z "$REF" ]; then
+          BASE="${{ github.event.pull_request.base.ref }}"
+          # prod merge gate: native must pass against backend main, no matter what
+          # .backend-ref or the dispatch input says. main PRs use the custom ref.
+          if [ "$BASE" = "prod" ]; then
+            REF="main"
+          elif [ -z "$REF" ]; then
             REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
           fi
           [ -n "$REF" ] || { echo "No backend ref (input empty and .backend-ref blank)" >&2; exit 1; }
