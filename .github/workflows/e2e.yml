@@ -23,9 +23,16 @@ on:
         default: ''
   pull_request:
     types: [opened, reopened, labeled, synchronize]
+  # Fired by the backend repo on merge-to-main (see notify-native-e2e in that repo).
+  # Runs native main against backend main immediately, catching drift without waiting
+  # for a main -> prod PR to be open.
+  repository_dispatch:
+    types: [backend-main-update]
 
 concurrency:
-  group: e2e-${{ github.event.pull_request.number || github.run_id }}
+  # PRs group by number; repository_dispatch groups by its type (e2e-backend-main-update) so a
+  # rapid series of backend merges cancels the older run instead of piling up.
+  group: e2e-${{ github.event.pull_request.number || github.event.action || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -36,8 +43,10 @@ jobs:
     name: E2E
     # PRs to main: run when labeled `e2e` (iteration check, tests against .backend-ref).
     # PRs to prod: always run (the merge gate — forced against backend main, see Resolve).
+    # repository_dispatch: backend merge-to-main drift check (also forced against main).
     if: >
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch' ||
       github.event.pull_request.base.ref == 'prod' ||
       (github.event.action == 'labeled' && github.event.label.name == 'e2e') ||
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'e2e'))
@@ -59,9 +68,11 @@ jobs:
           set -euo pipefail
           REF="${{ github.event.inputs.backendRef }}"
           BASE="${{ github.event.pull_request.base.ref }}"
-          # prod merge gate: native must pass against backend main, no matter what
-          # .backend-ref or the dispatch input says. main PRs use the custom ref.
-          if [ "$BASE" = "prod" ]; then
+          EVENT="${{ github.event_name }}"
+          # Force backend main for the prod merge gate AND the backend merge-to-main
+          # dispatch — native must pass against backend main regardless of .backend-ref
+          # or the dispatch input. main PRs use the custom ref.
+          if [ "$BASE" = "prod" ] || [ "$EVENT" = "repository_dispatch" ]; then
             REF="main"
           elif [ -z "$REF" ]; then
             REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
