@@ -182,6 +182,37 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Cache Metro transform cache
+        # expo export's Metro cache (default FileStore at /tmp/metro-cache) is cold every
+        # run otherwise. Metro invalidates entries per-module by content hash, so restoring
+        # a stale cache is safe — changed modules recompute, unchanged ones are reused.
+        # Unique key per sha to always save a warmed cache; restore-keys grabs the latest.
+        uses: actions/cache@v4
+        with:
+          path: /tmp/metro-cache
+          key: metro-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            metro-${{ runner.os }}-
+
+      - name: Cache Python venv
+        # run_native.sh reuses e2e_simulations/.venv if present, so caching it skips the
+        # rebuild + pip install. Keyed on requirements.txt: deps change -> fresh venv.
+        uses: actions/cache@v4
+        with:
+          path: e2e_simulations/.venv
+          key: e2e-venv-${{ runner.os }}-py3.12-${{ hashFiles('e2e_simulations/requirements.txt') }}
+
+      - name: Cache Playwright browsers
+        # playwright install re-downloads chromium every run otherwise. Keyed on
+        # requirements.txt (which pins the playwright version); a version bump busts it,
+        # and playwright install still backfills anything missing after a partial restore.
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e_simulations/requirements.txt') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Run e2e suite
         # --build exports dist/ with EXPO_PUBLIC_BACKEND_URL=$E2E_BACKEND_URL baked in;
         # the serve_native fixture serves it. run_native.sh bootstraps the venv + browser.
