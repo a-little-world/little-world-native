@@ -21,7 +21,7 @@
     "lint": "expo lint",
     "prebuild": "expo prebuild --clean",
     "frontend:setup": "./_scripts/setup_local_frontend.sh",
-    "export-web": "expo export --platform web"
+    "export-web": "expo export --platform web --output-dir native_build"
   },
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.9.0",
