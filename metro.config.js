@@ -50,7 +50,10 @@ module.exports = (() => {
   config.resolver.unstable_enableSymlinks = true;
 
   config.resolver.resolveRequest = (context, moduleName, platform) => {
-    if (moduleName.endsWith(".css")) {
+    // Native (ios/android) can't process .css, so stub it out there. The web/DOM
+    // bundle (rendered in the DOM-component WebView) CAN — let Expo's built-in CSS
+    // transform bundle it so the native app matches the web app's styling.
+    if (moduleName.endsWith(".css") && platform !== "web") {
       return { type: "sourceFile", filePath: path.resolve(__dirname, "_metro_css_stub.js") };
     }
     return context.resolveRequest(context, moduleName, platform);
