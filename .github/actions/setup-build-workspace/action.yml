@@ -49,9 +49,19 @@ runs:
         BASE_URL: ${{ inputs.base-url }}
       run: |
         set -euo pipefail
-        sed -i.bak "s|isNative: .*,|isNative: true,|" environment.ts
-        sed -i.bak "s|allowNgrokRequests: .*,|allowNgrokRequests: false,|" environment.ts
-        sed -i.bak "s|backendUrl: '.*'|backendUrl: '$BASE_URL'|" environment.ts
+        # Patch environment variables up to comma (to avoid overwriting interface).
+        # Abort if variable is not found.
+        patch_env() {
+          local key="$1" value="$2"
+          if ! grep -qE "${key}: .*,$" environment.ts; then
+            echo "Expected '${key}: ...,' in environment.ts, not found — patch aborted" >&2
+            exit 1
+          fi
+          sed -i.bak -E "s|${key}: .*,$|${key}: ${value},|" environment.ts
+        }
+        patch_env isNative true
+        patch_env allowNgrokRequests false
+        patch_env backendUrl "'$BASE_URL'"
         rm -f environment.ts.bak
         ./_scripts/setup_local_frontend.sh
 
