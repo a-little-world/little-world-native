@@ -59,8 +59,9 @@ export default Sentry.wrap(function RootLayout() {
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  gestureEnabled: true,
-                  fullScreenGestureEnabled: true,
+                  // Back navigation gestures are handled inside the WebView
+                  // -> disable here so they are not consumed prematurely
+                  gestureEnabled: false,
                 }}
               />
             )}

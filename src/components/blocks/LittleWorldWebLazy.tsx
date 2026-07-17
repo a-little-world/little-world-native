@@ -91,7 +91,7 @@ export default function LittleWorldWebLazy(props: {
 
   return (
     <LW
-      dom={{ matchContents: true }}
+      dom={{ matchContents: true, allowsBackForwardNavigationGestures: true }}
       sendMessageToReactNative={props.sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
       apiFetchNative={props.apiFetchNative}
