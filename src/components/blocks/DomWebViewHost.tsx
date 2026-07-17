@@ -3,25 +3,32 @@ import {
   apiFetch,
   refreshAccessTokens,
   updateTokens,
-} from "@/src/api/helpers";
-import { useAuthStore } from "@/src/store/authStore";
-import { useEffect } from "react";
-import { BackHandler, Platform, View } from "react-native";
-import { useDomCommunicationContext } from "./DomCommunicationCore";
-import LittleWorldWebLazy from "./LittleWorldWebLazy";
+} from '@/src/api/helpers';
+import { useAuthStore } from '@/src/store/authStore';
+import { useEffect, useState } from 'react';
+import { BackHandler, Platform, View } from 'react-native';
+import { useDomCommunicationContext } from './DomCommunicationCore';
+import LittleWorldWebLazy from './LittleWorldWebLazy';
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
 
+  // Frozen at mount: native already loaded stored tokens before this renders, so this
+  // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
+  const [hasStoredToken] = useState(() => {
+    const s = useAuthStore.getState();
+    return !!(s.accessToken || s.refreshToken);
+  });
+
   // Android hardware/gesture back → forward into the WebView's history.
   // iOS is handled at the WebView layer (allowsBackForwardNavigationGestures).
   useEffect(() => {
-    if (Platform.OS !== "android") return;
+    if (Platform.OS !== 'android') return;
     const onBack = () => {
       // Consume the event synchronously so react-navigation doesn't exit the
       // app, then decide asynchronously whether the WebView actually went back.
-      sendToDom({ action: "NAVIGATE_BACK", payload: {} })
-        .then((res) => {
+      sendToDom({ action: 'NAVIGATE_BACK', payload: {} })
+        .then(res => {
           if (!res?.ok || !(res.data as { handled?: boolean })?.handled) {
             BackHandler.exitApp();
           }
@@ -29,12 +36,12 @@ export default function DomWebViewHost() {
         .catch(() => BackHandler.exitApp());
       return true;
     };
-    const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
     return () => sub.remove();
   }, [sendToDom]);
 
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
-    apiFetch(endpoint, options, "frontend");
+    apiFetch(endpoint, options, 'frontend');
 
   const getAccessToken = async () => useAuthStore.getState().accessToken;
 
@@ -42,7 +49,7 @@ export default function DomWebViewHost() {
     accessToken: string | undefined,
     refreshToken: string | undefined,
   ): Promise<void> => {
-    console.log("frontend setting access tokens", accessToken, refreshToken);
+    console.log('frontend setting access tokens', accessToken, refreshToken);
     await updateTokens(accessToken, refreshToken);
   };
 
@@ -55,6 +62,7 @@ export default function DomWebViewHost() {
         refreshAccessToken={refreshAccessTokens}
         getAccessToken={getAccessToken}
         setAccessTokens={setAccessTokens}
+        hasStoredToken={hasStoredToken}
       />
     </View>
   );

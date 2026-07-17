@@ -1,0 +1,243 @@
+name: E2E
+
+# Runs the e2e suite against a backend built + started INSIDE
+# this pipeline, pinned to a single backend ref (`.backend-ref`, overridable via
+# the workflow_dispatch input). The backend repo is checked out ephemerally
+# (no working-tree clutter here) and built with only the frontend it needs, with
+# Docker layer caching via the GitHub Actions cache.
+#
+# Optimisation: the backend's Dockerfile.full builds three webpack frontends
+# (admin_panel, main, cookie_banner) and COPYs them into the final image. The e2e
+# suite serves the native app separately from dist/, so we strip the admin_panel +
+# main_frontend COPYs — those stages then go unreferenced and BuildKit skips them.
+# cookie_banner is kept: the backend won't start without it built + served. We run
+# the image via the backend's own ci compose (`--no-build`) so the container env +
+# redis wiring stay in lockstep with the backend (no drift).
+
+on:
+  workflow_dispatch:
+    inputs:
+      backendRef:
+        description: 'Backend git ref to test against (overrides .backend-ref)'
+        required: false
+        default: ''
+  pull_request:
+    types: [opened, reopened, labeled, synchronize]
+  # Fired by the backend repo on merge-to-main (see notify-native-e2e in that repo).
+  # Runs native main against backend main immediately, catching drift without waiting
+  # for a main -> prod PR to be open.
+  repository_dispatch:
+    types: [backend-main-update]
+
+concurrency:
+  # PRs group by number; repository_dispatch groups by its type (e2e-backend-main-update) so a
+  # rapid series of backend merges cancels the older run instead of piling up.
+  group: e2e-${{ github.event.pull_request.number || github.event.action || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E
+    # PRs to main: run when labeled `e2e` (iteration check, tests against .backend-ref).
+    # PRs to prod: always run (the merge gate — forced against backend main, see Resolve).
+    # repository_dispatch: backend merge-to-main drift check (also forced against main).
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch' ||
+      github.event.pull_request.base.ref == 'prod' ||
+      (github.event.action == 'labeled' && github.event.label.name == 'e2e') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'e2e'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      E2E_BACKEND_URL: http://127.0.0.1:8000
+      PLAYWRIGHT_INSTALL_FLAGS: --with-deps
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Resolve backend ref
+        id: ref
+        run: |
+          set -euo pipefail
+          REF="${{ github.event.inputs.backendRef }}"
+          BASE="${{ github.event.pull_request.base.ref }}"
+          EVENT="${{ github.event_name }}"
+          # Force backend main for the prod merge gate AND the backend merge-to-main
+          # dispatch — native must pass against backend main regardless of .backend-ref
+          # or the dispatch input. main PRs use the custom ref.
+          if [ "$BASE" = "prod" ] || [ "$EVENT" = "repository_dispatch" ]; then
+            REF="main"
+          elif [ -z "$REF" ]; then
+            REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
+          fi
+          [ -n "$REF" ] || { echo "No backend ref (input empty and .backend-ref blank)" >&2; exit 1; }
+          echo "Backend ref: $REF"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout backend (ephemeral, no submodules)
+        uses: actions/checkout@v4
+        with:
+          repository: a-little-world/little-world-backend
+          ref: ${{ steps.ref.outputs.ref }}
+          path: backend
+          token: ${{ secrets.BOT_PAT }}
+          # Recursive: the backend won't start without its cookie-consent submodule.
+          # Frontend submodules get cloned too but are never built (stages stripped
+          # below), so this is clone cost only — and checkout wires submodule auth.
+          submodules: recursive
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image (frontend-free, cached)
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.BOT_PAT }}" | docker login ghcr.io -u littleworld-bot --password-stdin
+          # Drop only the admin_panel + main_frontend COPYs (and their mkdirs) from
+          # the backend stage. Those stages then go unreferenced and BuildKit skips
+          # building them. We keep cookie_banner_frontend: the backend won't start
+          # without it built + served. Stage definitions are left intact — cheaper to
+          # leave them than risk corrupting the file by deleting multi-line stages.
+          sed -E '/COPY --from=(admin_panel|main)_frontend_image/d; /mkdir -p \.\/static\/dist\/(admin_panel|main)_frontend/d' \
+            Dockerfile.full > Dockerfile.backend-slim
+          grep -q 'AS backend' Dockerfile.backend-slim || { echo "strip failed: no backend stage" >&2; exit 1; }
+          grep -q 'COPY --from=cookie_banner_frontend_image' Dockerfile.backend-slim || { echo "strip failed: cookie_banner COPY missing" >&2; exit 1; }
+          ! grep -q 'COPY --from=main_frontend_image' Dockerfile.backend-slim || { echo "strip failed: main_frontend not stripped" >&2; exit 1; }
+          docker buildx build \
+            --target backend \
+            --build-arg DEVELOPMENT=false \
+            --build-arg TESTING=true \
+            --build-arg ENTRYPOINT=./entry.sh \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --load \
+            -t lw-backend:e2e \
+            -f Dockerfile.backend-slim \
+            .
+
+      - name: Start backend + redis (ci compose, prebuilt image)
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          cp dev/ci/docker-compose.ci.yaml docker-compose.yaml
+          cat > .env <<'EOF'
+          APP_IMAGE_URL=lw-backend:e2e
+          BUILD_TYPE=pro
+          ENTRYPOINT=./entry.sh
+          DEVELOPMENT=false
+          TESTING=true
+          WEBPACK_PUBLIC_PATH=
+          REDIS_URL=redis://redis:6379
+          DJ_REDIS_HOST=redis
+          DJ_REDIS_PORT=6379
+          CI=true
+          DJANGO_TESTING=true
+          DJ_ENABLE_E2E_TEST_APIS=true
+          DJ_AWS_STATIC_ACCESS_KEY_ID=
+          DJ_AWS_STATIC_SECRET_KEY=
+          DJ_AWS_STATIC_BUCKET_NAME=
+          DJ_AWS_REGION_NAME=
+          EOF
+          # ci compose declares neither the native integrity-bypass allow flag nor
+          # the token; inject both (both required for /api/user/native-login/web).
+          cat > docker-compose.override.yaml <<'EOF'
+          services:
+            all:
+              environment:
+                DJ_NATIVE_APP_INTEGRITY_ALLOW_BYPASS: "1"
+                DJ_NATIVE_APP_INTEGRITY_BYPASS_TOKEN: "bypassChangeMe!"
+          EOF
+          # --no-build: use the buildx image we just tagged as APP_IMAGE_URL.
+          docker compose up -d --no-build redis all
+
+      - name: Wait for backend readiness
+        run: |
+          set -euo pipefail
+          echo "Waiting for backend API on $E2E_BACKEND_URL ..."
+          for i in $(seq 1 90); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' "$E2E_BACKEND_URL/api/user/authenticated/" || true)"
+            if [ "$code" != "000" ]; then
+              echo "Backend responding (HTTP $code) after $((i*2))s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become ready in time" >&2
+          docker compose -f backend/docker-compose.yaml logs || true
+          exit 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Cache Metro transform cache
+        # expo export's Metro cache (default FileStore at /tmp/metro-cache) is cold every
+        # run otherwise. Metro invalidates entries per-module by content hash, so restoring
+        # a stale cache is safe — changed modules recompute, unchanged ones are reused.
+        # Unique key per sha to always save a warmed cache; restore-keys grabs the latest.
+        uses: actions/cache@v4
+        with:
+          path: /tmp/metro-cache
+          key: metro-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            metro-${{ runner.os }}-
+
+      - name: Cache Python venv
+        # run_native.sh reuses e2e_simulations/.venv if present, so caching it skips the
+        # rebuild + pip install. Keyed on requirements.txt: deps change -> fresh venv.
+        uses: actions/cache@v4
+        with:
+          path: e2e_simulations/.venv
+          key: e2e-venv-${{ runner.os }}-py3.12-${{ hashFiles('e2e_simulations/requirements.txt') }}
+
+      - name: Cache Playwright browsers
+        # playwright install re-downloads chromium every run otherwise. Keyed on
+        # requirements.txt (which pins the playwright version); a version bump busts it,
+        # and playwright install still backfills anything missing after a partial restore.
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e_simulations/requirements.txt') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Run e2e suite
+        # --build exports dist/ with EXPO_PUBLIC_BACKEND_URL=$E2E_BACKEND_URL baked in;
+        # the serve_native fixture serves it. run_native.sh bootstraps the venv + browser.
+        run: bash e2e_simulations/run_native.sh --build
+
+      - name: Backend logs
+        if: always()
+        working-directory: backend
+        run: docker compose logs --no-color > ../backend.log 2>&1 || true
+
+      - name: Upload backend logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: backend.log
+          if-no-files-found: ignore

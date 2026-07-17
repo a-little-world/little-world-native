@@ -10,7 +10,7 @@ import React, { lazy, Ref, useEffect, useRef } from "react";
 
 import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
 import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
-import { applyRootDisplayOverrideWithRetry } from "@/src/utils/domStyleOverride";
+import { injectDomStyleOverrides } from "@/src/utils/domStyleOverride";
 import { JSONValue } from "expo/build/dom/dom.types";
 import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
 
@@ -42,6 +42,7 @@ export default function LittleWorldWebLazy(props: {
   refreshAccessToken: typeof refreshAccessTokens;
   getAccessToken: () => Promise<string | undefined>;
   setAccessTokens: typeof updateTokens;
+  hasStoredToken: boolean;
   dom?: import("expo/dom").DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
@@ -53,7 +54,7 @@ export default function LittleWorldWebLazy(props: {
 
   // Inject CSS to override #root display property and fonts
   useEffect(() => {
-    const cleanupRoot = applyRootDisplayOverrideWithRetry();
+    const cleanupRoot = injectDomStyleOverrides();
     const cleanupFonts = applyFontInjectionWithRetry();
 
     return () => {
@@ -97,6 +98,7 @@ export default function LittleWorldWebLazy(props: {
       refreshAccessToken={props.refreshAccessToken}
       getAccessToken={props.getAccessToken}
       setAccessTokens={props.setAccessTokens}
+      hasStoredToken={props.hasStoredToken}
     />
   );
 }

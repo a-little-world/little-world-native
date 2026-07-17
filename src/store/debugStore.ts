@@ -29,6 +29,8 @@ type DebugState = {
   backendUrlOverride: string | null;
   debugAccessToken: string | null;
   debugRefreshToken: string | null;
+  bypassIntegrityChecks: boolean;
+  integrityBypassToken: string | null;
   fetchErrors: FetchError[];
   reactErrors: ReactError[];
 };
@@ -38,7 +40,9 @@ type Actions = {
   setBackendUrlOverride(url: string | null): void;
   setDebugTokens(access: string | null, refresh: string | null): void;
   clearDebugTokens(): void;
-  addFetchError(e: Omit<FetchError, "id" | "timestamp">): void;
+  setBypassIntegrityChecks(enabled: boolean): void;
+  setIntegrityBypassToken(token: string | null): void;
+  addFetchError(e: Omit<FetchError, 'id' | 'timestamp'>): void;
   clearFetchErrors(): void;
   addReactError(e: Omit<ReactError, "id" | "timestamp">): void;
   clearReactErrors(): void;
@@ -61,6 +65,8 @@ export const useDebugStore = create<DebugState & Actions>()(
       backendUrlOverride: null,
       debugAccessToken: null,
       debugRefreshToken: null,
+      bypassIntegrityChecks: false,
+      integrityBypassToken: null,
       fetchErrors: [],
       reactErrors: [],
       setDebugEnabled: (enabled) => set({ debugEnabled: enabled }),
@@ -69,8 +75,11 @@ export const useDebugStore = create<DebugState & Actions>()(
         set({ debugAccessToken: access, debugRefreshToken: refresh }),
       clearDebugTokens: () =>
         set({ debugAccessToken: null, debugRefreshToken: null }),
-      addFetchError: (e) =>
-        set((s) => ({
+      setBypassIntegrityChecks: enabled =>
+        set({ bypassIntegrityChecks: enabled }),
+      setIntegrityBypassToken: token => set({ integrityBypassToken: token }),
+      addFetchError: e =>
+        set(s => ({
           fetchErrors: [
             { ...e, id: newId(), timestamp: now() },
             ...s.fetchErrors,
@@ -94,11 +103,13 @@ export const useDebugStore = create<DebugState & Actions>()(
         backendUrlOverride,
         debugAccessToken,
         debugRefreshToken,
+        bypassIntegrityChecks,
       }) => ({
         debugEnabled,
         backendUrlOverride,
         debugAccessToken,
         debugRefreshToken,
+        bypassIntegrityChecks,
       }),
     },
   ),
