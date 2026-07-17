@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: "EAS build profile"
+        description: 'EAS build profile'
         required: true
-        default: "staging"
+        default: 'staging'
         type: choice
         options:
           - simulator
@@ -16,16 +16,16 @@ on:
           - staging
           - production
       baseUrl:
-        description: "Backend base URL"
+        description: 'Backend base URL'
         required: true
-        default: "https://stage.little-world.com"
+        default: 'https://stage.little-world.com'
       buildAndroid:
-        description: "Build Android"
+        description: 'Build Android'
         required: true
         default: true
         type: boolean
       buildIos:
-        description: "Build iOS"
+        description: 'Build iOS'
         required: true
         default: true
         type: boolean
@@ -49,7 +49,7 @@ jobs:
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
       PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
@@ -80,11 +80,8 @@ jobs:
       - name: Build Android (EAS)
         id: build
         shell: bash
-        env:
-          VERSION: ${{ steps.setup.outputs.version }}
         run: |
           set -euo pipefail
-          mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
           eas build --platform android --profile "$PROFILE" --non-interactive --json > build_output.json
           URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
           if [ -z "$URL" ]; then
@@ -92,14 +89,36 @@ jobs:
             cat build_output.json >&2
             exit 1
           fi
-          EXT="${URL##*.}"
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-android.${EXT}"
-          curl -fL -o "$OUT" "$URL"
-          ls -lh "$OUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
-          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
+          echo "ext=${URL##*.}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Android artifact from EAS
+        shell: bash
+        env:
+          URL: ${{ steps.build.outputs.url }}
+          EXT: ${{ steps.build.outputs.ext }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifacts
+          curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "eas-build.${EXT}" "$URL"
+
+      - name: Sign universal APK from AAB
+        if: steps.build.outputs.ext == 'aab'
+        uses: ./.github/actions/build-signed-apk
+        with:
+          aab-path: eas-build.aab
+          apk-path: release-artifacts/little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android.apk
+          keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+
+      - name: Collect prebuilt APK
+        if: steps.build.outputs.ext == 'apk'
+        shell: bash
+        run: mv eas-build.apk "release-artifacts/little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android.apk"
 
       - name: Upload android artifact
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
@@ -112,8 +131,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          URL: ${{ steps.build.outputs.url }}
-          EXT: ${{ steps.build.outputs.ext }}
+          URL: ${{ steps.upload.outputs.artifact-url }}
+          EXT: apk
           PLATFORM: android
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
         run: |
@@ -162,7 +181,7 @@ jobs:
       cancel-in-progress: true
     env:
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
       PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
     steps:
