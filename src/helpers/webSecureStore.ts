@@ -32,7 +32,7 @@ export class WebSecureStore {
   /**
    * Set an item in secure storage
    */
-  static async setItemAsync(key: string, value: string): Promise<void> {
+  static async setItemAsync(key: string, value: string | undefined): Promise<void> {
     try {
       if (typeof window === "undefined" || !window.localStorage) {
         console.warn("WebSecureStore: localStorage not available");
@@ -40,7 +40,11 @@ export class WebSecureStore {
       }
 
       const storageKey = this.getStorageKey(key);
-      localStorage.setItem(storageKey, value);
+      if (value) {
+        localStorage.setItem(storageKey, value);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
     } catch (error) {
       console.warn("WebSecureStore.setItemAsync failed:", error);
       throw error;

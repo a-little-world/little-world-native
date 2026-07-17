@@ -1,3 +1,6 @@
 [submodule "frontend"]
 	path = frontend
 	url = ../little-world-frontend.git
+[submodule "e2e_simulations"]
+	path = e2e_simulations
+	url = ../little-world-e2e-tests.git
