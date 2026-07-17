@@ -49,7 +49,10 @@ runs:
         fi
         curl -fL --retry 5 --retry-all-errors -o bundletool.jar \
           "https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
-        printf '%s' "$KEYSTORE_BASE64" | base64 -d > release.keystore
+        # Strip whitespace/CR before decoding — pasted secrets often carry newlines
+        # or a stray \r that base64 -d rejects as "invalid input".
+        printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > release.keystore
+        [ -s release.keystore ] || { echo "Decoded keystore is empty — check ANDROID_KEYSTORE_BASE64" >&2; exit 1; }
         # PKCS12 keystore: key password == store password
         java -jar bundletool.jar build-apks \
           --bundle="$AAB_PATH" \
