@@ -36,8 +36,11 @@ export default function DomWebViewHost() {
         .catch(() => BackHandler.exitApp());
       return true;
     };
-    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
-    return () => sub.remove();
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBack,
+    );
+    return () => subscription.remove();
   }, [sendToDom]);
 
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
