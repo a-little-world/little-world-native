@@ -5,12 +5,20 @@ import {
   updateTokens,
 } from "@/src/api/helpers";
 import { useAuthStore } from "@/src/store/authStore";
+import { useState } from "react";
 import { View } from "react-native";
 import { useDomCommunicationContext } from "./DomCommunicationCore";
 import LittleWorldWebLazy from "./LittleWorldWebLazy";
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative } = useDomCommunicationContext();
+
+  // Frozen at mount: native already loaded stored tokens before this renders, so this
+  // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
+  const [hasStoredToken] = useState(() => {
+    const s = useAuthStore.getState();
+    return !!(s.accessToken || s.refreshToken);
+  });
 
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
     apiFetch(endpoint, options, "frontend");
@@ -34,6 +42,7 @@ export default function DomWebViewHost() {
         refreshAccessToken={refreshAccessTokens}
         getAccessToken={getAccessToken}
         setAccessTokens={setAccessTokens}
+        hasStoredToken={hasStoredToken}
       />
     </View>
   );

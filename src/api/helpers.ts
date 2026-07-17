@@ -339,18 +339,18 @@ export async function getRefreshJwtToken() {
 }
 
 export async function saveJwtTokens(
-  accessToken: string | undefined,
-  refreshToken: string | undefined,
+  accessToken: string | undefined | null,
+  refreshToken: string | undefined | null,
 ) {
   try {
     if (SecureStore && typeof SecureStore.setItemAsync === "function") {
-      if (accessToken !== undefined) {
+      if (accessToken) {
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
       } else {
         await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       }
 
-      if (refreshToken !== undefined) {
+      if (refreshToken) {
         await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
       } else {
         await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
@@ -407,13 +407,13 @@ export enum TokenStatus {
 }
 
 export async function updateTokens(
-  accessToken: string | undefined,
-  refreshToken: string | undefined,
+  accessToken: string | undefined | null,
+  refreshToken: string | undefined | null,
 ): Promise<void> {
   const { setAccessToken, setRefreshToken } = useAuthStore.getState();
 
-  setAccessToken(accessToken);
-  setRefreshToken(refreshToken);
+  setAccessToken(accessToken ?? undefined);
+  setRefreshToken(refreshToken ?? undefined);
 
   mutate(IS_AUTHENTICATED_ENDPOINT);
 

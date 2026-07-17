@@ -1,6 +1,6 @@
 // Page.tsx
 import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
-import { loadStoredTokensIntoStore } from "@/src/api/helpers";
+import { loadStoredTokensIntoStore, refreshAccessTokens } from "@/src/api/helpers";
 import AuthGuard from "@/src/components/atoms/AuthGuard";
 import DomWebViewHost from "@/src/components/blocks/DomWebViewHost";
 import FireBase from "@/src/components/blocks/Firebase";
@@ -20,6 +20,7 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       await loadStoredTokensIntoStore();
+      await refreshAccessTokens();
       setTokensLoaded(true);
       mutate(IS_AUTHENTICATED_ENDPOINT);
     })();
