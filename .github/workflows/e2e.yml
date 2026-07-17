@@ -224,9 +224,12 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-
 
+      - name: Patch environment.ts with the in-pipeline backend URL
+        run: |
+          set -euo pipefail
+          bash .github/actions/setup-build-workspace/patch_env.sh environment.ts backendUrl "'$E2E_BACKEND_URL'"
+
       - name: Run e2e suite
-        # --build exports dist/ with EXPO_PUBLIC_BACKEND_URL=$E2E_BACKEND_URL baked in;
-        # the serve_native fixture serves it. run_native.sh bootstraps the venv + browser.
         run: bash e2e_simulations/run_native.sh --build
 
       - name: Backend logs
