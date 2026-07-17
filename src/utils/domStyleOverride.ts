@@ -1,17 +1,3 @@
-/**
- * Neutralizes the one styling difference between the DOM-component WebView and
- * the real web app: Expo renders "use dom" components inside its own HTML shell
- * that injects react-native-web's reset — `<style id="expo-dom-component-style">`
- * in dev (@expo/cli .../middleware/DomComponentsMiddleware.js) and
- * `<style id="expo-reset">` in prod (@expo/cli/static/template/index.html) —
- * forcing `#root { display: flex; flex: 1 }`. The web app's own index.html has no
- * such rule and relies on #root being a plain full-size block (flex breaks the
- * video-call screen). Those styles live in node_modules, so we append our own
- * later-in-<head> rule to win by insertion order.
- *
- * Everything else (including link styling) now comes from the web app's bundled
- * CSS — metro.config.js only stubs `.css` for native, not the web/DOM bundle.
- */
 export const DOM_OVERRIDE_CSS = `
   #root {
     display: block !important;
