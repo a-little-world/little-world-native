@@ -1,18 +1,23 @@
 // app/_layout.tsx
-
-import "@/src/i18n";
-import { loadFonts } from "@/src/utils/loadFonts";
-import { CustomThemeProvider as NativeThemeProvider } from "@a-little-world/little-world-design-system-native";
-import { Stack } from "expo-router";
 // import * as SplashScreen from "expo-splash-screen";
-import environmentNative from "@/environments/env";
-import DebugPanel from "@/src/components/blocks/DebugPanel";
-import { DomCommunicationProvider } from "@/src/components/blocks/DomCommunicationCore";
-import * as Sentry from "@sentry/react-native";
-import { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
-import "react-native-reanimated";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import environmentNative from '@/environments/env';
+import DebugPanel from '@/src/components/blocks/DebugPanel';
+import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
+
+import '@/src/i18n';
+
+import { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
+
+import { CustomThemeProvider as NativeThemeProvider } from '@a-little-world/little-world-design-system-native';
+import * as Sentry from '@sentry/react-native';
+import { Stack } from 'expo-router';
+
+import { loadFonts } from '@/src/utils/loadFonts';
+
+import 'react-native-reanimated';
+
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 if (environmentNative.sentryUrl) {
   Sentry.init({
@@ -35,7 +40,7 @@ export default Sentry.wrap(function RootLayout() {
 
   useEffect(() => {
     loadFonts()
-      .catch((e) => console.warn("Failed to load fonts:", e))
+      .catch(e => console.warn('Failed to load fonts:', e))
       .finally(() => setFontsLoaded(true));
   }, []);
 
@@ -49,7 +54,7 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <SafeAreaProvider>
       <View
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: '100%', width: '100%' }}
         onLayout={onLayoutRootView}
       >
         <NativeThemeProvider>

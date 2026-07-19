@@ -1,20 +1,21 @@
-import React from "react";
-import { Link, Stack } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+
 import {
-  Card,
-  CardHeader,
-  CardContent,
-  Text,
-  CardFooter,
   Button,
-} from "@a-little-world/little-world-design-system-native";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  Text,
+} from '@a-little-world/little-world-design-system-native';
+import { Link, Stack } from 'expo-router';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
   },
   link: {
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: "Oops!" }} />
+      <Stack.Screen options={{ title: 'Oops!' }} />
       <View style={styles.container}>
         <Card>
           <CardHeader>Uh oh!</CardHeader>

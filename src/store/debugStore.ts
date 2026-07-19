@@ -1,12 +1,13 @@
-import { environment } from "@/environment";
-import PlatformSecureStore from "@/src/helpers/secureStore";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+import { environment } from '@/environment';
+import PlatformSecureStore from '@/src/helpers/secureStore';
 
 export type FetchError = {
   id: string;
   timestamp: string;
-  source: "frontend" | "native";
+  source: 'frontend' | 'native';
   method: string;
   endpoint: string;
   url: string;
@@ -19,7 +20,7 @@ export type FetchError = {
 export type ReactError = {
   id: string;
   timestamp: string;
-  source: "frontend" | "native";
+  source: 'frontend' | 'native';
   message: string;
   stack?: string;
 };
@@ -44,7 +45,7 @@ type Actions = {
   setIntegrityBypassToken(token: string | null): void;
   addFetchError(e: Omit<FetchError, 'id' | 'timestamp'>): void;
   clearFetchErrors(): void;
-  addReactError(e: Omit<ReactError, "id" | "timestamp">): void;
+  addReactError(e: Omit<ReactError, 'id' | 'timestamp'>): void;
   clearReactErrors(): void;
 };
 
@@ -60,7 +61,7 @@ const debugPersistStorage = createJSONStorage(() => ({
 
 export const useDebugStore = create<DebugState & Actions>()(
   persist(
-    (set) => ({
+    set => ({
       debugEnabled: false,
       backendUrlOverride: null,
       debugAccessToken: null,
@@ -69,8 +70,8 @@ export const useDebugStore = create<DebugState & Actions>()(
       integrityBypassToken: null,
       fetchErrors: [],
       reactErrors: [],
-      setDebugEnabled: (enabled) => set({ debugEnabled: enabled }),
-      setBackendUrlOverride: (url) => set({ backendUrlOverride: url }),
+      setDebugEnabled: enabled => set({ debugEnabled: enabled }),
+      setBackendUrlOverride: url => set({ backendUrlOverride: url }),
       setDebugTokens: (access, refresh) =>
         set({ debugAccessToken: access, debugRefreshToken: refresh }),
       clearDebugTokens: () =>
@@ -86,8 +87,8 @@ export const useDebugStore = create<DebugState & Actions>()(
           ],
         })),
       clearFetchErrors: () => set({ fetchErrors: [] }),
-      addReactError: (e) =>
-        set((s) => ({
+      addReactError: e =>
+        set(s => ({
           reactErrors: [
             { ...e, id: newId(), timestamp: now() },
             ...s.reactErrors,
@@ -96,7 +97,7 @@ export const useDebugStore = create<DebugState & Actions>()(
       clearReactErrors: () => set({ reactErrors: [] }),
     }),
     {
-      name: "debug_store",
+      name: 'debug_store',
       storage: debugPersistStorage,
       partialize: ({
         debugEnabled,
@@ -132,7 +133,7 @@ export function setupReactErrorTracking() {
   (ErrorUtils as any).setGlobalHandler((error: Error, isFatal?: boolean) => {
     if (useDebugStore.getState().debugEnabled) {
       useDebugStore.getState().addReactError({
-        source: "native",
+        source: 'native',
         message: error?.message ?? String(error),
         stack: error?.stack,
       });

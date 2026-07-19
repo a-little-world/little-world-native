@@ -1,12 +1,13 @@
+import { View } from 'react-native';
+
 import {
   LoadingLogo,
   LoadingSizes,
   CustomThemeProvider as NativeThemeProvider,
-} from "@a-little-world/little-world-design-system-native";
-import { View } from "react-native";
-import { useTheme } from "styled-components/native";
+} from '@a-little-world/little-world-design-system-native';
+import { useTheme } from 'styled-components/native';
 
-import { getLoadingScreenStyles } from "./LoadingScreen.styles";
+import { getLoadingScreenStyles } from './LoadingScreen.styles';
 
 const LoadingScreenContent = () => {
   const theme = useTheme();
@@ -21,7 +22,7 @@ const LoadingScreenContent = () => {
 
 export const LoadingScreen = () => {
   return (
-    <View style={{ flex: 1, width: "100%", height: "100%" }}>
+    <View style={{ flex: 1, width: '100%', height: '100%' }}>
       <NativeThemeProvider>
         <LoadingScreenContent />
       </NativeThemeProvider>

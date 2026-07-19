@@ -5,7 +5,7 @@
  */
 
 export class WebSecureStore {
-  private static readonly STORAGE_PREFIX = "dev_secure_";
+  private static readonly STORAGE_PREFIX = 'dev_secure_';
 
   private static getStorageKey(key: string): string {
     return `${this.STORAGE_PREFIX}${key}`;
@@ -16,15 +16,15 @@ export class WebSecureStore {
    */
   static async getItemAsync(key: string): Promise<string | null> {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
-        console.warn("WebSecureStore: localStorage not available");
+      if (typeof window === 'undefined' || !window.localStorage) {
+        console.warn('WebSecureStore: localStorage not available');
         return null;
       }
 
       const storageKey = this.getStorageKey(key);
       return window.localStorage.getItem(storageKey);
     } catch (error) {
-      console.warn("WebSecureStore.getItemAsync failed:", error);
+      console.warn('WebSecureStore.getItemAsync failed:', error);
       return null;
     }
   }
@@ -32,10 +32,13 @@ export class WebSecureStore {
   /**
    * Set an item in secure storage
    */
-  static async setItemAsync(key: string, value: string | undefined): Promise<void> {
+  static async setItemAsync(
+    key: string,
+    value: string | undefined,
+  ): Promise<void> {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
-        console.warn("WebSecureStore: localStorage not available");
+      if (typeof window === 'undefined' || !window.localStorage) {
+        console.warn('WebSecureStore: localStorage not available');
         return;
       }
 
@@ -46,7 +49,7 @@ export class WebSecureStore {
         localStorage.removeItem(storageKey);
       }
     } catch (error) {
-      console.warn("WebSecureStore.setItemAsync failed:", error);
+      console.warn('WebSecureStore.setItemAsync failed:', error);
       throw error;
     }
   }
@@ -56,15 +59,15 @@ export class WebSecureStore {
    */
   static async deleteItemAsync(key: string): Promise<void> {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
-        console.warn("WebSecureStore: localStorage not available");
+      if (typeof window === 'undefined' || !window.localStorage) {
+        console.warn('WebSecureStore: localStorage not available');
         return;
       }
 
       const storageKey = this.getStorageKey(key);
       localStorage.removeItem(storageKey);
     } catch (error) {
-      console.warn("WebSecureStore.deleteItemAsync failed:", error);
+      console.warn('WebSecureStore.deleteItemAsync failed:', error);
       throw error;
     }
   }
@@ -73,7 +76,7 @@ export class WebSecureStore {
    * Check if secure storage is available
    */
   static isAvailable(): boolean {
-    return typeof window !== "undefined" && !!window.localStorage;
+    return typeof window !== 'undefined' && !!window.localStorage;
   }
 
   /**
@@ -81,8 +84,8 @@ export class WebSecureStore {
    */
   static async clearAllAsync(): Promise<void> {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
-        console.warn("WebSecureStore: localStorage not available");
+      if (typeof window === 'undefined' || !window.localStorage) {
+        console.warn('WebSecureStore: localStorage not available');
         return;
       }
 
@@ -94,9 +97,9 @@ export class WebSecureStore {
         }
       }
 
-      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      keysToRemove.forEach(key => localStorage.removeItem(key));
     } catch (error) {
-      console.warn("WebSecureStore.clearAllAsync failed:", error);
+      console.warn('WebSecureStore.clearAllAsync failed:', error);
       throw error;
     }
   }

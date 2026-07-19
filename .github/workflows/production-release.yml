@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       baseUrl:
-        description: "Base URL for backend"
+        description: 'Base URL for backend'
         required: false
-        default: "https://little-world.com"
+        default: 'https://little-world.com'
 
 permissions:
   contents: read
@@ -37,7 +37,7 @@ jobs:
     env:
       GRADLE_OPTS: -Xmx16g
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
           base-url: ${{ env.BASE_URL }}
           env-file: env.prod.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
-          sync-frontend: "false"
+          sync-frontend: 'false'
 
       - name: Submit to Play Store
         shell: bash
@@ -113,7 +113,7 @@ jobs:
       app-build-version: ${{ steps.build.outputs.app_build_version }}
     env:
       NODE_OPTIONS: --max_old_space_size=16384
-      IS_CI_BUILD: "true"
+      IS_CI_BUILD: 'true'
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -209,7 +209,7 @@ jobs:
           base-url: ${{ env.BASE_URL }}
           env-file: env.prod.ts
           expo-token: ${{ secrets.EXPO_TOKEN }}
-          sync-frontend: "false"
+          sync-frontend: 'false'
 
       - name: Submit to App Store
         shell: bash

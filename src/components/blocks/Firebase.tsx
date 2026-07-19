@@ -1,6 +1,8 @@
-import { registerFirebaseDeviceToken } from "@/src/utils/firebase-util";
-import { getMessaging } from "@react-native-firebase/messaging";
-import { useEffect } from "react";
+import { useEffect } from 'react';
+
+import { getMessaging } from '@react-native-firebase/messaging';
+
+import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 
 function FireBase() {
   useEffect(() => {

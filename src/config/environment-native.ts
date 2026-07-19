@@ -1,6 +1,7 @@
 // This is the native internal environment, the frontend environment is at `@/environment`
-import Constants from "expo-constants";
-import { Platform } from "react-native";
+import { Platform } from 'react-native';
+
+import Constants from 'expo-constants';
 
 export const ENV_CONFIG = {
   USE_EXPO_GO: Constants.expoConfig?.extra?.useExpoGo ?? false,
@@ -8,7 +9,7 @@ export const ENV_CONFIG = {
 };
 
 export function isWebBuild() {
-  return Platform.OS === "web";
+  return Platform.OS === 'web';
 }
 
 export const isExpoGoMode = () => ENV_CONFIG.USE_EXPO_GO;
@@ -17,17 +18,17 @@ export const isLiveKitEnabled = () => ENV_CONFIG.USE_LIVEKIT;
 export const getDevelopmentModeInfo = () => {
   if (isExpoGoMode()) {
     return {
-      mode: "Expo Go",
-      features: ["Navigation", "UI Components", "Basic App Flow"],
-      limitations: ["No LiveKit", "No Native Modules"],
-      recommendation: "Use for UI/UX testing and navigation flow",
+      mode: 'Expo Go',
+      features: ['Navigation', 'UI Components', 'Basic App Flow'],
+      limitations: ['No LiveKit', 'No Native Modules'],
+      recommendation: 'Use for UI/UX testing and navigation flow',
     };
   } else {
     return {
-      mode: "Development Build",
-      features: ["Full Native Modules", "LiveKit Integration", "All Features"],
-      limitations: ["Requires EAS Build", "Slower Development Cycle"],
-      recommendation: "Use for testing LiveKit and native features",
+      mode: 'Development Build',
+      features: ['Full Native Modules', 'LiveKit Integration', 'All Features'],
+      limitations: ['Requires EAS Build', 'Slower Development Cycle'],
+      recommendation: 'Use for testing LiveKit and native features',
     };
   }
 };

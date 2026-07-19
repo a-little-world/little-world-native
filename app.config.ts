@@ -1,9 +1,12 @@
-import { ConfigContext, ExpoConfig } from "expo/config";
-import "tsx"; // Enable import of TypeScript files
-import environmentNative from "./environments/env";
+import { ConfigContext, ExpoConfig } from 'expo/config';
 
-const APP_VERSION = "1.1.0"; // x-release-please-version
-const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split(".").map(Number);
+import 'tsx';
+
+// Enable import of TypeScript files
+import environmentNative from './environments/env';
+
+const APP_VERSION = '1.1.0'; // x-release-please-version
+const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
 // Staging/beta dispatches inject a unique EAS_BUILD_NUMBER (the CI run number) at build time so
@@ -17,39 +20,39 @@ const ANDROID_VERSION_CODE = process.env.EAS_BUILD_NUMBER
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: environmentNative.displayName,
-  slug: "little-world-app",
+  slug: 'little-world-app',
   version: APP_VERSION,
-  orientation: "portrait",
-  icon: "./src/assets/images/logo-image.png",
-  userInterfaceStyle: "automatic",
-  owner: "little-world",
+  orientation: 'portrait',
+  icon: './src/assets/images/logo-image.png',
+  userInterfaceStyle: 'automatic',
+  owner: 'little-world',
   ios: {
     buildNumber: IOS_BUILD_NUMBER,
     supportsTablet: true,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     bitcode: false,
     bundleIdentifier: environmentNative.bundleId,
-    appleTeamId: "3Z662F5MW8",
+    appleTeamId: '3Z662F5MW8',
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
-    icon: "./assets/images/icons/app.icon",
+    icon: './assets/images/icons/app.icon',
     splash: {
-      image: "./src/assets/images/splash-icon.png",
+      image: './src/assets/images/splash-icon.png',
       imageWidth: 200,
-      resizeMode: "contain",
-      backgroundColor: "#ffffff",
-      tabletImage: "./src/assets/images/splash-icon.png",
+      resizeMode: 'contain',
+      backgroundColor: '#ffffff',
+      tabletImage: './src/assets/images/splash-icon.png',
     },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
-        "Allow camera usage to participate in group video calls",
+        'Allow camera usage to participate in group video calls',
       NSMicrophoneUsageDescription:
-        "Allow microphone usage to participate in group calls",
-      UIBackgroundModes: ["remote-notification", "fetch"],
+        'Allow microphone usage to participate in group calls',
+      UIBackgroundModes: ['remote-notification', 'fetch'],
     },
     entitlements: {
-      "aps-environment": environmentNative.appleEnvironment,
-      "com.apple.developer.devicecheck.appattest-environment":
+      'aps-environment': environmentNative.appleEnvironment,
+      'com.apple.developer.devicecheck.appattest-environment':
         environmentNative.appleEnvironment,
     },
   },
@@ -58,82 +61,82 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
     adaptiveIcon: {
-      foregroundImage: "./src/assets/images/logo-image.png",
-      backgroundColor: "#ffffff",
+      foregroundImage: './src/assets/images/logo-image.png',
+      backgroundColor: '#ffffff',
     },
     permissions: [
-      "android.permission.ACCESS_NETWORK_STATE",
-      "android.permission.CAMERA",
-      "android.permission.INTERNET",
-      "android.permission.MODIFY_AUDIO_SETTINGS",
-      "android.permission.RECORD_AUDIO",
-      "android.permission.SYSTEM_ALERT_WINDOW",
-      "android.permission.WAKE_LOCK",
-      "android.permission.BLUETOOTH",
+      'android.permission.ACCESS_NETWORK_STATE',
+      'android.permission.CAMERA',
+      'android.permission.INTERNET',
+      'android.permission.MODIFY_AUDIO_SETTINGS',
+      'android.permission.RECORD_AUDIO',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.WAKE_LOCK',
+      'android.permission.BLUETOOTH',
     ],
     allowBackup: true,
   },
   web: {
-    bundler: "metro",
-    output: "static",
-    favicon: "./src/assets/images/favicon.png",
+    bundler: 'metro',
+    output: 'static',
+    favicon: './src/assets/images/favicon.png',
   },
   splash: {
-    image: "./src/assets/images/splash-icon.png",
+    image: './src/assets/images/splash-icon.png',
     imageWidth: 200,
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
-    tabletImage: "./src/assets/images/logo-image.png",
+    resizeMode: 'contain',
+    backgroundColor: '#ffffff',
+    tabletImage: './src/assets/images/logo-image.png',
   },
   plugins: [
     [
-      "expo-build-properties",
+      'expo-build-properties',
       {
         ios: {
-          useFrameworks: "static",
-          forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
+          useFrameworks: 'static',
+          forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
         },
       },
     ],
-    "expo-router",
-    "expo-font",
-    "expo-web-browser",
+    'expo-router',
+    'expo-font',
+    'expo-web-browser',
     [
-      "expo-secure-store",
+      'expo-secure-store',
       {
         configureAndroidBackup: true,
         faceIDPermission:
-          "Allow $(PRODUCT_NAME) to access your Face ID biometric data.",
+          'Allow $(PRODUCT_NAME) to access your Face ID biometric data.',
       },
     ],
     [
-      "expo-splash-screen",
+      'expo-splash-screen',
       {
-        image: "./src/assets/images/splash-icon.png",
+        image: './src/assets/images/splash-icon.png',
         imageWidth: 200,
-        resizeMode: "contain",
-        backgroundColor: "#ffffff",
+        resizeMode: 'contain',
+        backgroundColor: '#ffffff',
       },
     ],
     [
-      "expo-notifications",
+      'expo-notifications',
       {
-        icon: "./src/assets/images/logo-image.png",
+        icon: './src/assets/images/logo-image.png',
       },
     ],
     ...(environmentNative.sentryProject
       ? [
           [
-            "@sentry/react-native/expo",
+            '@sentry/react-native/expo',
             {
               project: environmentNative.sentryProject,
-              organization: "a-little-world-gug",
+              organization: 'a-little-world-gug',
             },
-          ] satisfies NonNullable<ExpoConfig["plugins"]>[number],
+          ] satisfies NonNullable<ExpoConfig['plugins']>[number],
         ]
       : []),
-    "@react-native-firebase/app",
-    "@react-native-firebase/messaging",
+    '@react-native-firebase/app',
+    '@react-native-firebase/messaging',
   ],
   experiments: {
     typedRoutes: true,
@@ -142,15 +145,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     router: {
       origin: false,
     },
-    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true"
+    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true'
       ? {
           eas: {
-            projectId: "d114c1e1-3b95-463a-b8d4-c24ca29f1d05",
+            projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05',
             //projectId: "93610aa8-629e-4031-ac3c-f622399cca78", @tbscode project id
           },
         }
       : {}),
-    useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === "true",
-    useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== "true",
+    useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === 'true',
+    useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true',
   },
 });

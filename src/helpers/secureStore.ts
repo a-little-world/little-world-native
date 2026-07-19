@@ -3,8 +3,8 @@
  * Automatically switches between native expo-secure-store and web-compatible implementation
  * Web implementation is for development only - NOT SECURE
  */
-
 import { Platform } from 'react-native';
+
 import { WebSecureStore } from './webSecureStore';
 
 // Import native SecureStore
@@ -22,15 +22,20 @@ class PlatformSecureStore {
   private static getSecureStore() {
     if (Platform.OS === 'web') {
       return WebSecureStore;
-    } else if ((Platform.OS === 'ios' || Platform.OS === 'android') && NativeSecureStore) {
+    } else if (
+      (Platform.OS === 'ios' || Platform.OS === 'android') &&
+      NativeSecureStore
+    ) {
       return NativeSecureStore;
     } else {
       // Fallback to web implementation if native is not available
-      console.warn('Native SecureStore not available, falling back to web implementation');
+      console.warn(
+        'Native SecureStore not available, falling back to web implementation',
+      );
       return WebSecureStore;
     }
   }
-  
+
   /**
    * Get an item from secure storage
    */
@@ -62,7 +67,10 @@ class PlatformSecureStore {
     const secureStore = this.getSecureStore();
     if (Platform.OS === 'web') {
       return WebSecureStore.isAvailable();
-    } else if ((Platform.OS === 'ios' || Platform.OS === 'android') && NativeSecureStore) {
+    } else if (
+      (Platform.OS === 'ios' || Platform.OS === 'android') &&
+      NativeSecureStore
+    ) {
       return true; // Native SecureStore is always available if imported
     }
     return false;
@@ -74,7 +82,10 @@ class PlatformSecureStore {
   static getPlatform(): 'web' | 'native' | 'fallback' {
     if (Platform.OS === 'web') {
       return 'web';
-    } else if ((Platform.OS === 'ios' || Platform.OS === 'android') && NativeSecureStore) {
+    } else if (
+      (Platform.OS === 'ios' || Platform.OS === 'android') &&
+      NativeSecureStore
+    ) {
       return 'native';
     } else {
       return 'fallback';
@@ -86,8 +97,13 @@ class PlatformSecureStore {
 export default PlatformSecureStore;
 
 // Also export individual methods for convenience
-export const getItemAsync = PlatformSecureStore.getItemAsync.bind(PlatformSecureStore);
-export const setItemAsync = PlatformSecureStore.setItemAsync.bind(PlatformSecureStore);
-export const deleteItemAsync = PlatformSecureStore.deleteItemAsync.bind(PlatformSecureStore);
-export const isAvailable = PlatformSecureStore.isAvailable.bind(PlatformSecureStore);
-export const getPlatform = PlatformSecureStore.getPlatform.bind(PlatformSecureStore);
+export const getItemAsync =
+  PlatformSecureStore.getItemAsync.bind(PlatformSecureStore);
+export const setItemAsync =
+  PlatformSecureStore.setItemAsync.bind(PlatformSecureStore);
+export const deleteItemAsync =
+  PlatformSecureStore.deleteItemAsync.bind(PlatformSecureStore);
+export const isAvailable =
+  PlatformSecureStore.isAvailable.bind(PlatformSecureStore);
+export const getPlatform =
+  PlatformSecureStore.getPlatform.bind(PlatformSecureStore);

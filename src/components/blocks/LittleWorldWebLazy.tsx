@@ -1,17 +1,19 @@
-"use dom";
+'use dom';
+
+import React, { lazy, Ref, useEffect, useRef } from 'react';
+
+import { JSONValue } from 'expo/build/dom/dom.types';
+import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
+
+import { apiFetch, refreshAccessTokens, updateTokens } from '@/src/api/helpers';
+import { applyFontInjectionWithRetry } from '@/src/utils/domFontInjection';
+import { injectDomStyleOverrides } from '@/src/utils/domStyleOverride';
 
 import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   LittleWorldWebNativeProps,
-} from "../../../frontend/src";
-import React, { lazy, Ref, useEffect, useRef } from "react";
-
-import { apiFetch, refreshAccessTokens, updateTokens } from "@/src/api/helpers";
-import { applyFontInjectionWithRetry } from "@/src/utils/domFontInjection";
-import { injectDomStyleOverrides } from "@/src/utils/domStyleOverride";
-import { JSONValue } from "expo/build/dom/dom.types";
-import { DOMImperativeFactory, useDOMImperativeHandle } from "expo/dom";
+} from '../../../frontend/src';
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -23,7 +25,7 @@ const LittleWorldWebNative = lazy(() => {
   // if (typeof window === "undefined") {
   //   return Promise.resolve({ default: () => null });
   // }
-  return import("../../../frontend/src").then((m) => ({
+  return import('../../../frontend/src').then(m => ({
     default: m.LittleWorldWebNative,
   }));
 });
@@ -42,7 +44,7 @@ export default function LittleWorldWebLazy(props: {
   getAccessToken: () => Promise<string | undefined>;
   setAccessTokens: typeof updateTokens;
   hasStoredToken: boolean;
-  dom?: import("expo/dom").DOMProps;
+  dom?: import('expo/dom').DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
@@ -67,9 +69,9 @@ export default function LittleWorldWebLazy(props: {
       if (
         args.length !== 1 ||
         args[0] === null ||
-        typeof args[0] !== "object"
+        typeof args[0] !== 'object'
       ) {
-        console.log("useDOMImperativeHandle args", args);
+        console.log('useDOMImperativeHandle args', args);
         return;
       }
 
@@ -85,7 +87,7 @@ export default function LittleWorldWebLazy(props: {
   }));
 
   const LW = LittleWorldWebNative as React.ComponentType<
-    LittleWorldWebNativeProps & { dom?: import("expo/dom").DOMProps }
+    LittleWorldWebNativeProps & { dom?: import('expo/dom').DOMProps }
   >;
 
   return (
