@@ -1,5 +1,6 @@
 # Submodules
 frontend/
+e2e_simulations/
 
 # Build / cache outputs
 node_modules/
@@ -7,6 +8,10 @@ node_modules/
 dist/
 web-build/
 .metro-cache/
+builds/
+.ruff-cache/
+native_build/
+prebuild/
 
 # Native platform projects
 android/
@@ -19,4 +24,9 @@ package-lock.json
 yarn.lock
 expo-env.d.ts
 CHANGELOG.md
+
+
 certs/
+fastlane/
+private_keys/
+credentials/
