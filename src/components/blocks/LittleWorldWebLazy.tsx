@@ -1,4 +1,3 @@
-// LittleWorldWebLazy.tsx
 "use dom";
 
 import type {
