@@ -1,12 +1,14 @@
+import { useEffect, useState } from 'react';
+import { BackHandler, Platform, View } from 'react-native';
+
 import {
-  ApiFetchOptions,
   apiFetch,
+  ApiFetchOptions,
   refreshAccessTokens,
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
-import { useEffect, useState } from 'react';
-import { BackHandler, Platform, View } from 'react-native';
+
 import { useDomCommunicationContext } from './DomCommunicationCore';
 import LittleWorldWebLazy from './LittleWorldWebLazy';
 

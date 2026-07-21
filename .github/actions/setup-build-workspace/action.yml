@@ -4,25 +4,25 @@ description: Patch environment, swap CI EAS config, install workspace deps. Assu
 inputs:
   base-url:
     required: true
-    description: "Backend base URL, written into environment.ts"
+    description: 'Backend base URL, written into environment.ts'
   env-file:
     required: false
-    default: ""
-    description: "Environment file in ./environments to promote to env.ts (e.g. env.prod.ts or env.staging.ts)"
+    default: ''
+    description: 'Environment file in ./environments to promote to env.ts (e.g. env.prod.ts or env.staging.ts)'
   expo-token:
     required: true
-    description: "Expo access token for EAS auth"
+    description: 'Expo access token for EAS auth'
   sync-frontend:
     required: false
-    default: "true"
+    default: 'true'
     description: "Patch environment.ts and copy it into the frontend submodule. Set to 'false' for submit-only jobs that don't need the JS bundle."
 
 outputs:
   version:
-    description: "App semver from package.json"
+    description: 'App semver from package.json'
     value: ${{ steps.version.outputs.version }}
   eas-version:
-    description: "EAS CLI version from eas.json"
+    description: 'EAS CLI version from eas.json'
     value: ${{ steps.version.outputs.eas_version }}
 
 runs:

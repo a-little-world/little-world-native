@@ -36,7 +36,8 @@ export const TEST_COMPONENT_ROUTE = 'test';
 
 export const getHomeRoute = (locale: string, slug: string) =>
   `${WP_HOME_ROUTE}/${locale}/${slug}`;
-export const getAppRoute = (slug?: string): Href => `/${APP_ROUTE}/${slug ?? ''}` as Href;
+export const getAppRoute = (slug?: string): Href =>
+  `/${APP_ROUTE}/${slug ?? ''}` as Href;
 export const getAppSubpageRoute = (parent: string, slug: string) =>
   getAppRoute(`${parent}/${slug}`);
 export const getUserFormRoute = (slug: string) => `/${USER_FORM_ROUTE}/${slug}`;

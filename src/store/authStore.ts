@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export type AuthState = {
   accessToken?: string;
@@ -16,9 +16,9 @@ export const useAuthStore = create<AuthState & Actions>((set, get) => ({
   accessToken: undefined,
   refreshToken: undefined,
   isTokenRefreshing: false,
-  setAccessToken: (accessToken) => set({ accessToken }),
-  setRefreshToken: (refreshToken) => set({ refreshToken }),
-  setIsTokenRefreshing: (isTokenRefreshing) => set({ isTokenRefreshing }),
+  setAccessToken: accessToken => set({ accessToken }),
+  setRefreshToken: refreshToken => set({ refreshToken }),
+  setIsTokenRefreshing: isTokenRefreshing => set({ isTokenRefreshing }),
 }));
 
 // For places where you’re not inside React (e.g., router loaders, handlers)

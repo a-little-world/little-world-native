@@ -1,3 +1,9 @@
 packages:
   - '.'
   - 'frontend'
+
+# Hoist prettier plugins to the top-level node_modules so Prettier's auto-discovery
+# can find them. Plugins declared by the shared config (@a-little-world/little-world-prettier-config)
+# would otherwise live deep in .pnpm/ and be invisible to Prettier.
+publicHoistPattern:
+  - '*prettier-plugin*'

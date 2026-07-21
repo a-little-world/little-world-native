@@ -1,17 +1,3 @@
-import { requestIntegrityCheck } from "@/src/api/helpers";
-import { useAuthStore } from "@/src/store/authStore";
-import { debugStore, useDebugStore } from "@/src/store/debugStore";
-import { domCommunicationStore } from "@/src/store/domCommunicationStore";
-import { useWebViewStore } from "@/src/store/webViewStore";
-import {
-  registerFirebaseDeviceToken,
-  unregisterFirebaseDeviceToken,
-} from "@/src/utils/firebase-util";
-import type {
-  DomCommunicationMessage,
-  DomCommunicationMessageFn,
-  DomCommunicationResponse,
-} from "@/frontend/src";
 import {
   createContext,
   ReactNode,
@@ -20,9 +6,26 @@ import {
   useContext,
   useEffect,
   useRef,
-} from "react";
-import uuid from "react-native-uuid";
-import { LittleWorldDomRef } from "./LittleWorldWebLazy";
+} from 'react';
+
+import uuid from 'react-native-uuid';
+
+import type {
+  DomCommunicationMessage,
+  DomCommunicationMessageFn,
+  DomCommunicationResponse,
+} from '@/frontend/src';
+import { requestIntegrityCheck } from '@/src/api/helpers';
+import { useAuthStore } from '@/src/store/authStore';
+import { debugStore, useDebugStore } from '@/src/store/debugStore';
+import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { useWebViewStore } from '@/src/store/webViewStore';
+import {
+  registerFirebaseDeviceToken,
+  unregisterFirebaseDeviceToken,
+} from '@/src/utils/firebase-util';
+
+import { LittleWorldDomRef } from './LittleWorldWebLazy';
 
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
@@ -37,7 +40,7 @@ export function useDomCommunicationContext() {
   const context = useContext(DomCommunicationContext);
   if (!context)
     throw new Error(
-      "useDomCommunicationContext must be used within a DomCommunicationProvider",
+      'useDomCommunicationContext must be used within a DomCommunicationProvider',
     );
   return context;
 }
@@ -68,7 +71,7 @@ export function DomCommunicationProvider({
     async (message: DomCommunicationMessage) => {
       const handler = domRef.current?.sendMessageToDom;
       if (!handler) {
-        return { ok: false, error: "DomCommunicationCore DOM not ready" };
+        return { ok: false, error: 'DomCommunicationCore DOM not ready' };
       }
 
       // Create a promise that will be resolved when the response comes via callback
@@ -83,9 +86,9 @@ export function DomCommunicationProvider({
           // Set a timeout to reject the promise if no response comes
           setTimeout(() => {
             if (pendingRequestsRef.current.has(requestId)) {
-              console.info("request timeout for requesId", requestId, message);
+              console.info('request timeout for requesId', requestId, message);
               pendingRequestsRef.current.delete(requestId);
-              reject("Response timeout");
+              reject('Response timeout');
             }
           }, REQUEST_TIMEOUT);
         },
@@ -106,7 +109,7 @@ export function DomCommunicationProvider({
     async (message: DomCommunicationMessage) => {
       const { action, payload } = message;
       switch (action) {
-        case "GET_INTEGRITY_TOKEN": {
+        case 'GET_INTEGRITY_TOKEN': {
           const integrityData = await requestIntegrityCheck();
           return {
             ok: true,
@@ -115,36 +118,36 @@ export function DomCommunicationProvider({
             },
           };
         }
-        case "REGISTER_DEVICE_PUSH_TOKEN": {
+        case 'REGISTER_DEVICE_PUSH_TOKEN': {
           await registerFirebaseDeviceToken();
 
           return {
             ok: true,
           };
         }
-        case "UNREGISTER_DEVICE_PUSH_TOKEN": {
+        case 'UNREGISTER_DEVICE_PUSH_TOKEN': {
           await unregisterFirebaseDeviceToken();
 
           return {
             ok: true,
           };
         }
-        case "WEBVIEW_READY": {
+        case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
           // Sync debug config — also handles WebView reloads where `ready` was already true
           const { debugEnabled, backendUrlOverride } = debugStore.get();
           await sendToDom({
-            action: "SET_DEBUG_CONFIG",
+            action: 'SET_DEBUG_CONFIG',
             payload: { debugEnabled, backendUrlOverride },
           });
 
           await sendToDom({
-            action: "NATIVE_READY",
+            action: 'NATIVE_READY',
             payload: {},
           });
           return { ok: true };
         }
-        case "RESPONSE": {
+        case 'RESPONSE': {
           const requestId = message.requestId;
 
           const pendingRequest = pendingRequestsRef.current.get(requestId);
@@ -155,34 +158,34 @@ export function DomCommunicationProvider({
 
             return payload;
           } else {
-            console.error("Received delayed dom response", message);
+            console.error('Received delayed dom response', message);
             return {
               ok: false,
-              error: "Could not find pending request for message",
+              error: 'Could not find pending request for message',
               message,
             };
           }
         }
-        case "CONSOLE_LOG": {
+        case 'CONSOLE_LOG': {
           console.log(
-            "console log from frontend",
+            'console log from frontend',
             message.payload.message,
             ...(message.payload.params ?? []),
           );
           return { ok: true };
         }
-        case "LOG_ERROR": {
+        case 'LOG_ERROR': {
           if (debugStore.get().debugEnabled) {
             const { payload } = message;
-            if (payload.type === "react") {
+            if (payload.type === 'react') {
               debugStore.get().addReactError({
-                source: "frontend",
+                source: 'frontend',
                 message: payload.message,
                 stack: payload.stack,
               });
             } else {
               debugStore.get().addFetchError({
-                source: "frontend",
+                source: 'frontend',
                 method: payload.method,
                 endpoint: payload.endpoint,
                 url: payload.url,
@@ -217,7 +220,7 @@ export function DomCommunicationProvider({
       backendUrlOverride: string | null,
     ) => {
       await sendToDom({
-        action: "SET_DEBUG_CONFIG",
+        action: 'SET_DEBUG_CONFIG',
         payload: { debugEnabled, backendUrlOverride },
       });
     };

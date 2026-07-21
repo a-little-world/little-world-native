@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export type WebViewState = {
   ready: boolean;
@@ -10,7 +10,7 @@ type Actions = {
 
 export const useWebViewStore = create<WebViewState & Actions>((set, get) => ({
   ready: false,
-  setReady: (ready) => set({ ready }),
+  setReady: ready => set({ ready }),
 }));
 
 // For places where you’re not inside React (e.g., router loaders, handlers)

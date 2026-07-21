@@ -1,13 +1,14 @@
+import { PermissionsAndroid } from 'react-native';
+
 import {
   AuthorizationStatus,
   getMessaging,
-} from "@react-native-firebase/messaging";
-import * as Device from "expo-device";
-import { PermissionStatus, Platform } from "expo-modules-core";
-import { PermissionsAndroid } from "react-native";
+} from '@react-native-firebase/messaging';
+import * as Device from 'expo-device';
+import { PermissionStatus, Platform } from 'expo-modules-core';
 
-import { apiFetch } from "../api/helpers";
-import { getDeviceId } from "./device";
+import { apiFetch } from '../api/helpers';
+import { getDeviceId } from './device';
 
 async function requestPermissionIOS(): Promise<boolean> {
   let permission = await getMessaging().hasPermission();
@@ -42,9 +43,9 @@ async function requestUserPermission(): Promise<boolean> {
     return false;
   }
 
-  if (Platform.OS === "android") {
+  if (Platform.OS === 'android') {
     return requestPermissionAndroid();
-  } else if (Platform.OS === "ios") {
+  } else if (Platform.OS === 'ios') {
     return requestPermissionIOS();
   } else {
     return false;
@@ -52,7 +53,7 @@ async function requestUserPermission(): Promise<boolean> {
 }
 
 async function updateFirebaseDeviceRegistration(
-  step: "register" | "unregister",
+  step: 'register' | 'unregister',
 ): Promise<void> {
   const permission = await requestUserPermission();
   if (!permission) {
@@ -65,7 +66,7 @@ async function updateFirebaseDeviceRegistration(
   const modelName = Device.modelName;
 
   await apiFetch(`/api/push_notifications/${step}`, {
-    method: "POST",
+    method: 'POST',
     body: {
       install_id: deviceId,
       token,
@@ -76,9 +77,9 @@ async function updateFirebaseDeviceRegistration(
 }
 
 export async function registerFirebaseDeviceToken(): Promise<void> {
-  await updateFirebaseDeviceRegistration("register");
+  await updateFirebaseDeviceRegistration('register');
 }
 
 export async function unregisterFirebaseDeviceToken(): Promise<void> {
-  await updateFirebaseDeviceRegistration("unregister");
+  await updateFirebaseDeviceRegistration('unregister');
 }

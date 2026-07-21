@@ -1,25 +1,4 @@
-import { environment } from "@/environment";
-import {
-  apiFetch,
-  clearJwtTokens,
-  saveIntegrityBypassToken,
-  saveJwtTokens,
-} from "@/src/api/helpers";
-import {
-  getBackendUrl,
-  secureStoreIsAvailable,
-  supportsAppIntegrity,
-} from "@/src/helpers/appInfos";
-import { decryptBypassToken } from "@/src/helpers/bypassToken";
-import { useAuthStore } from "@/src/store/authStore";
-import {
-  FetchError,
-  ReactError,
-  debugStore,
-  useDebugStore,
-} from "@/src/store/debugStore";
-import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -30,19 +9,43 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { useDomCommunicationContext } from "./DomCommunicationCore";
+} from 'react-native';
+
+import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
+
+import { environment } from '@/environment';
+import {
+  apiFetch,
+  clearJwtTokens,
+  saveIntegrityBypassToken,
+  saveJwtTokens,
+} from '@/src/api/helpers';
+import {
+  getBackendUrl,
+  secureStoreIsAvailable,
+  supportsAppIntegrity,
+} from '@/src/helpers/appInfos';
+import { decryptBypassToken } from '@/src/helpers/bypassToken';
+import { useAuthStore } from '@/src/store/authStore';
+import {
+  debugStore,
+  FetchError,
+  ReactError,
+  useDebugStore,
+} from '@/src/store/debugStore';
+
+import { useDomCommunicationContext } from './DomCommunicationCore';
 
 const DEVELOPER_SECRET_DIGEST =
-  "446bb2136d0c9299b80da0ed06c22a131cd5f5f1d0459c4a39f2b0db5608d40a";
+  '446bb2136d0c9299b80da0ed06c22a131cd5f5f1d0459c4a39f2b0db5608d40a';
 
 type SectionKey =
-  | "backend"
-  | "tokens"
-  | "dom"
-  | "appinfo"
-  | "fetchErrors"
-  | "reactErrors";
+  | 'backend'
+  | 'tokens'
+  | 'dom'
+  | 'appinfo'
+  | 'fetchErrors'
+  | 'reactErrors';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -73,7 +76,7 @@ function Section({
             </View>
           )}
         </View>
-        <Text style={styles.chevron}>{expanded ? "▾" : "▸"}</Text>
+        <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
       </TouchableOpacity>
       {expanded && <View style={styles.sectionBody}>{children}</View>}
     </View>
@@ -101,7 +104,7 @@ function Row({
 function Btn({
   label,
   onPress,
-  color = "#007AFF",
+  color = '#007AFF',
   small = false,
 }: {
   label: string;
@@ -132,7 +135,7 @@ function Checkbox({
 }) {
   return (
     <TouchableOpacity style={styles.checkboxRow} onPress={onToggle}>
-      <Text style={styles.checkboxBox}>{checked ? "☑" : "☐"}</Text>
+      <Text style={styles.checkboxBox}>{checked ? '☑' : '☐'}</Text>
       <Text style={styles.checkboxLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -160,13 +163,13 @@ function FetchErrorItem({
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
         <Text style={styles.errorSource}>
-          {error.source === "native" ? "N:" : "F:"}
+          {error.source === 'native' ? 'N:' : 'F:'}
         </Text>
         <Text style={styles.errorSummary} numberOfLines={1}>
           {error.method} {error.endpoint}
-          {error.status != null ? ` → ${error.status}` : ""}
+          {error.status != null ? ` → ${error.status}` : ''}
         </Text>
-        <Text style={styles.errorChevron}>{expanded ? "▾" : "▸"}</Text>
+        <Text style={styles.errorChevron}>{expanded ? '▾' : '▸'}</Text>
       </View>
       {expanded && (
         <View style={styles.errorDetails}>
@@ -208,19 +211,19 @@ function ReactErrorItem({
   const time = error.timestamp.slice(11, 19);
   const brief =
     error.message.length > 60
-      ? error.message.slice(0, 60) + "…"
+      ? error.message.slice(0, 60) + '…'
       : error.message;
   return (
     <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
         <Text style={styles.errorSource}>
-          {error.source === "native" ? "N:" : "F:"}
+          {error.source === 'native' ? 'N:' : 'F:'}
         </Text>
         <Text style={styles.errorSummary} numberOfLines={1}>
           {brief}
         </Text>
-        <Text style={styles.errorChevron}>{expanded ? "▾" : "▸"}</Text>
+        <Text style={styles.errorChevron}>{expanded ? '▾' : '▸'}</Text>
       </View>
       {expanded && (
         <View style={styles.errorDetails}>
@@ -241,11 +244,11 @@ function ReactErrorItem({
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ROUTES = [
-  { label: "Sign Up", value: "/sign-up" },
-  { label: "Login", value: "/login" },
-  { label: "Profile", value: "/app/profile" },
-  { label: "Settings", value: "/settings" },
-  { label: "Help", value: "/help" },
+  { label: 'Sign Up', value: '/sign-up' },
+  { label: 'Login', value: '/login' },
+  { label: 'Profile', value: '/app/profile' },
+  { label: 'Settings', value: '/settings' },
+  { label: 'Help', value: '/help' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -269,7 +272,7 @@ export default function DebugPanel() {
 
   // Secret dialog
   const [secretDialogVisible, setSecretDialogVisible] = useState(false);
-  const [secretInput, setSecretInput] = useState("");
+  const [secretInput, setSecretInput] = useState('');
   const [secretError, setSecretError] = useState(false);
 
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>(() => ({
@@ -286,7 +289,7 @@ export default function DebugPanel() {
     {},
   );
   const toggleError = (id: string) =>
-    setExpandedErrors((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedErrors(prev => ({ ...prev, [id]: !prev[id] }));
 
   // Backend URL input
   const [urlInput, setUrlInput] = useState(
@@ -295,19 +298,19 @@ export default function DebugPanel() {
 
   // Sync urlInput once the store finishes rehydrating from SecureStore
   useEffect(() => {
-    return useDebugStore.persist.onFinishHydration((state) => {
+    return useDebugStore.persist.onFinishHydration(state => {
       setUrlInput(state.backendUrlOverride ?? environment.backendUrl);
     });
   }, []);
 
   // DOM section state
-  const [pingMessage, setPingMessage] = useState("Hello from RN");
-  const [selectedRoute, setSelectedRoute] = useState("/login");
+  const [pingMessage, setPingMessage] = useState('Hello from RN');
+  const [selectedRoute, setSelectedRoute] = useState('/login');
   const [routeOpen, setRouteOpen] = useState(false);
 
   // Feedback
   const [lastResult, setLastResult] = useState<string | null>(null);
-  const [clock, setClock] = useState("");
+  const [clock, setClock] = useState('');
 
   // Clock while panel open
   useEffect(() => {
@@ -319,20 +322,20 @@ export default function DebugPanel() {
   }, [visible]);
 
   // Window origin — fetched once when panel opens
-  const [windowOrigin, setWindowOrigin] = useState<string>("…");
+  const [windowOrigin, setWindowOrigin] = useState<string>('…');
   useEffect(() => {
     if (!visible) return;
-    sendToDom({ action: "GET_WINDOW_ORIGIN", payload: {} })
-      .then((res) =>
+    sendToDom({ action: 'GET_WINDOW_ORIGIN', payload: {} })
+      .then(res =>
         setWindowOrigin(
-          res.ok ? (res.data?.origin ?? "unknown") : `error: ${res.error}`,
+          res.ok ? (res.data?.origin ?? 'unknown') : `error: ${res.error}`,
         ),
       )
-      .catch(() => setWindowOrigin("error"));
+      .catch(() => setWindowOrigin('error'));
   }, [visible]);
 
   const toggle = (key: SectionKey) =>
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
 
   const result = (msg: string) => setLastResult(msg);
 
@@ -358,7 +361,7 @@ export default function DebugPanel() {
   // ── Auth Tokens ───────────────────────────────────────────────────────────
   const saveToDebug = () => {
     debugStore.get().setDebugTokens(accessToken ?? null, refreshToken ?? null);
-    result("Saved current tokens to debug slot");
+    result('Saved current tokens to debug slot');
   };
 
   const loadFromDebug = async () => {
@@ -369,7 +372,7 @@ export default function DebugPanel() {
         refreshToken: r ?? undefined,
       });
       await saveJwtTokens(a ?? undefined, r ?? undefined);
-      result("Debug tokens loaded into regular tokens + SecureStore");
+      result('Debug tokens loaded into regular tokens + SecureStore');
     } catch (e: any) {
       result(`Load failed: ${e}`);
     }
@@ -382,8 +385,8 @@ export default function DebugPanel() {
         accessToken: undefined,
         refreshToken: undefined,
       });
-      await sendToDom({ action: "NAVIGATE", payload: { path: "/login" } });
-      result("Regular tokens cleared");
+      await sendToDom({ action: 'NAVIGATE', payload: { path: '/login' } });
+      result('Regular tokens cleared');
     } catch (e: any) {
       result(`Clear failed: ${e}`);
     }
@@ -391,14 +394,14 @@ export default function DebugPanel() {
 
   const clearDebugTokens = () => {
     debugStore.get().clearDebugTokens();
-    result("Debug tokens cleared");
+    result('Debug tokens cleared');
   };
 
   // ── DOM Communication ─────────────────────────────────────────────────────
   const ping = async () => {
     try {
       const res = await sendToDom({
-        action: "PING",
+        action: 'PING',
         payload: { message: pingMessage },
       });
       result(res.ok ? `Pong: ${res.data?.message}` : `Error: ${res.error}`);
@@ -409,7 +412,7 @@ export default function DebugPanel() {
 
   const getWindowOrigin = async () => {
     try {
-      const res = await sendToDom({ action: "GET_WINDOW_ORIGIN", payload: {} });
+      const res = await sendToDom({ action: 'GET_WINDOW_ORIGIN', payload: {} });
       result(res.ok ? `Origin: ${res.data?.origin}` : `Error: ${res.error}`);
     } catch (e: any) {
       result(`Error: ${e}`);
@@ -418,7 +421,7 @@ export default function DebugPanel() {
 
   const navigate = async () => {
     try {
-      await sendToDom({ action: "NAVIGATE", payload: { path: selectedRoute } });
+      await sendToDom({ action: 'NAVIGATE', payload: { path: selectedRoute } });
       result(`Navigated to ${selectedRoute}`);
     } catch (e: any) {
       result(`Navigate failed: ${e}`);
@@ -428,24 +431,24 @@ export default function DebugPanel() {
   const checkAuth = async () => {
     let authenticated = false;
     try {
-      authenticated = await apiFetch("/api/user/authenticated").then(
-        (response) => response === true,
+      authenticated = await apiFetch('/api/user/authenticated').then(
+        response => response === true,
       );
     } catch {}
-    result(`${authenticated ? "" : "Not"} Authenticated`);
+    result(`${authenticated ? '' : 'Not'} Authenticated`);
   };
 
   // ── Secret tap ────────────────────────────────────────────────────────────
   const handleSecretTap = () => {
     if (tapResetTimer.current) clearTimeout(tapResetTimer.current);
     const tapsRequired = debugStore.get().debugEnabled ? 1 : 7;
-    setTapCount((prev) => {
+    setTapCount(prev => {
       const next = prev + 1;
       if (next >= tapsRequired) {
         if (debugStore.get().debugEnabled) {
           setVisible(true);
         } else {
-          setSecretInput("");
+          setSecretInput('');
           setSecretError(false);
           setSecretDialogVisible(true);
         }
@@ -468,8 +471,8 @@ export default function DebugPanel() {
         await saveIntegrityBypassToken(bypassToken);
       } catch (e) {
         debugStore.get().addReactError({
-          source: "native",
-          message: "Error during bypass token decryption",
+          source: 'native',
+          message: 'Error during bypass token decryption',
           stack: String(e),
         });
         console.error(e);
@@ -488,16 +491,16 @@ export default function DebugPanel() {
   };
 
   const truncate = (s: string | null | undefined, len = 32) => {
-    if (!s) return "—";
+    if (!s) return '—';
     return s.length > len ? `${s.slice(0, len / 2)}…${s.slice(-len / 2)}` : s;
   };
 
   const appInfoRows = useMemo(
     () => [
-      { label: "Backend URL", value: getBackendUrl() },
-      { label: "Integrity support", value: String(supportsAppIntegrity()) },
+      { label: 'Backend URL', value: getBackendUrl() },
+      { label: 'Integrity support', value: String(supportsAppIntegrity()) },
       {
-        label: "SecureStore available",
+        label: 'SecureStore available',
         value: String(secureStoreIsAvailable()),
       },
     ],
@@ -527,7 +530,7 @@ export default function DebugPanel() {
             <TextInput
               style={[styles.input, styles.modalInput]}
               value={secretInput}
-              onChangeText={(v) => {
+              onChangeText={v => {
                 setSecretInput(v);
                 setSecretError(false);
               }}
@@ -549,7 +552,7 @@ export default function DebugPanel() {
                 style={[styles.modalBtn, styles.modalBtnOk]}
                 onPress={handleSecretSubmit}
               >
-                <Text style={[styles.modalBtnText, { color: "#fff" }]}>OK</Text>
+                <Text style={[styles.modalBtnText, { color: '#fff' }]}>OK</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -580,9 +583,9 @@ export default function DebugPanel() {
             <Section
               title="App Info"
               expanded={expanded.appinfo}
-              onToggle={() => toggle("appinfo")}
+              onToggle={() => toggle('appinfo')}
             >
-              {appInfoRows.map((item) => (
+              {appInfoRows.map(item => (
                 <Row key={item.label} label={item.label} value={item.value} />
               ))}
               <Row label="Window origin" value={windowOrigin} />
@@ -593,7 +596,7 @@ export default function DebugPanel() {
               title="Backend URL"
               warning={!!backendUrlOverride}
               expanded={expanded.backend}
-              onToggle={() => toggle("backend")}
+              onToggle={() => toggle('backend')}
             >
               <Row
                 label="Active"
@@ -622,7 +625,7 @@ export default function DebugPanel() {
             <Section
               title="Auth"
               expanded={expanded.tokens}
-              onToggle={() => toggle("tokens")}
+              onToggle={() => toggle('tokens')}
             >
               <Text style={styles.subLabel}>Regular tokens</Text>
               <Row label="Access" value={truncate(accessToken)} />
@@ -685,7 +688,7 @@ export default function DebugPanel() {
             <Section
               title="DOM Communication"
               expanded={expanded.dom}
-              onToggle={() => toggle("dom")}
+              onToggle={() => toggle('dom')}
             >
               <TextInput
                 style={styles.input}
@@ -709,7 +712,7 @@ export default function DebugPanel() {
                   onPress={() => setRouteOpen(!routeOpen)}
                 >
                   <Text style={styles.dropdownText}>
-                    {ROUTES.find((r) => r.value === selectedRoute)?.label ??
+                    {ROUTES.find(r => r.value === selectedRoute)?.label ??
                       selectedRoute}
                   </Text>
                   <Text style={styles.dropdownArrow}>▾</Text>
@@ -718,7 +721,7 @@ export default function DebugPanel() {
               </View>
               {routeOpen && (
                 <View style={styles.dropdownMenu}>
-                  {ROUTES.map((r) => (
+                  {ROUTES.map(r => (
                     <TouchableOpacity
                       key={r.value}
                       style={styles.dropdownItem}
@@ -747,7 +750,7 @@ export default function DebugPanel() {
               title="Fetch Errors"
               badge={fetchErrors.length}
               expanded={expanded.fetchErrors}
-              onToggle={() => toggle("fetchErrors")}
+              onToggle={() => toggle('fetchErrors')}
             >
               {fetchErrors.length > 0 && (
                 <Btn
@@ -760,7 +763,7 @@ export default function DebugPanel() {
               {fetchErrors.length === 0 ? (
                 <Text style={styles.emptyText}>No fetch errors</Text>
               ) : (
-                fetchErrors.map((e) => (
+                fetchErrors.map(e => (
                   <FetchErrorItem
                     key={e.id}
                     error={e}
@@ -776,7 +779,7 @@ export default function DebugPanel() {
               title="React Errors"
               badge={reactErrors.length}
               expanded={expanded.reactErrors}
-              onToggle={() => toggle("reactErrors")}
+              onToggle={() => toggle('reactErrors')}
             >
               {reactErrors.length > 0 && (
                 <Btn
@@ -789,7 +792,7 @@ export default function DebugPanel() {
               {reactErrors.length === 0 ? (
                 <Text style={styles.emptyText}>No React errors</Text>
               ) : (
-                reactErrors.map((e) => (
+                reactErrors.map(e => (
                   <ReactErrorItem
                     key={e.id}
                     error={e}
@@ -830,228 +833,228 @@ export default function DebugPanel() {
 
 const styles = StyleSheet.create({
   secretZone: {
-    position: Platform.select({ web: "fixed", default: "absolute" }),
+    position: Platform.select({ web: 'fixed', default: 'absolute' }),
     bottom: 0,
     right: 0,
     width: 40,
     height: 40,
     zIndex: 1000,
-    cursor: "default",
+    cursor: 'default',
     // backgroundColor: "transparent",
   },
 
   panel: {
-    position: "absolute",
+    position: 'absolute',
     top: 48,
     left: 12,
     right: 12,
     maxHeight: 620,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#d0d0d0",
-    shadowColor: "#000",
+    borderColor: '#d0d0d0',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 8,
     zIndex: 1001,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
 
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#ebebeb",
-    backgroundColor: "#f8f8f8",
+    borderBottomColor: '#ebebeb',
+    backgroundColor: '#f8f8f8',
   },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: "#1a1a1a" },
-  headerClock: { fontSize: 11, color: "#888", marginTop: 2 },
+  headerTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  headerClock: { fontSize: 11, color: '#888', marginTop: 2 },
   closeBtn: {
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#e0e0e0",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  closeBtnText: { fontSize: 13, color: "#555" },
+  closeBtnText: { fontSize: 13, color: '#555' },
 
   scroll: { flex: 1 },
 
-  section: { borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
+  section: { borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
   },
-  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  sectionTitle: { fontSize: 13, fontWeight: "600", color: "#333" },
-  chevron: { fontSize: 13, color: "#007AFF" },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sectionTitle: { fontSize: 13, fontWeight: '600', color: '#333' },
+  chevron: { fontSize: 13, color: '#007AFF' },
   sectionBody: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
 
   badge: {
-    backgroundColor: "#dc3545",
+    backgroundColor: '#dc3545',
     borderRadius: 8,
     paddingHorizontal: 5,
     paddingVertical: 1,
     minWidth: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  badgeText: { fontSize: 10, fontWeight: "700", color: "#fff" },
+  badgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
 
-  subLabel: { fontSize: 11, fontWeight: "600", color: "#888", marginBottom: 4 },
+  subLabel: { fontSize: 11, fontWeight: '600', color: '#888', marginBottom: 4 },
 
-  row: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   rowLabel: {
     fontSize: 11,
-    fontWeight: "600",
-    color: "#555",
+    fontWeight: '600',
+    color: '#555',
     width: 90,
     flexShrink: 0,
   },
-  rowValue: { fontSize: 11, color: "#333", fontFamily: "monospace", flex: 1 },
-  checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
-  checkboxBox: { fontSize: 16, marginRight: 6, color: "#333" },
-  checkboxLabel: { fontSize: 12, color: "#333", flex: 1 },
+  rowValue: { fontSize: 11, color: '#333', fontFamily: 'monospace', flex: 1 },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  checkboxBox: { fontSize: 16, marginRight: 6, color: '#333' },
+  checkboxLabel: { fontSize: 12, color: '#333', flex: 1 },
 
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 7,
     fontSize: 13,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
     marginVertical: 6,
   },
 
-  btnRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
+  btnRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   btn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 7,
-    alignItems: "center",
+    alignItems: 'center',
   },
   btnSmall: { paddingHorizontal: 10, paddingVertical: 6 },
-  btnText: { color: "white", fontSize: 13, fontWeight: "600" },
+  btnText: { color: 'white', fontSize: 13, fontWeight: '600' },
   btnTextSmall: { fontSize: 11 },
 
   dropdown: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 7,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
   },
-  dropdownText: { fontSize: 13, color: "#333" },
-  dropdownArrow: { fontSize: 11, color: "#666" },
+  dropdownText: { fontSize: 13, color: '#333' },
+  dropdownArrow: { fontSize: 11, color: '#666' },
   dropdownMenu: {
     marginTop: 4,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 7,
-    backgroundColor: "#fff",
-    overflow: "hidden",
+    backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   dropdownItem: {
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f2",
+    borderBottomColor: '#f2f2f2',
   },
-  dropdownItemText: { fontSize: 13, color: "#333" },
-  dropdownItemActive: { color: "#007AFF", fontWeight: "600" },
+  dropdownItemText: { fontSize: 13, color: '#333' },
+  dropdownItemActive: { color: '#007AFF', fontWeight: '600' },
 
   // Error items
   emptyText: {
     fontSize: 11,
-    color: "#aaa",
-    fontStyle: "italic",
+    color: '#aaa',
+    fontStyle: 'italic',
     marginTop: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorItem: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#ffd0d0",
+    borderColor: '#ffd0d0',
     borderRadius: 6,
-    backgroundColor: "#fff8f8",
-    overflow: "hidden",
+    backgroundColor: '#fff8f8',
+    overflow: 'hidden',
   },
   errorItemHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 7,
     gap: 6,
   },
   errorTimestamp: {
     fontSize: 10,
-    color: "#888",
-    fontFamily: "monospace",
+    color: '#888',
+    fontFamily: 'monospace',
     flexShrink: 0,
   },
   errorSource: {
     fontSize: 10,
-    color: "#666",
-    fontFamily: "monospace",
-    fontWeight: "700",
+    color: '#666',
+    fontFamily: 'monospace',
+    fontWeight: '700',
     flexShrink: 0,
   },
   errorSummary: {
     flex: 1,
     fontSize: 11,
-    color: "#c0392b",
-    fontFamily: "monospace",
+    color: '#c0392b',
+    fontFamily: 'monospace',
   },
-  errorChevron: { fontSize: 11, color: "#c0392b", flexShrink: 0 },
+  errorChevron: { fontSize: 11, color: '#c0392b', flexShrink: 0 },
   errorDetails: {
     borderTopWidth: 1,
-    borderTopColor: "#ffd0d0",
+    borderTopColor: '#ffd0d0',
     padding: 10,
     gap: 4,
   },
   errorDetailLabel: {
     fontSize: 10,
-    fontWeight: "700",
-    color: "#888",
+    fontWeight: '700',
+    color: '#888',
     marginTop: 6,
   },
   errorDetailValue: {
     fontSize: 10,
-    color: "#333",
-    fontFamily: "monospace",
+    color: '#333',
+    fontFamily: 'monospace',
   },
 
   resultBox: {
     margin: 12,
-    backgroundColor: "#f0f4ff",
+    backgroundColor: '#f0f4ff',
     borderRadius: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: "#c8d8ff",
+    borderColor: '#c8d8ff',
   },
   resultHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 4,
   },
-  resultLabel: { fontSize: 11, fontWeight: "700", color: "#3355cc" },
-  resultClear: { fontSize: 11, color: "#888" },
-  resultText: { fontSize: 11, color: "#223", fontFamily: "monospace" },
+  resultLabel: { fontSize: 11, fontWeight: '700', color: '#3355cc' },
+  resultClear: { fontSize: 11, color: '#888' },
+  resultText: { fontSize: 11, color: '#223', fontFamily: 'monospace' },
 
   stopRow: {
     margin: 12,
@@ -1061,16 +1064,16 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBox: {
     width: 280,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1078,15 +1081,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 15,
-    fontWeight: "700",
-    color: "#1a1a1a",
+    fontWeight: '700',
+    color: '#1a1a1a',
     marginBottom: 12,
   },
   modalInput: { marginBottom: 0 },
-  modalError: { fontSize: 12, color: "#dc3545", marginTop: 6 },
+  modalError: { fontSize: 12, color: '#dc3545', marginTop: 6 },
   modalBtnRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     gap: 8,
     marginTop: 16,
   },
@@ -1095,7 +1098,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 7,
   },
-  modalBtnCancel: { backgroundColor: "#e0e0e0" },
-  modalBtnOk: { backgroundColor: "#007AFF" },
-  modalBtnText: { fontSize: 14, fontWeight: "600", color: "#333" },
+  modalBtnCancel: { backgroundColor: '#e0e0e0' },
+  modalBtnOk: { backgroundColor: '#007AFF' },
+  modalBtnText: { fontSize: 14, fontWeight: '600', color: '#333' },
 });

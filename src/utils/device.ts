@@ -1,7 +1,7 @@
-import * as SecureStore from "expo-secure-store";
-import uuid from "react-native-uuid";
+import * as SecureStore from 'expo-secure-store';
+import uuid from 'react-native-uuid';
 
-const DEVICE_ID_KEY = "device_id";
+const DEVICE_ID_KEY = 'device_id';
 
 export async function getDeviceId(): Promise<string> {
   let id = await SecureStore.getItemAsync(DEVICE_ID_KEY);

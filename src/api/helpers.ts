@@ -1,5 +1,10 @@
-import { environment } from "@/environment";
-import * as AppIntegrity from "@expo/app-integrity";
+import { Platform } from 'react-native';
+
+import * as AppIntegrity from '@expo/app-integrity';
+import { mutate } from 'swr';
+
+import { environment } from '@/environment';
+import environmentNative from '@/environments/env';
 import type {
   IntegrityCheck,
   IntegrityCheckAndroid,
@@ -8,34 +13,31 @@ import type {
   IntegrityCheckRequestDataAndroid,
   IntegrityCheckRequestDataIOS,
   IntegrityCheckRequestDataWeb,
-} from "@/frontend/src";
-import { Platform } from "react-native";
-import { API_FIELDS } from "../constants";
-import { Cookies } from "../constants/CookieMock";
-import PlatformSecureStore, * as SecureStore from "../helpers/secureStore";
-import { useAuthStore } from "../store/authStore";
+} from '@/frontend/src';
 
-import environmentNative from "@/environments/env";
-import { mutate } from "swr";
-import { IS_AUTHENTICATED_ENDPOINT } from ".";
+import { IS_AUTHENTICATED_ENDPOINT } from '.';
+import { API_FIELDS } from '../constants';
+import { Cookies } from '../constants/CookieMock';
+import PlatformSecureStore, * as SecureStore from '../helpers/secureStore';
+import { useAuthStore } from '../store/authStore';
 import {
   debugStore,
   FetchError,
   getEffectiveBackendUrl,
   useDebugStore,
-} from "../store/debugStore";
-import { domCommunicationStore } from "../store/domCommunicationStore";
+} from '../store/debugStore';
+import { domCommunicationStore } from '../store/domCommunicationStore';
 
 export async function navigateToLogin(expired: boolean = false): Promise<void> {
   // Delegate navigation to frontend
   const { sendToDom } = domCommunicationStore.get();
   await sendToDom?.({
-    action: "NAVIGATE_TO_LOGIN",
+    action: 'NAVIGATE_TO_LOGIN',
     payload: { sessionExpired: expired },
   });
 }
 
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiFetchOptions {
   method?: HttpMethod;
@@ -57,11 +59,11 @@ interface IntegrityChallenge {
 }
 
 export const formatApiError = (responseBody: any, response: any) => {
-  const apiError: ApiError = new Error("API request failed");
+  const apiError: ApiError = new Error('API request failed');
   apiError.status = response.status;
   apiError.statusText = response.statusText;
   apiError.data = responseBody;
-  if (typeof responseBody === "string") {
+  if (typeof responseBody === 'string') {
     apiError.message = responseBody;
   } else {
     const errorTypeApi = Object.keys(responseBody)?.[0];
@@ -81,31 +83,31 @@ export const formatApiError = (responseBody: any, response: any) => {
 export async function apiFetch<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
-  source: FetchError["source"] = "native",
+  source: FetchError['source'] = 'native',
 ): Promise<T> {
   const {
-    method = "GET",
+    method = 'GET',
     body,
     headers = {},
-    credentials = "same-origin",
+    credentials = 'same-origin',
     useTagsOnly = true,
   } = options;
 
   const defaultHeaders: Record<string, string> = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-    "X-CSRFToken": Cookies.get("csrftoken") || "",
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'X-CSRFToken': Cookies.get('csrftoken') || '',
   };
   if (environment.allowNgrokRequests) {
-    defaultHeaders["ngrok-skip-browser-warning"] = "69420";
+    defaultHeaders['ngrok-skip-browser-warning'] = '69420';
   }
 
   if (useTagsOnly) {
-    defaultHeaders["X-UseTagsOnly"] = "true";
+    defaultHeaders['X-UseTagsOnly'] = 'true';
   }
 
   const authHeaders = {
-    "X-CSRF-Bypass-Token": "abc",
+    'X-CSRF-Bypass-Token': 'abc',
   } as Record<string, string>;
   const { accessToken } = useAuthStore.getState();
   if (accessToken) {
@@ -122,7 +124,7 @@ export async function apiFetch<T = any>(
     if (body instanceof FormData) {
       fetchOptions.body = body;
       // Remove Content-Type header when sending FormData
-      delete (fetchOptions.headers as Record<string, string>)["Content-Type"];
+      delete (fetchOptions.headers as Record<string, string>)['Content-Type'];
     } else {
       fetchOptions.body = JSON.stringify(body);
     }
@@ -136,7 +138,7 @@ export async function apiFetch<T = any>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      if (errorData?.code === "token_not_valid") {
+      if (errorData?.code === 'token_not_valid') {
         throw { ...errorData, status: response.status };
       }
       throw formatApiError(errorData, response);
@@ -159,10 +161,10 @@ export async function apiFetch<T = any>(
           requestBody: body,
           status: (error as any)?.status ?? 999,
           error: {
-            type: "TypeError",
+            type: 'TypeError',
             message: error.message,
             details:
-              "Possible causes: Internect connection issues or CORS error",
+              'Possible causes: Internect connection issues or CORS error',
           },
         });
       } else {
@@ -186,7 +188,7 @@ export async function apiFetch<T = any>(
 
 // Integrity check logic
 
-const APP_INTEGRITY_KEY_ID_KEY = "APP_INTEGRITY_KEY_ID";
+const APP_INTEGRITY_KEY_ID_KEY = 'APP_INTEGRITY_KEY_ID';
 
 export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
   const { bypassIntegrityChecks, integrityBypassToken } =
@@ -196,12 +198,12 @@ export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
   }
 
   switch (Platform.OS) {
-    case "android":
+    case 'android':
       return requestIntegrityCheckAndroid();
-    case "macos":
-    case "ios":
+    case 'macos':
+    case 'ios':
       return requestIntegrityCheckIOS();
-    case "web":
+    case 'web':
       return requestIntegrityCheckWeb();
     default:
       throw new Error(
@@ -246,12 +248,12 @@ async function requestIntegrityCheckAndroid(): Promise<IntegrityCheckAndroid> {
   const integrityToken =
     await AppIntegrity.requestIntegrityCheckAsync(challenge);
 
-  return { platform: "android", challengeId, integrityToken };
+  return { platform: 'android', challengeId, integrityToken };
 }
 
 async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
   if (!AppIntegrity.isSupported) {
-    throw new Error("Integrity check not supported on device");
+    throw new Error('Integrity check not supported on device');
   }
 
   let keyId = await PlatformSecureStore.getItemAsync(APP_INTEGRITY_KEY_ID_KEY);
@@ -268,22 +270,22 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
       keyId,
       challenge,
     );
-    return { platform: "ios", keyId, challengeId, attestationObject };
+    return { platform: 'ios', keyId, challengeId, attestationObject };
   } catch (error) {
-    if (error !== "ERR_APP_INTEGRITY_SERVER_UNAVAILABLE") {
+    if (error !== 'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE') {
       await PlatformSecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
     }
-    throw new Error("Integrity check failed", { cause: error });
+    throw new Error('Integrity check failed', { cause: error });
   }
 }
 
 async function requestIntegrityCheckWeb(): Promise<IntegrityCheck> {
-  return { platform: "web", bypassToken: "bypassChangeMe!" };
+  return { platform: 'web', bypassToken: 'bypassChangeMe!' };
 }
 
 async function fetchIntegrityChallenge(): Promise<IntegrityChallenge> {
-  return apiFetch("/api/integrity/challenge", {
-    method: "POST",
+  return apiFetch('/api/integrity/challenge', {
+    method: 'POST',
   });
 }
 
@@ -291,14 +293,14 @@ async function fetchIntegrityChallenge(): Promise<IntegrityChallenge> {
 export function getIntegrityCheckRequestData(
   integrityCheck: IntegrityCheck,
 ): IntegrityCheckRequestData {
-  if (integrityCheck.platform === "android") {
+  if (integrityCheck.platform === 'android') {
     return {
       challenge_id: integrityCheck.challengeId,
       integrity_token: integrityCheck.integrityToken,
       bypass_token: integrityCheck.bypassToken,
     } satisfies IntegrityCheckRequestDataAndroid;
   }
-  if (integrityCheck.platform === "ios") {
+  if (integrityCheck.platform === 'ios') {
     return {
       key_id: integrityCheck.keyId,
       challenge_id: integrityCheck.challengeId,
@@ -306,7 +308,7 @@ export function getIntegrityCheckRequestData(
       bypass_token: integrityCheck.bypassToken,
     } satisfies IntegrityCheckRequestDataIOS;
   }
-  if (integrityCheck.platform === "web") {
+  if (integrityCheck.platform === 'web') {
     return {
       bypass_token: integrityCheck.bypassToken,
     } satisfies IntegrityCheckRequestDataWeb;
@@ -316,13 +318,13 @@ export function getIntegrityCheckRequestData(
 
 // Token logic
 
-const ACCESS_TOKEN_KEY = "dom_auth_access_token";
-const REFRESH_TOKEN_KEY = "dom_auth_refresh_token";
-const INTEGRITY_BYPASS_TOKEN_KEY = "dom_auth_integrity_bypass_token";
+const ACCESS_TOKEN_KEY = 'dom_auth_access_token';
+const REFRESH_TOKEN_KEY = 'dom_auth_refresh_token';
+const INTEGRITY_BYPASS_TOKEN_KEY = 'dom_auth_integrity_bypass_token';
 
 export async function getAccessJwtToken() {
   try {
-    if (SecureStore && typeof SecureStore.getItemAsync === "function") {
+    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
       return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
     }
   } catch {}
@@ -331,7 +333,7 @@ export async function getAccessJwtToken() {
 
 export async function getRefreshJwtToken() {
   try {
-    if (SecureStore && typeof SecureStore.getItemAsync === "function") {
+    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
       return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
     }
   } catch {}
@@ -343,7 +345,7 @@ export async function saveJwtTokens(
   refreshToken: string | undefined | null,
 ) {
   try {
-    if (SecureStore && typeof SecureStore.setItemAsync === "function") {
+    if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
       if (accessToken) {
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
       } else {
@@ -361,7 +363,7 @@ export async function saveJwtTokens(
 
 export async function clearJwtTokens() {
   try {
-    if (SecureStore && typeof SecureStore.deleteItemAsync === "function") {
+    if (SecureStore && typeof SecureStore.deleteItemAsync === 'function') {
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     }
@@ -434,14 +436,14 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
   }
 
   const defaultHeaders: Record<string, string> = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
   };
   if (environment.allowNgrokRequests) {
-    defaultHeaders["ngrok-skip-browser-warning"] = "69420";
+    defaultHeaders['ngrok-skip-browser-warning'] = '69420';
   }
   const authHeaders = {
-    "X-CSRF-Bypass-Token": "abc",
+    'X-CSRF-Bypass-Token': 'abc',
   } as Record<string, string>;
 
   accessTokenRefresh = (async (): Promise<TokenStatus> => {
@@ -454,7 +456,7 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
 
       const integrityData = await requestIntegrityCheck();
       const fetchOptions: RequestInit = {
-        method: "POST",
+        method: 'POST',
         headers: { ...defaultHeaders, ...authHeaders },
         body: JSON.stringify({
           refresh: refreshToken,

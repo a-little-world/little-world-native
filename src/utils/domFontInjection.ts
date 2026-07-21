@@ -1,5 +1,5 @@
-import { Asset } from "expo-asset";
-import { fontFiles } from "@a-little-world/little-world-design-system-core";
+import { fontFiles } from '@a-little-world/little-world-design-system-core';
+import { Asset } from 'expo-asset';
 
 const CHUNK_SIZE = 8192; // Optimal chunk size for base64 conversion
 const RETRY_DELAY = 100; // Delay before retry in milliseconds
@@ -9,7 +9,7 @@ const RETRY_DELAY = 100; // Delay before retry in milliseconds
  */
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const uint8Array = new Uint8Array(buffer);
-  let binaryString = "";
+  let binaryString = '';
 
   for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
     const chunk = uint8Array.subarray(i, i + CHUNK_SIZE);
@@ -23,10 +23,10 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
  * Determines font format from file extension
  */
 function getFontFormat(url: string): string {
-  if (url.endsWith(".woff2")) return "woff2";
-  if (url.endsWith(".woff")) return "woff";
-  if (url.endsWith(".ttf")) return "truetype";
-  return "truetype"; // Default fallback
+  if (url.endsWith('.woff2')) return 'woff2';
+  if (url.endsWith('.woff')) return 'woff';
+  if (url.endsWith('.ttf')) return 'truetype';
+  return 'truetype'; // Default fallback
 }
 
 /**
@@ -34,7 +34,7 @@ function getFontFormat(url: string): string {
  */
 async function processFontAsset(
   fontFamily: string,
-  fontAsset: any
+  fontAsset: any,
 ): Promise<string | null> {
   try {
     // Load and download the asset
@@ -68,7 +68,7 @@ async function processFontAsset(
   } catch (error) {
     console.error(
       `[DOM Font Injection] Error processing ${fontFamily}:`,
-      error
+      error,
     );
     return null;
   }
@@ -80,7 +80,7 @@ async function processFontAsset(
  */
 async function generateFontFaceCSS(): Promise<string> {
   if (!fontFiles) {
-    return "";
+    return '';
   }
 
   const fontEntries = Object.entries(fontFiles);
@@ -88,14 +88,14 @@ async function generateFontFaceCSS(): Promise<string> {
   // Process all fonts in parallel for better performance
   const fontFaceRules = await Promise.all(
     fontEntries.map(([fontFamily, fontAsset]) =>
-      processFontAsset(fontFamily, fontAsset)
-    )
+      processFontAsset(fontFamily, fontAsset),
+    ),
   );
 
   // Filter out null results (failed fonts) and join
   const css = fontFaceRules
     .filter((rule): rule is string => rule !== null)
-    .join("\n");
+    .join('\n');
 
   return css;
 }
@@ -116,15 +116,15 @@ export async function injectFontsIntoDOM(): Promise<() => void> {
     }
 
     // Remove existing injection if present
-    const existing = document.head.querySelector("[data-font-injection]");
+    const existing = document.head.querySelector('[data-font-injection]');
     if (existing) {
       existing.remove();
     }
 
     // Inject new style element
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.textContent = fontCSS;
-    style.setAttribute("data-font-injection", "true");
+    style.setAttribute('data-font-injection', 'true');
     document.head.appendChild(style);
 
     return () => {
@@ -133,7 +133,7 @@ export async function injectFontsIntoDOM(): Promise<() => void> {
       }
     };
   } catch (error) {
-    console.error("[DOM Font Injection] Injection error:", error);
+    console.error('[DOM Font Injection] Injection error:', error);
     return () => {};
   }
 }
@@ -142,7 +142,7 @@ export async function injectFontsIntoDOM(): Promise<() => void> {
  * Applies font injection with retry logic for cases where DOM isn't ready
  */
 export function applyFontInjectionWithRetry(
-  retryDelay: number = RETRY_DELAY
+  retryDelay: number = RETRY_DELAY,
 ): () => void {
   let cleanup: (() => void) | null = null;
 
@@ -150,7 +150,7 @@ export function applyFontInjectionWithRetry(
     try {
       cleanup = await injectFontsIntoDOM();
     } catch (error) {
-      console.error("[DOM Font Injection] Retry error:", error);
+      console.error('[DOM Font Injection] Retry error:', error);
     }
   };
 
@@ -161,7 +161,7 @@ export function applyFontInjectionWithRetry(
   const timeoutId = setTimeout(() => {
     if (
       document.head &&
-      !document.head.querySelector("[data-font-injection]")
+      !document.head.querySelector('[data-font-injection]')
     ) {
       tryApply();
     }

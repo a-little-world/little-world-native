@@ -1,14 +1,15 @@
-import useSWR from "swr";
+import { ReactNode, useMemo, useRef } from 'react';
 
-import { IS_AUTHENTICATED_ENDPOINT } from "@/src/api";
-import { useAuthStore } from "@/src/store/authStore";
-import { ReactNode, useMemo, useRef } from "react";
+import useSWR from 'swr';
+
+import { IS_AUTHENTICATED_ENDPOINT } from '@/src/api';
+import { useAuthStore } from '@/src/store/authStore';
 
 function AuthGuard({ children }: { children: ReactNode }) {
   const { data: authenticated, isValidating } = useSWR<boolean>(
     IS_AUTHENTICATED_ENDPOINT,
     {
-      refreshInterval: (isAuthenticated) => {
+      refreshInterval: isAuthenticated => {
         // keep polling every 3s until authenticated
         if (isAuthenticated !== true) {
           return 3000;

@@ -4,7 +4,7 @@ export interface EnvironmentNative {
   googleCloudProjectNumber: string;
   googleServiceInfoFileIOS: string;
   googleServiceInfoFileAndroid: string;
-  appleEnvironment: "development" | "production";
+  appleEnvironment: 'development' | 'production';
   sentryProject?: string;
   sentryUrl?: string;
 }

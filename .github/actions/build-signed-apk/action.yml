@@ -19,7 +19,7 @@ inputs:
     description: Key alias inside the keystore
   bundletool-version:
     required: false
-    default: "1.17.2"
+    default: '1.17.2'
     description: bundletool release to use
 
 runs:
@@ -29,7 +29,7 @@ runs:
       uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: "17"
+        java-version: '17'
 
     - name: Build signed universal APK
       shell: bash

@@ -220,6 +220,7 @@ This app uses i18next for internationalization and merges translations from two 
 ### Translation Structure
 
 - **Shared translations**: Common translations used across all Little World applications
+
   - View existing translations: [@a-little-world/little-world-frontend-shared/translations](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)
   - Add new shared translations to the shared package repository
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import styled from 'styled-components/native';
+
 import { useNavigation } from '@react-navigation/native';
+import styled from 'styled-components/native';
 
 import LogoImageSvg from '@/src/assets/images/logo-image.svg';
 import LogoTextSvg from '@/src/assets/images/logo-text.svg';
@@ -22,7 +23,7 @@ const LogoContainer = styled(View)<{ $stacked?: boolean }>`
 `;
 
 const LogoImage = ({ $size, ...props }: { $size: SizesType } & any) => (
-  <LogoImageSvg 
+  <LogoImageSvg
     style={{
       width: $size === LogoSizes.Small ? 30 : 70,
       height: $size === LogoSizes.Small ? 30 : 70,
@@ -32,7 +33,7 @@ const LogoImage = ({ $size, ...props }: { $size: SizesType } & any) => (
 );
 
 export const LogoText = ({ $size, ...props }: { $size: SizesType } & any) => (
-  <LogoTextSvg 
+  <LogoTextSvg
     style={{
       width: $size === LogoSizes.Small ? 30 : 80,
       height: $size === LogoSizes.Small ? 15 : 40,
@@ -49,7 +50,7 @@ const Wrapper = ({
   children: React.ReactNode;
 }) => {
   const navigation = useNavigation();
-  
+
   if (asLink) {
     return (
       <TouchableOpacity onPress={() => navigation.navigate(getAppRoute())}>
@@ -57,7 +58,7 @@ const Wrapper = ({
       </TouchableOpacity>
     );
   }
-  
+
   return <>{children}</>;
 };
 
@@ -80,12 +81,8 @@ const Logo = ({
 }: LogoProps) => (
   <Wrapper asLink={asLink}>
     <LogoContainer style={style} $stacked={stacked}>
-      {displayImage && (
-        <LogoImage $size={size} />
-      )}
-      {displayText && (
-        <LogoText $size={size} />
-      )}
+      {displayImage && <LogoImage $size={size} />}
+      {displayText && <LogoText $size={size} />}
     </LogoContainer>
   </Wrapper>
 );

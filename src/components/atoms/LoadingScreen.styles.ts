@@ -1,4 +1,5 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
+
 import { DefaultTheme } from 'styled-components/native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -17,4 +18,3 @@ export const getLoadingScreenStyles = (theme: DefaultTheme) => {
     },
   });
 };
-

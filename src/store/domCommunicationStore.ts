@@ -1,5 +1,6 @@
-import { DomCommunicationMessageFn } from "@/frontend/src";
-import { create } from "zustand";
+import { create } from 'zustand';
+
+import { DomCommunicationMessageFn } from '@/frontend/src';
 
 interface DomCommunicationState {
   sendToDom?: DomCommunicationMessageFn;
@@ -12,7 +13,7 @@ type Actions = {
 export const useDomCommunicationStore = create<DomCommunicationState & Actions>(
   (set, get) => ({
     sendToDom: undefined,
-    setSendToDom: (fn) => set({ sendToDom: fn }),
+    setSendToDom: fn => set({ sendToDom: fn }),
   }),
 );
 

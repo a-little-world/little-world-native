@@ -3,9 +3,7 @@
   "release-type": "node",
   "packages": {
     ".": {
-      "extra-files": [
-        "app.config.ts"
-      ]
+      "extra-files": ["app.config.ts"]
     }
   },
   "include-component-in-tag": false,
