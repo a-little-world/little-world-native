@@ -1,6 +1,6 @@
 # Submodules
-frontend/
-e2e_simulations/
+# submodules NOT ignored here so the editor still formats them
+# - cli checks skipped via .prettierignore-cli
 
 # Build / cache outputs
 node_modules/
