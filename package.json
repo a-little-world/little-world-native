@@ -19,8 +19,8 @@
     "ios:dev-build": "EXPO_PUBLIC_USE_EXPO_GO=false expo start --ios --port 9000",
     "web": "expo start --web --port 9000",
     "lint": "expo lint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore-cli",
+    "format:check": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore-cli",
     "prebuild": "expo prebuild --clean",
     "frontend:setup": "./_scripts/setup_local_frontend.sh",
     "export-web": "expo export --platform web --output-dir native_build"
