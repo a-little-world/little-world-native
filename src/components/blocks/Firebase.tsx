@@ -14,7 +14,6 @@ import { domCommunicationStore } from '@/src/store/domCommunicationStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 import {
-  channelIdForType,
   ensureNotificationPermission,
   setUpNotificationChannels,
 } from '@/src/utils/notifications';
@@ -33,28 +32,6 @@ function extractPath(data?: Record<string, unknown>): string | null {
   return typeof path === 'string' && path.startsWith('/') ? path : null;
 }
 
-function normalizePath(path: string): string {
-  const clean = path.split(/[?#]/)[0];
-  return clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
-}
-
-// Ask the webview which route it is currently showing. Returns null if the
-// webview can't answer (not ready / timeout), which callers treat as "unknown".
-async function currentPath(): Promise<string | null> {
-  const res = await domCommunicationStore.get().sendToDom?.({
-    action: 'GET_CURRENT_PATH',
-    payload: {},
-  });
-  if (res?.ok && typeof res.data?.path === 'string') {
-    return normalizePath(res.data.path);
-  }
-  return null;
-}
-
-async function isOnPath(path: string): Promise<boolean> {
-  return (await currentPath()) === normalizePath(path);
-}
-
 // store path from notification in case webview is not ready yet
 let pendingPath: string | null = null;
 
@@ -66,10 +43,7 @@ async function openPath(path: string | null) {
     pendingPath = path;
     return;
   }
-  // Already on the target path -> nothing to navigate to.
-  if (await isOnPath(path)) {
-    return;
-  }
+
   domCommunicationStore.get().sendToDom?.({
     action: 'NAVIGATE',
     payload: { path },
@@ -94,15 +68,6 @@ function FireBase() {
   }, [webViewReady]);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const path = await currentPath();
-      console.log('[current path]', path);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     const messaging = getMessaging();
 
     (async () => {
@@ -117,32 +82,18 @@ function FireBase() {
       }
     })();
 
-    // Notifications stay silent when app is in foreground -> display it manually
-    // TODO: maybe replace with toast?
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
       if (!remoteMessage.notification) {
         return;
       }
-      // Don't surface a notification for the page the user is already on.
-      const path = pathFromData(remoteMessage.data);
-      if (path && (await isOnPath(path))) {
-        return;
-      }
-      const channelId = channelIdForType(
-        remoteMessage.notification.android?.channelId,
-      );
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: remoteMessage.notification.title,
-            body: remoteMessage.notification.body,
-            data: remoteMessage.data ?? {},
-          },
-          trigger: channelId ? { channelId } : null,
-        });
-      } catch (error) {
-        console.warn('[push] could not show notification', error);
-      }
+      domCommunicationStore.get().sendToDom?.({
+        action: 'DISPLAY_NOTIFICATION',
+        payload: {
+          title: remoteMessage.notification.title ?? undefined,
+          body: remoteMessage.notification.body ?? undefined,
+          path: extractPath(remoteMessage.data) ?? undefined,
+        },
+      });
     });
 
     const openedUnsubscribe = onNotificationOpenedApp(
