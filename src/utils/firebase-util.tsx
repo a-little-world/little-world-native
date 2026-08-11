@@ -58,15 +58,19 @@ export async function registerFirebaseDeviceToken(): Promise<void> {
     return;
   }
 
-  await apiFetch('/api/push_notifications/register', {
-    method: 'POST',
-    body: {
-      install_id: await getDeviceId(),
-      token: await getMessaging().getToken(),
-      platform: Platform.OS,
-      model_name: Device.modelName,
-    },
-  });
+  try {
+    await apiFetch('/api/push_notifications/register', {
+      method: 'POST',
+      body: {
+        install_id: await getDeviceId(),
+        token: await getMessaging().getToken(),
+        platform: Platform.OS,
+        model_name: Device.modelName,
+      },
+    });
+  } catch (_e) {
+    // ignore
+  }
 }
 
 export async function unregisterFirebaseDeviceToken(): Promise<void> {
