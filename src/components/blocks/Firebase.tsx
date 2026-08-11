@@ -33,15 +33,41 @@ function extractPath(data?: Record<string, unknown>): string | null {
   return typeof path === 'string' && path.startsWith('/') ? path : null;
 }
 
+function normalizePath(path: string): string {
+  const clean = path.split(/[?#]/)[0];
+  return clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
+}
+
+// Ask the webview which route it is currently showing. Returns null if the
+// webview can't answer (not ready / timeout), which callers treat as "unknown".
+async function currentPath(): Promise<string | null> {
+  const res = await domCommunicationStore.get().sendToDom?.({
+    action: 'GET_CURRENT_PATH',
+    payload: {},
+  });
+  if (res?.ok && typeof res.data?.path === 'string') {
+    return normalizePath(res.data.path);
+  }
+  return null;
+}
+
+async function isOnPath(path: string): Promise<boolean> {
+  return (await currentPath()) === normalizePath(path);
+}
+
 // store path from notification in case webview is not ready yet
 let pendingPath: string | null = null;
 
-function openPath(path: string | null) {
+async function openPath(path: string | null) {
   if (!path) {
     return;
   }
   if (!useWebViewStore.getState().ready) {
     pendingPath = path;
+    return;
+  }
+  // Already on the target path -> nothing to navigate to.
+  if (await isOnPath(path)) {
     return;
   }
   domCommunicationStore.get().sendToDom?.({
@@ -68,6 +94,15 @@ function FireBase() {
   }, [webViewReady]);
 
   useEffect(() => {
+    const interval = setInterval(async () => {
+      const path = await currentPath();
+      console.log('[current path]', path);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     const messaging = getMessaging();
 
     (async () => {
@@ -86,6 +121,11 @@ function FireBase() {
     // TODO: maybe replace with toast?
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
       if (!remoteMessage.notification) {
+        return;
+      }
+      // Don't surface a notification for the page the user is already on.
+      const path = pathFromData(remoteMessage.data);
+      if (path && (await isOnPath(path))) {
         return;
       }
       const channelId = channelIdForType(
