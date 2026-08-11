@@ -52,34 +52,26 @@ async function requestUserPermission(): Promise<boolean> {
   }
 }
 
-async function updateFirebaseDeviceRegistration(
-  step: 'register' | 'unregister',
-): Promise<void> {
+export async function registerFirebaseDeviceToken(): Promise<void> {
   const permission = await requestUserPermission();
   if (!permission) {
     return;
   }
 
-  const deviceId = await getDeviceId();
-  const token = await getMessaging().getToken();
-  const platform = Platform.OS;
-  const modelName = Device.modelName;
-
-  await apiFetch(`/api/push_notifications/${step}`, {
+  await apiFetch('/api/push_notifications/register', {
     method: 'POST',
     body: {
-      install_id: deviceId,
-      token,
-      platform,
-      model_name: modelName,
+      install_id: await getDeviceId(),
+      token: await getMessaging().getToken(),
+      platform: Platform.OS,
+      model_name: Device.modelName,
     },
   });
 }
 
-export async function registerFirebaseDeviceToken(): Promise<void> {
-  await updateFirebaseDeviceRegistration('register');
-}
-
 export async function unregisterFirebaseDeviceToken(): Promise<void> {
-  await updateFirebaseDeviceRegistration('unregister');
+  await apiFetch('/api/push_notifications/unregister', {
+    method: 'POST',
+    body: { install_id: await getDeviceId() },
+  });
 }
