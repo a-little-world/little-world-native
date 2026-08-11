@@ -9,13 +9,10 @@ import {
 import i18next from 'i18next';
 
 export const NOTIFICATION_CHANNELS = [
-  { id: 'chat', importance: AndroidImportance.HIGH },
-  { id: 'match', importance: AndroidImportance.HIGH },
-  { id: 'announcement', importance: AndroidImportance.DEFAULT },
+  { id: 'conversations', importance: AndroidImportance.HIGH },
+  { id: 'random_calls', importance: AndroidImportance.HIGH },
+  { id: 'announcements', importance: AndroidImportance.DEFAULT },
 ] as const;
-
-export type NotificationChannelId =
-  (typeof NOTIFICATION_CHANNELS)[number]['id'];
 
 export async function setUpNotificationChannels(): Promise<void> {
   if (Platform.OS !== 'android') {
@@ -30,12 +27,6 @@ export async function setUpNotificationChannels(): Promise<void> {
       }),
     ),
   );
-}
-
-export function channelIdForType(
-  type: unknown,
-): NotificationChannelId | undefined {
-  return NOTIFICATION_CHANNELS.find(channel => channel.id === type)?.id;
 }
 
 export async function ensureNotificationPermission(): Promise<boolean> {

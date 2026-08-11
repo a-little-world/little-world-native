@@ -375,9 +375,9 @@
     "months": "{{n}} months ago",
     "years": "{{n}} years ago"
   },
-  "notification_channel.chat": "Chat messages",
-  "notification_channel.match": "Matches",
-  "notification_channel.announcement": "News and announcements",
+  "notification_channel.conversations": "Messages and matches",
+  "notification_channel.random_calls": "Random calls",
+  "notification_channel.announcements": "Announcements",
   "notifications.archived": "Archived",
   "notifications.filter_all": "All",
   "notifications.filter_unread": "Unread",

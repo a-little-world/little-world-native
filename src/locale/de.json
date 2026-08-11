@@ -377,9 +377,9 @@
     "months": "vor {{n}} Monaten",
     "years": "vor {{n}} Jahren"
   },
-  "notification_channel.chat": "Chat-Nachrichten",
-  "notification_channel.match": "Matches",
-  "notification_channel.announcement": "Neuigkeiten und Ankündigungen",
+  "notification_channel.conversations": "Nachrichten und Matches",
+  "notification_channel.random_calls": "Zufallsanrufe",
+  "notification_channel.announcements": "Ankündigungen",
   "notifications.archived": "Archiviert",
   "notifications.filter_all": "Alle",
   "notifications.filter_unread": "Ungelesen",
