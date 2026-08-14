@@ -99,6 +99,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-router',
+    ['expo-navigation-bar', { barStyle: 'dark' }],
     'expo-font',
     'expo-web-browser',
     [
