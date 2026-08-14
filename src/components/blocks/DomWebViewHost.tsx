@@ -62,7 +62,7 @@ export default function DomWebViewHost() {
   };
 
   return (
-    <View style={{ flex: 1, height: 800 }}>
+    <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
         ref={domRef}
         sendToReactNative={sendToReactNative}
