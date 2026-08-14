@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mutate } from 'swr';
 
 import { IS_AUTHENTICATED_ENDPOINT } from '@/src/api';
@@ -21,7 +20,6 @@ setupReactErrorTracking();
 export default function Page() {
   const [tokensLoaded, setTokensLoaded] = useState(false);
 
-  const insets = useSafeAreaInsets();
   useEffect(() => {
     (async () => {
       await loadStoredTokensIntoStore();
