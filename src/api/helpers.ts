@@ -19,7 +19,7 @@ import { IS_AUTHENTICATED_ENDPOINT } from '.';
 import { API_FIELDS } from '../constants';
 import { Cookies } from '../constants/CookieMock';
 import PlatformSecureStore, * as SecureStore from '../helpers/secureStore';
-import { useAuthStore } from '../store/authStore';
+import { authStore, useAuthStore } from '../store/authStore';
 import {
   debugStore,
   FetchError,
@@ -34,6 +34,8 @@ export async function navigateToLogin(expired: boolean = false): Promise<void> {
   await sendToDom?.({
     action: 'NAVIGATE_TO_LOGIN',
     payload: { sessionExpired: expired },
+  }).catch(error => {
+    console.warn('NAVIGATE_TO_LOGIN failed to reach the WebView', error);
   });
 }
 
@@ -58,6 +60,10 @@ interface IntegrityChallenge {
   challengeId: string;
 }
 
+const REFRESH_WAIT_TIMEOUT = 15_000;
+const REFRESH_THRESHOLD = 30_000;
+const MIN_REFRESH_DELAY = 10_000;
+
 export const formatApiError = (responseBody: any, response: any) => {
   const apiError: ApiError = new Error('API request failed');
   apiError.status = response.status;
@@ -80,11 +86,15 @@ export const formatApiError = (responseBody: any, response: any) => {
   return apiError;
 };
 
-export async function apiFetch<T = any>(
+async function apiFetchOnce<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
   source: FetchError['source'] = 'native',
 ): Promise<T> {
+  if (accessTokenRefresh) {
+    await accessTokenRefresh;
+  }
+
   const {
     method = 'GET',
     body,
@@ -139,7 +149,11 @@ export async function apiFetch<T = any>(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       if (errorData?.code === 'token_not_valid') {
-        throw { ...errorData, status: response.status };
+        throw {
+          ...errorData,
+          status: response.status,
+          message: errorData.detail ?? 'Token not valid',
+        };
       }
       throw formatApiError(errorData, response);
     }
@@ -181,7 +195,63 @@ export async function apiFetch<T = any>(
       }
     }
 
-    console.error(`API Fetch Error (${endpoint}):`, error);
+    throw error instanceof Error
+      ? {
+          message: error.message,
+          status: (error as any).status,
+          statusText: (error as any).statusText,
+          data: (error as any).data,
+          code: (error as any).data?.code,
+          cause: (error as any).cause,
+        }
+      : error;
+  }
+}
+
+type TokenError = {
+  status?: number;
+  code?: string;
+  data?: { code?: string };
+};
+
+function isTokenError(error: TokenError | undefined | null): boolean {
+  const tokenMissingError =
+    error?.status === 403 && !useAuthStore.getState().accessToken;
+  return (
+    error?.status === 401 ||
+    error?.code === 'token_not_valid' ||
+    error?.data?.code === 'token_not_valid' ||
+    tokenMissingError
+  );
+}
+
+export async function apiFetch<T = any>(
+  endpoint: string,
+  options: ApiFetchOptions = {},
+  source: FetchError['source'] = 'native',
+): Promise<T> {
+  try {
+    const result = await apiFetchOnce<T>(endpoint, options, source);
+
+    if (endpoint === IS_AUTHENTICATED_ENDPOINT && result === false) {
+      const status = await refreshAccessTokens(true);
+      if (status === TokenStatus.VALID) {
+        return apiFetchOnce<T>(endpoint, options, source);
+      }
+    }
+
+    return result;
+  } catch (error: any) {
+    if (!isTokenError(error)) throw error;
+
+    const status = await refreshAccessTokens(true);
+    if (status === TokenStatus.VALID) {
+      return apiFetchOnce<T>(endpoint, options, source);
+    }
+
+    if (status !== TokenStatus.ERROR) {
+      await navigateToLogin(true);
+    }
     throw error;
   }
 }
@@ -284,9 +354,27 @@ async function requestIntegrityCheckWeb(): Promise<IntegrityCheck> {
 }
 
 async function fetchIntegrityChallenge(): Promise<IntegrityChallenge> {
-  return apiFetch('/api/integrity/challenge', {
-    method: 'POST',
-  });
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'X-CSRFToken': Cookies.get('csrftoken') || '',
+    'X-CSRF-Bypass-Token': 'abc',
+  };
+  if (environment.allowNgrokRequests) {
+    headers['ngrok-skip-browser-warning'] = '69420';
+  }
+
+  const response = await fetch(
+    `${getEffectiveBackendUrl()}/api/integrity/challenge`,
+    { method: 'POST', headers },
+  );
+
+  const responseBody = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw formatApiError(responseBody, response);
+  }
+
+  return responseBody as IntegrityChallenge;
 }
 
 // redaclaration from frontend since import functions/constant functions seems to cause issues.
@@ -399,6 +487,8 @@ export async function loadStoredTokensIntoStore() {
   useAuthStore.setState({ accessToken, refreshToken });
   useDebugStore.setState({ integrityBypassToken });
 
+  scheduleTokenRefresh();
+
   return { accessToken, refreshToken };
 }
 
@@ -406,6 +496,7 @@ export enum TokenStatus {
   VALID,
   EXPIRED,
   MISSING,
+  ERROR,
 }
 
 export async function updateTokens(
@@ -420,19 +511,76 @@ export async function updateTokens(
   mutate(IS_AUTHENTICATED_ENDPOINT);
 
   await saveJwtTokens(accessToken, refreshToken);
+
+  scheduleTokenRefresh();
+}
+
+function getTokenExpiry(token: string | undefined): number | undefined {
+  try {
+    const payload = token?.split('.')?.[1];
+    if (!payload) return undefined;
+    const { exp } = JSON.parse(
+      atob(payload.replace(/-/g, '+').replace(/_/g, '/')),
+    );
+    return typeof exp === 'number' ? exp * 1000 : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getAccessTokenLifetime(): number {
+  const expiry = getTokenExpiry(useAuthStore.getState().accessToken);
+  const lifetime = expiry === undefined ? 0 : Math.max(0, expiry - Date.now());
+  return lifetime;
+}
+
+let tokenRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+function scheduleTokenRefresh() {
+  if (tokenRefreshTimer) clearTimeout(tokenRefreshTimer);
+  tokenRefreshTimer = undefined;
+
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return;
+
+  const delay = Math.max(
+    getAccessTokenLifetime() - REFRESH_THRESHOLD,
+    MIN_REFRESH_DELAY,
+  );
+
+  tokenRefreshTimer = setTimeout(() => {
+    refreshAccessTokens();
+  }, delay);
 }
 
 let accessTokenRefresh: Promise<TokenStatus> | undefined = undefined;
-export async function refreshAccessTokens(): Promise<TokenStatus> {
+export async function refreshAccessTokens(force = false): Promise<TokenStatus> {
   if (accessTokenRefresh) {
     return accessTokenRefresh;
   }
 
-  useAuthStore.setState({ isTokenRefreshing: true });
   const { refreshToken } = useAuthStore.getState();
   if (!refreshToken) {
-    await updateTokens(undefined, undefined);
+    useAuthStore.setState({
+      tokenState: {
+        isRefreshing: false,
+        status: TokenStatus.MISSING,
+      },
+    });
+    await syncTokenStateToDom();
     return TokenStatus.MISSING;
+  }
+
+  const shouldRefresh = force || getAccessTokenLifetime() <= REFRESH_THRESHOLD;
+  if (!shouldRefresh) {
+    useAuthStore.setState({
+      tokenState: {
+        isRefreshing: false,
+        status: TokenStatus.VALID,
+      },
+    });
+    await syncTokenStateToDom();
+    return TokenStatus.VALID;
   }
 
   const defaultHeaders: Record<string, string> = {
@@ -446,14 +594,14 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
     'X-CSRF-Bypass-Token': 'abc',
   } as Record<string, string>;
 
+  useAuthStore.setState({
+    tokenState: {
+      isRefreshing: true,
+    },
+  });
+  syncTokenStateToDom();
   accessTokenRefresh = (async (): Promise<TokenStatus> => {
     try {
-      const { sendToDom } = domCommunicationStore.get();
-      if (!sendToDom) {
-        await updateTokens(undefined, undefined);
-        return TokenStatus.MISSING;
-      }
-
       const integrityData = await requestIntegrityCheck();
       const fetchOptions: RequestInit = {
         method: 'POST',
@@ -471,27 +619,57 @@ export async function refreshAccessTokens(): Promise<TokenStatus> {
         fetchOptions,
       );
 
-      const responseBody = await response.json().catch(() => {});
-      const { access, refresh } = responseBody;
+      const responseBody = await response.json().catch(() => ({}));
+      const { access, refresh } = responseBody ?? {};
 
-      await updateTokens(access, refresh);
-      if (!response.ok) {
-        return TokenStatus.EXPIRED;
-      }
-
-      if (access && refresh) {
+      if (response.ok && access && refresh) {
+        await updateTokens(access, refresh);
         return TokenStatus.VALID;
       }
 
-      return TokenStatus.EXPIRED;
+      if (isTokenError({ ...responseBody, status: response.status })) {
+        await updateTokens(undefined, undefined);
+        return TokenStatus.EXPIRED;
+      }
+
+      return TokenStatus.ERROR;
     } catch (_e) {
-      await updateTokens(undefined, undefined);
-      return TokenStatus.EXPIRED;
+      return TokenStatus.ERROR;
     } finally {
       accessTokenRefresh = undefined;
-      useAuthStore.setState({ isTokenRefreshing: false });
     }
   })();
 
-  return accessTokenRefresh;
+  const tokenStatus = await Promise.race<TokenStatus>([
+    accessTokenRefresh,
+    new Promise(resolve =>
+      setTimeout(() => resolve(TokenStatus.ERROR), REFRESH_WAIT_TIMEOUT),
+    ),
+  ]);
+
+  if (tokenStatus === TokenStatus.ERROR) {
+    scheduleTokenRefresh();
+  }
+
+  useAuthStore.setState({
+    tokenState: {
+      isRefreshing: false,
+      status: tokenStatus,
+    },
+  });
+  syncTokenStateToDom();
+
+  return tokenStatus;
+}
+
+export async function syncTokenStateToDom() {
+  const { sendToDom } = domCommunicationStore.get();
+  const { isRefreshing, status } = authStore.get().tokenState ?? {};
+  sendToDom?.({
+    action: 'SET_TOKEN_STATE',
+    payload: {
+      isRefreshing: isRefreshing ?? false,
+      status,
+    },
+  }).catch(() => {});
 }
