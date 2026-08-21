@@ -158,6 +158,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.30.1
         version: 2.30.1(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
+      react-native-notify-kit:
+        specifier: 10.5.0
+        version: 10.5.0(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))
       react-native-reanimated:
         specifier: ~4.2.1
         version: 4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
@@ -253,8 +256,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^2.19.0
-        version: 2.19.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        specifier: ^3.1.1
+        version: 3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@babel/core':
         specifier: ^7.20.12
         version: 7.28.6
@@ -397,6 +400,9 @@ importers:
       '@firebase/messaging-types':
         specifier: ^0.6.1
         version: 0.6.1(@firebase/app-types@0.9.3)
+      '@ianvs/prettier-plugin-sort-imports':
+        specifier: ^4.7.1
+        version: 4.7.1(prettier@3.8.4)
       '@rollup/plugin-babel':
         specifier: ^7.0.0
         version: 7.1.0(@babel/core@7.28.6)(@types/babel__core@7.20.5)(rollup@4.62.0)
@@ -507,8 +513,8 @@ packages:
       graphql:
         optional: true
 
-  '@a-little-world/little-world-design-system-core@1.15.0':
-    resolution: {integrity: sha512-xhrADcU4kGIVTNNoz4wKYfedygSR/cSjrXl8glp9wUe5jF78kVtYzynIYfzs3RsmMbgb+2qvwQ2KCYbS2wCzCA==}
+  '@a-little-world/little-world-design-system-core@1.17.1':
+    resolution: {integrity: sha512-VnzmoOxRsAtsk8Q4nZYHL8kZklU+slMasa2klCn0+KAwPL/dGwx3WTBl8zUrcaQHKs6frEBvtp5n0PqCRpNQYQ==}
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
@@ -531,8 +537,8 @@ packages:
       react-native-svg: 15.12.1
       styled-components: ^6.1.19
 
-  '@a-little-world/little-world-design-system@2.19.0':
-    resolution: {integrity: sha512-7rSYhdDjgnNk3IT9b1tsOCykJ+Bl4gA3wanZMLwWLKH9u7omyv9sTK10tW08mbNENoV2+cC5gj3weIG2niTLtg==}
+  '@a-little-world/little-world-design-system@3.1.1':
+    resolution: {integrity: sha512-QDfmyovXtJSxnJ6PQoW/EA+NIokUuEeuoSL9TDv01gXrX+yvHC/zUi8Rc7Rqx/VbYqU7YYqr6+50qGe3itxccQ==}
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
@@ -1611,7 +1617,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@55.0.24':
     resolution: {integrity: sha512-Z6Xh0WNTg1LvoZQ77zO3snF2cFiv1xf0VguDlwTL1Ql87oMOp30f7mjl9jeaSHqoWkgiAbmxgCKKIGjVX/keiA==}
@@ -5161,6 +5167,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   crypto-random-string@2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
@@ -8115,6 +8122,16 @@ packages:
       react: 19.2.4
       react-native: '*'
 
+  react-native-notify-kit@10.5.0:
+    resolution: {integrity: sha512-Ylf/WS7YdauXqDcHpsUQTN2IXjhrOMISi5HOxhc11BaWXoUgLYMPFrFWckY8tDAkuoBtlacClRsM35uGkwkG5A==}
+    hasBin: true
+    peerDependencies:
+      expo: '*'
+      react-native: '>=0.73.0'
+    peerDependenciesMeta:
+      expo:
+        optional: true
+
   react-native-reanimated@4.2.1:
     resolution: {integrity: sha512-/NcHnZMyOvsD/wYXug/YqSKw90P9edN0kEPL5lP4PFf1aQ4F1V7MKe/E0tvfkXKIajy3Qocp5EiEnlcrK/+BZg==}
     peerDependencies:
@@ -9540,7 +9557,7 @@ snapshots:
     optionalDependencies:
       graphql: 16.8.1
 
-  '@a-little-world/little-world-design-system-core@1.15.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@a-little-world/little-world-design-system-core@1.17.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@babel/runtime': 7.29.7
       csstype: 3.2.3
@@ -9584,9 +9601,9 @@ snapshots:
       - '@types/react-dom'
       - react-native-web
 
-  '@a-little-world/little-world-design-system@2.19.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@a-little-world/little-world-design-system@3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.15.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@base-ui/react': 1.5.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-accordion': 1.2.12(@types/react@19.2.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-checkbox': 1.3.3(@types/react@19.2.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -9693,7 +9710,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.27.3':
     dependencies:
-      '@babel/types': 7.28.6
+      '@babel/types': 7.29.0
 
   '@babel/helper-compilation-targets@7.28.6':
     dependencies:
@@ -9711,7 +9728,7 @@ snapshots:
       '@babel/helper-optimise-call-expression': 7.27.1
       '@babel/helper-replace-supers': 7.28.6(@babel/core@7.28.6)
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/traverse': 7.28.6
+      '@babel/traverse': 7.29.0
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
@@ -9787,8 +9804,8 @@ snapshots:
 
   '@babel/helper-skip-transparent-expression-wrappers@7.27.1':
     dependencies:
-      '@babel/traverse': 7.28.6
-      '@babel/types': 7.28.6
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.29.0
     transitivePeerDependencies:
       - supports-color
 
@@ -10334,7 +10351,7 @@ snapshots:
       '@babel/helper-module-imports': 7.28.6
       '@babel/helper-plugin-utils': 7.28.6
       '@babel/plugin-syntax-jsx': 7.28.6(@babel/core@7.28.6)
-      '@babel/types': 7.28.6
+      '@babel/types': 7.29.0
     transitivePeerDependencies:
       - supports-color
 
@@ -19007,6 +19024,16 @@ snapshots:
     dependencies:
       react: 19.2.4
       react-native: 0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)
+
+  react-native-notify-kit@10.5.0(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)):
+    dependencies:
+      react-native: 0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)
+    optionalDependencies:
+      chalk: 4.1.2
+      commander: 12.1.0
+      expo: 55.0.15(@babel/core@7.28.6)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.9)(expo-router@55.0.12)(react-dom@19.2.4(react@19.2.4))(react-native-webview@13.16.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      plist: 3.1.0
+      xcode: 3.0.1
 
   react-native-reanimated@4.2.1(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4):
     dependencies:

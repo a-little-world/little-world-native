@@ -54,6 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'aps-environment': environmentNative.appleEnvironment,
       'com.apple.developer.devicecheck.appattest-environment':
         environmentNative.appleEnvironment,
+      'com.apple.developer.usernotifications.time-sensitive': true,
     },
   },
   android: {
@@ -71,6 +72,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.MODIFY_AUDIO_SETTINGS',
       'android.permission.RECORD_AUDIO',
       'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.USE_FULL_SCREEN_INTENT',
       'android.permission.WAKE_LOCK',
       'android.permission.BLUETOOTH',
     ],
