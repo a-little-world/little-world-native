@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import {
   apiFetch,
   ApiFetchOptions,
@@ -14,6 +16,7 @@ import LittleWorldWebLazy from './LittleWorldWebLazy';
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
+  const insets = useSafeAreaInsets();
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -59,7 +62,7 @@ export default function DomWebViewHost() {
   };
 
   return (
-    <View style={{ flex: 1, height: 800 }}>
+    <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
         ref={domRef}
         sendToReactNative={sendToReactNative}
@@ -68,6 +71,10 @@ export default function DomWebViewHost() {
         getAccessToken={getAccessToken}
         setAccessTokens={setAccessTokens}
         hasStoredToken={hasStoredToken}
+        safeTop={insets.top}
+        safeBottom={insets.bottom}
+        safeLeft={insets.left}
+        safeRight={insets.right}
       />
     </View>
   );

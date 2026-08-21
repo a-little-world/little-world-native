@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mutate } from 'swr';
 
 import { IS_AUTHENTICATED_ENDPOINT } from '@/src/api';
@@ -21,7 +20,6 @@ setupReactErrorTracking();
 export default function Page() {
   const [tokensLoaded, setTokensLoaded] = useState(false);
 
-  const insets = useSafeAreaInsets();
   useEffect(() => {
     (async () => {
       await loadStoredTokensIntoStore();
@@ -34,7 +32,7 @@ export default function Page() {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <AuthGuard>{Platform.OS !== 'web' && <FireBase />}</AuthGuard>
-      <View style={{ height: insets.top, backgroundColor: '#fff' }} />
+      <View style={{ backgroundColor: '#fff' }} />
       <StatusBar style="dark" />
       <View style={{ flex: 1, width: '100%', display: 'block' }}>
         {tokensLoaded && <DomWebViewHost />}
