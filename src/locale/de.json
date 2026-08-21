@@ -776,5 +776,10 @@
   "welcome.description": "Lass uns mit ein paar kurzen Fragen starten, um das bestmögliche Gegenüber für dich zu finden und deine Bedürfnisse zu berücksichtigen.",
   "welcome.intro": "Schön, dass du da bist!",
   "welcome.note": "Sämtliche Angaben kannst du jederzeit wieder ändern.",
-  "welcome.title": "Hallo!"
+  "welcome.title": "Hallo!",
+  "call.accept": "Annehmen",
+  "call.decline": "Ablehnen",
+  "call.incoming_call": "Eingehender Anruf",
+  "call.connecting": "Verbinden...",
+  "notification_channel.incoming_calls": "Eingehende Anrufe"
 }

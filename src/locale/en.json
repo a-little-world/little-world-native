@@ -776,5 +776,10 @@
   "welcome.description": "Let's start with a few short questions to find the best possible match for you and take your needs into account.",
   "welcome.intro": "Nice to have you here!",
   "welcome.note": "You can change the information given at any time.",
-  "welcome.title": "Hey!"
+  "welcome.title": "Hey!",
+  "call.accept": "Accept",
+  "call.decline": "Decline",
+  "call.incoming_call": "Incoming call",
+  "call.connecting": "Connecting...",
+  "notification_channel.incoming_calls": "Incoming calls"
 }

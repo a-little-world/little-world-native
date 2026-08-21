@@ -3,8 +3,13 @@
 import environmentNative from '@/environments/env';
 import DebugPanel from '@/src/components/blocks/DebugPanel';
 import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
+import IncomingCallOverlay from '@/src/components/blocks/IncomingCallOverlay';
 
 import '@/src/i18n';
+// Installs the FCM background message handler and the Notifee background event
+// handler at module scope, so a call push arriving while the app is
+// backgrounded or terminated still runs app code.
+import '@/src/utils/callPush';
 
 import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -70,6 +75,8 @@ export default Sentry.wrap(function RootLayout() {
                 }}
               />
             )}
+            {/* Outside the Stack so the ring screen covers the WebView. */}
+            <IncomingCallOverlay />
           </DomCommunicationProvider>
         </NativeThemeProvider>
       </View>

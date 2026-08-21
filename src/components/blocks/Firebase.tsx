@@ -11,7 +11,15 @@ import {
 import * as Notifications from 'expo-notifications';
 
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { useIncomingCallStore } from '@/src/store/incomingCallStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
+import {
+  handleCallNotificationResponse,
+  handleCallPushMessage,
+  registerCallPushForegroundHandlers,
+  restoreIncomingCallOnLaunch,
+  setUpIncomingCallCategory,
+} from '@/src/utils/callPush';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 import {
   ensureNotificationPermission,
@@ -51,6 +59,12 @@ async function openPath(path: string | null) {
 }
 
 async function clearNotifications() {
+  // A ringing call is the one notification that must survive the app coming to
+  // the foreground: the user may still be looking at the ring screen.
+  if (useIncomingCallStore.getState().status) {
+    await Notifications.setBadgeCountAsync(0);
+    return;
+  }
   await Notifications.dismissAllNotificationsAsync();
   await Notifications.setBadgeCountAsync(0);
 }
@@ -73,16 +87,32 @@ function FireBase() {
     (async () => {
       try {
         await setUpNotificationChannels();
+        await setUpIncomingCallCategory();
         const granted = await ensureNotificationPermission();
         if (!granted) {
           console.warn('[push] notification permission not granted');
         }
+        // Recovers a ring that is already on screen — a full-screen intent
+        // launch bypasses the press-action handlers entirely. Must run before
+        // the app-open clear below, which would otherwise wipe the evidence.
+        await restoreIncomingCallOnLaunch();
       } catch (error) {
         console.error('[push] setup failed', error);
+      } finally {
+        clearNotifications();
       }
     })();
 
+    const callEventUnsubscribe = registerCallPushForegroundHandlers();
+
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
+      // Call pushes are data-only and own their own ringing UI. onMessage only
+      // fires in the foreground, where the overlay is already the ring screen —
+      // a notification on top of it would be a second prompt for one call.
+      if (await handleCallPushMessage(remoteMessage, { display: false })) {
+        return;
+      }
+
       if (!remoteMessage.notification) {
         return;
       }
@@ -105,16 +135,19 @@ function FireBase() {
     );
 
     const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener(response =>
-        openPath(extractPath(response.notification.request.content.data)),
-      );
+      Notifications.addNotificationResponseReceivedListener(async response => {
+        const { actionIdentifier, notification } = response;
+        const data = notification.request.content.data;
+        if (await handleCallNotificationResponse(actionIdentifier, data)) {
+          return;
+        }
+        openPath(extractPath(data));
+      });
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
       registerFirebaseDeviceToken(),
     );
 
-    // clear notificaitons upon app open
-    clearNotifications();
     const appStateSubscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         clearNotifications();
@@ -122,6 +155,7 @@ function FireBase() {
     });
 
     return () => {
+      callEventUnsubscribe();
       messageUnsubscribe();
       openedUnsubscribe();
       responseSubscription.remove();
