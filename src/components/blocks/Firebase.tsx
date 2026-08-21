@@ -22,6 +22,7 @@ import {
 } from '@/src/utils/callPush';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 import {
+  ensureFullScreenIntentPermission,
   ensureNotificationPermission,
   setUpNotificationChannels,
 } from '@/src/utils/notifications';
@@ -96,6 +97,9 @@ function FireBase() {
         // launch bypasses the press-action handlers entirely. Must run before
         // the app-open clear below, which would otherwise wipe the evidence.
         await restoreIncomingCallOnLaunch();
+        // One-shot prompt; see the function doc for why this can't be a
+        // real permission check.
+        await ensureFullScreenIntentPermission();
       } catch (error) {
         console.error('[push] setup failed', error);
       } finally {

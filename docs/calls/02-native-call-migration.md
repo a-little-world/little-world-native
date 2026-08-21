@@ -97,7 +97,9 @@ Stage 3 spike as the go/no-go on it.
 3. **Delete `plugins/with-media-volume-buttons.js` and its `app.config.ts` entry** — once Telecom
    owns the call, forcing `volumeControlStream = STREAM_MUSIC` breaks in-call volume control.
 4. Android manifest via config plugin: `USE_FULL_SCREEN_INTENT`, foreground service types
-   `phoneCall`/`microphone`/`camera`. Play Console needs the calling-app declaration.
+   `phoneCall`/`microphone`/`camera`. No Play Console declaration exists for this — it's a
+   per-app, on-device grant the user makes in Settings → Apps → Special app access, not a
+   store review.
 5. **FCM service conflict — resolve here.** `expo-callkit-telecom`'s Android service builds on
    `expo-notifications` and forwards non-`incomingCall` data messages to it, but this app
    registers `@react-native-firebase/messaging`. RNFB messaging is used only for `getToken` +
@@ -139,8 +141,9 @@ can `reportCallEnded` — otherwise the callee rings until timeout.
   installs a patched local tarball at 2.9.21 (`frontend/prebuild/`). Check resolution — the
   patched copy must keep winning inside the DOM bundle.
 - `expo-callkit-telecom` at v0.4.0, one maintainer. Pin exactly; be prepared to fork.
-- Android 14+ gates `USE_FULL_SCREEN_INTENT`; Play requires the calling-app declaration. Start
-  that declaration early — review latency is external.
+- Android 14+ gates `USE_FULL_SCREEN_INTENT` behind a per-app, on-device grant (not a Play
+  Console declaration — there is no store review to wait on). The app must prompt for it
+  itself, once, since the grant state isn't readable from JS.
 
 ## Verification
 

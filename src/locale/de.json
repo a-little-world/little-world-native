@@ -378,7 +378,7 @@
     "years": "vor {{n}} Jahren"
   },
   "notification_channel.conversations": "Nachrichten und Matches",
-  "notification_channel.random_calls": "Zufallsanrufe",
+  "notification_channel.reminders": "Erinnerungen",
   "notification_channel.announcements": "Ankündigungen",
   "notifications.archived": "Archiviert",
   "notifications.filter_all": "Alle",
@@ -781,5 +781,9 @@
   "call.decline": "Ablehnen",
   "call.incoming_call": "Eingehender Anruf",
   "call.connecting": "Verbinden...",
-  "notification_channel.incoming_calls": "Eingehende Anrufe"
+  "notification_channel.incoming_calls": "Eingehende Anrufe",
+  "push.full_screen_intent.title": "Eingehende Anrufe auf dem Sperrbildschirm anzeigen",
+  "push.full_screen_intent.body": "Erlaube Little World, bei eingehenden Anrufen den Bildschirm zu übernehmen, damit du direkt vom Sperrbildschirm aus annehmen oder ablehnen kannst.",
+  "push.full_screen_intent.later": "Nicht jetzt",
+  "push.full_screen_intent.open_settings": "Einstellungen öffnen"
 }

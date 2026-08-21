@@ -376,7 +376,7 @@
     "years": "{{n}} years ago"
   },
   "notification_channel.conversations": "Messages and matches",
-  "notification_channel.random_calls": "Random calls",
+  "notification_channel.reminders": "Reminders",
   "notification_channel.announcements": "Announcements",
   "notifications.archived": "Archived",
   "notifications.filter_all": "All",
@@ -781,5 +781,9 @@
   "call.decline": "Decline",
   "call.incoming_call": "Incoming call",
   "call.connecting": "Connecting...",
-  "notification_channel.incoming_calls": "Incoming calls"
+  "notification_channel.incoming_calls": "Incoming calls",
+  "push.full_screen_intent.title": "Show incoming calls on your lock screen",
+  "push.full_screen_intent.body": "Allow Little World to take over the screen for incoming calls, so you can accept or decline right from your lock screen.",
+  "push.full_screen_intent.later": "Not now",
+  "push.full_screen_intent.open_settings": "Open settings"
 }

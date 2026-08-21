@@ -94,8 +94,12 @@ The reject endpoint already exists: `POST /api/call_rejected { partner_id, sessi
    native (`src/api/helpers.ts` already holds the auth tokens) and cancel the notification —
    no WebView needed. **Accept** → write the call to the native store and open the app.
 6. `type: 'incoming_call_cancelled'` → cancel the notification by `room_uuid`.
-7. Play Console: the calling-app declaration is required for `USE_FULL_SCREEN_INTENT` on
-   Android 14+. Start it early, review latency is external.
+7. No Play Console review gates this. `USE_FULL_SCREEN_INTENT` is a per-app, on-device
+   grant the user makes themselves (Settings → Apps → Special app access → Full screen
+   intent notifications) — there is no store-side declaration for it. Prompt for the grant
+   in-app (once per install, since there is no JS-readable way to check whether it was
+   already given) and fall back gracefully: without it, Android downgrades the full-screen
+   intent to a heads-up notification, which still rings and still offers both actions.
 
 ## Stage 3 — native ring screen + handover
 

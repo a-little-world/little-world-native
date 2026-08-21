@@ -120,7 +120,7 @@ Key properties:
 | Mic held by | WebView only | native only (WebView must be gated off) |
 | In-call chat / translation / cards | untouched | untouched (moved to a panels route) |
 | New runtime dependencies | 1 (`react-native-notify-kit`) | 4 (LiveKit RN ×3, `expo-callkit-telecom`) |
-| Blocked on Play Console calling declaration | yes | yes |
+| Blocked on Play Console review | no | no |
 | Blocked on Apple | no | no (VoIP push uses the existing `.p8`) |
 
 ## Size
@@ -138,9 +138,11 @@ Rough, focused-work estimates. Backend work is separate from the app work in bot
 | Riskiest part | notify-kit bridgeless on RN 0.83 | `@livekit/react-native-webrtc` on new arch; `expo-callkit-telecom` at v0.4.0, one maintainer |
 | Ongoing cost | one notification path | a second call UI, a second WebRTC stack, a pinned v0.x dependency |
 
-Both plans are gated on the same external unknown: the Play Console calling-app declaration for
-`USE_FULL_SCREEN_INTENT` on Android 14+. Start that declaration on day one either way — the
-review latency is not yours to control.
+Correction: `USE_FULL_SCREEN_INTENT` is not a Play Console declaration — it's a per-app,
+on-device grant the user makes themselves (Settings → Apps → Special app access → Full
+screen intent notifications), with no store-side review at all. Both plans still need an
+in-app prompt for that grant (there's no way to check it was already given, so it can only
+ask once), but neither is gated on external review latency for it.
 
 ## If you build A now, what does B throw away later?
 
