@@ -73,6 +73,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.SYSTEM_ALERT_WINDOW',
       'android.permission.WAKE_LOCK',
       'android.permission.BLUETOOTH',
+      'android.permission.USE_FULL_SCREEN_INTENT',
+      'android.permission.VIBRATE',
     ],
     allowBackup: true,
   },
@@ -137,6 +139,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       : []),
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
+    'react-native-notify-kit',
+    './plugins/withCallActivity',
   ],
   experiments: {
     typedRoutes: true,

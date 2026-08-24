@@ -3,6 +3,7 @@
 import environmentNative from '@/environments/env';
 import DebugPanel from '@/src/components/blocks/DebugPanel';
 import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
+import IncomingCallOverlay from '@/src/components/blocks/IncomingCallOverlay';
 
 import '@/src/i18n';
 
@@ -13,6 +14,10 @@ import { CustomThemeProvider as NativeThemeProvider } from '@a-little-world/litt
 import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 
+import {
+  acceptIncomingCall,
+  rejectIncomingCall,
+} from '@/src/utils/incomingCallActions';
 import { loadFonts } from '@/src/utils/loadFonts';
 
 import 'react-native-reanimated';
@@ -70,6 +75,12 @@ export default Sentry.wrap(function RootLayout() {
                 }}
               />
             )}
+            {/* Mounted outside the font gate so an incoming call can paint
+                immediately on a cold launch from the lock screen. */}
+            <IncomingCallOverlay
+              onAccept={acceptIncomingCall}
+              onDecline={rejectIncomingCall}
+            />
           </DomCommunicationProvider>
         </NativeThemeProvider>
       </View>

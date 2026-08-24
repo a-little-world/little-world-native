@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import {
   getInitialNotification,
@@ -9,10 +9,29 @@ import {
   onTokenRefresh,
 } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
+import i18next from 'i18next';
+import notifee, { EventType } from 'react-native-notify-kit';
 
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { incomingCallStore } from '@/src/store/incomingCallStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
+import {
+  cancelIncomingCall,
+  createIncomingCallChannel,
+  displayIncomingCall,
+  getDisplayedIncomingCall,
+  parseCallPush,
+} from '@/src/utils/incomingCall';
+import {
+  acceptIncomingCall,
+  rejectIncomingCall,
+} from '@/src/utils/incomingCallActions';
+import {
+  extractPath,
+  flushPendingPath,
+  openPath,
+} from '@/src/utils/navigateToDom';
 import {
   ensureNotificationPermission,
   setUpNotificationChannels,
@@ -27,30 +46,61 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function extractPath(data?: Record<string, unknown>): string | null {
-  const path = data?.path;
-  return typeof path === 'string' && path.startsWith('/') ? path : null;
+// iOS has no full-screen incoming call UI outside CallKit, which is
+// architecturally incompatible with the WebView our call screen lives in. The
+// ring is therefore a time-sensitive alert push carrying these two actions.
+const IOS_CALL_CATEGORY = 'INCOMING_CALL';
+
+async function setUpIosCallCategory() {
+  if (Platform.OS !== 'ios') {
+    return;
+  }
+  await Notifications.setNotificationCategoryAsync(IOS_CALL_CATEGORY, [
+    {
+      identifier: 'decline',
+      buttonTitle: i18next.t('incoming_call.decline'),
+      options: { opensAppToForeground: false, isDestructive: true },
+    },
+    {
+      identifier: 'accept',
+      buttonTitle: i18next.t('incoming_call.accept'),
+      options: { opensAppToForeground: true },
+    },
+  ]);
 }
 
-// store path from notification in case webview is not ready yet
-let pendingPath: string | null = null;
-
-async function openPath(path: string | null) {
-  if (!path) {
-    return;
-  }
-  if (!useWebViewStore.getState().ready) {
-    pendingPath = path;
+async function handleCallPush(
+  parsed: NonNullable<ReturnType<typeof parseCallPush>>,
+) {
+  if (parsed.type === 'call_cancelled') {
+    await cancelIncomingCall(parsed.call.sessionId);
     return;
   }
 
-  domCommunicationStore.get().sendToDom?.({
-    action: 'NAVIGATE',
-    payload: { path },
-  });
+  // The webapp's own WebSocket already owns the foreground case - it opens the
+  // in-app INCOMING_CALL modal off `addActiveCallRoom` - so ringing natively on
+  // top of that would double up.
+  if (useWebViewStore.getState().ready && AppState.currentState === 'active') {
+    return;
+  }
+
+  await createIncomingCallChannel();
+  await displayIncomingCall(parsed.call);
+  incomingCallStore.get().setCall(parsed.call);
 }
 
 async function clearNotifications() {
+  // A ringing call must survive this sweep: the Android full-screen intent
+  // foregrounds the app, which would otherwise dismiss the very notification the
+  // overlay reconstructs itself from. Pick the call up first, then leave it
+  // alone - it is cancelled explicitly on accept, decline, timeout or cancel
+  // push.
+  const ringing = await getDisplayedIncomingCall();
+  if (ringing) {
+    incomingCallStore.get().setCall(ringing);
+    return;
+  }
+
   await Notifications.dismissAllNotificationsAsync();
   await Notifications.setBadgeCountAsync(0);
 }
@@ -59,12 +109,10 @@ function FireBase() {
   const webViewReady = useWebViewStore(state => state.ready);
 
   useEffect(() => {
-    if (!webViewReady || !pendingPath) {
+    if (!webViewReady) {
       return;
     }
-    const path = pendingPath;
-    pendingPath = null;
-    openPath(path);
+    flushPendingPath();
   }, [webViewReady]);
 
   useEffect(() => {
@@ -73,6 +121,8 @@ function FireBase() {
     (async () => {
       try {
         await setUpNotificationChannels();
+        await createIncomingCallChannel();
+        await setUpIosCallCategory();
         const granted = await ensureNotificationPermission();
         if (!granted) {
           console.warn('[push] notification permission not granted');
@@ -83,6 +133,12 @@ function FireBase() {
     })();
 
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
+      const parsed = parseCallPush(remoteMessage.data);
+      if (parsed) {
+        await handleCallPush(parsed);
+        return;
+      }
+
       if (!remoteMessage.notification) {
         return;
       }
@@ -96,6 +152,23 @@ function FireBase() {
       });
     });
 
+    // Android notification presses while the app is in the foreground. The
+    // background counterpart lives in src/utils/registerBackgroundHandlers.ts.
+    const notifeeUnsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
+      if (type !== EventType.ACTION_PRESS && type !== EventType.PRESS) {
+        return;
+      }
+      const parsed = parseCallPush(detail.notification?.data);
+      if (parsed?.type !== 'incoming_call') {
+        return;
+      }
+      if (detail.pressAction?.id === 'decline') {
+        rejectIncomingCall(parsed.call);
+      } else {
+        incomingCallStore.get().setCall(parsed.call);
+      }
+    });
+
     const openedUnsubscribe = onNotificationOpenedApp(
       messaging,
       remoteMessage => openPath(extractPath(remoteMessage.data)),
@@ -106,12 +179,26 @@ function FireBase() {
 
     const responseSubscription =
       Notifications.addNotificationResponseReceivedListener(response =>
-        openPath(extractPath(response.notification.request.content.data)),
+        handleNotificationResponse(response),
       );
+    // The listener alone misses the response that cold-launched the app.
+    Notifications.getLastNotificationResponseAsync().then(response => {
+      if (response) {
+        handleNotificationResponse(response);
+      }
+    });
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
       registerFirebaseDeviceToken(),
     );
+
+    // Recover a call that is already ringing - the Android full-screen intent
+    // launches the activity without emitting any notification event at all.
+    getDisplayedIncomingCall().then(call => {
+      if (call) {
+        incomingCallStore.get().setCall(call);
+      }
+    });
 
     // clear notificaitons upon app open
     clearNotifications();
@@ -123,6 +210,7 @@ function FireBase() {
 
     return () => {
       messageUnsubscribe();
+      notifeeUnsubscribe();
       openedUnsubscribe();
       responseSubscription.remove();
       tokenRefreshUnsubscribe();
@@ -131,6 +219,26 @@ function FireBase() {
   }, []);
 
   return <></>;
+}
+
+function handleNotificationResponse(
+  response: Notifications.NotificationResponse,
+) {
+  const data = response.notification.request.content.data as
+    | Record<string, unknown>
+    | undefined;
+  const parsed = parseCallPush(data);
+
+  if (parsed?.type === 'incoming_call') {
+    if (response.actionIdentifier === 'decline') {
+      rejectIncomingCall(parsed.call);
+    } else {
+      acceptIncomingCall(parsed.call);
+    }
+    return;
+  }
+
+  openPath(extractPath(data));
 }
 
 export default FireBase;
