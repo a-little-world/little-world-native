@@ -2,17 +2,32 @@ import { Platform } from 'react-native';
 
 import {
   AndroidImportance,
+  AndroidNotificationVisibility,
   getPermissionsAsync,
+  NotificationChannelInput,
   requestPermissionsAsync,
   setNotificationChannelAsync,
 } from 'expo-notifications';
 import i18next from 'i18next';
 
-export const NOTIFICATION_CHANNELS = [
-  { id: 'conversations', importance: AndroidImportance.HIGH },
-  { id: 'random_calls', importance: AndroidImportance.HIGH },
-  { id: 'announcements', importance: AndroidImportance.DEFAULT },
-] as const;
+export const NOTIFICATION_CHANNELS: Record<
+  string,
+  Omit<NotificationChannelInput, 'name'>
+> = {
+  conversations: {
+    importance: AndroidImportance.HIGH,
+    lockscreenVisibility: AndroidNotificationVisibility.PUBLIC,
+  },
+  reminders: {
+    importance: AndroidImportance.HIGH,
+  },
+  announcements: {
+    importance: AndroidImportance.DEFAULT,
+  },
+  incoming_calls: {
+    importance: AndroidImportance.MAX,
+  },
+};
 
 export async function setUpNotificationChannels(): Promise<void> {
   if (Platform.OS !== 'android') {
@@ -20,10 +35,10 @@ export async function setUpNotificationChannels(): Promise<void> {
   }
 
   await Promise.all(
-    NOTIFICATION_CHANNELS.map(({ id, importance }) =>
+    Object.entries(NOTIFICATION_CHANNELS).map(([id, channelInput]) =>
       setNotificationChannelAsync(id, {
         name: i18next.t(`notification_channel.${id}`),
-        importance,
+        ...channelInput,
       }),
     ),
   );
