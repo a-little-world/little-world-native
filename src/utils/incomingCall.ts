@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import * as IntentLauncher from 'expo-intent-launcher';
 import i18next from 'i18next';
@@ -12,6 +12,7 @@ import notifee, {
 import { environment } from '@/environment';
 import environmentNative from '@/environments/env';
 import { getAccessJwtToken } from '@/src/api/helpers';
+import PlatformSecureStore from '@/src/helpers/secureStore';
 import { useAuthStore } from '@/src/store/authStore';
 import { getEffectiveBackendUrl } from '@/src/store/debugStore';
 import { IncomingCall, incomingCallStore } from '@/src/store/incomingCallStore';
@@ -122,6 +123,72 @@ export async function openFullScreenIntentSettings(): Promise<void> {
   );
 }
 
+const FSI_PROMPT_DISMISSED_KEY = 'incoming_call_fsi_prompt_dismissed';
+const FSI_RING_DEGRADED_KEY = 'incoming_call_fsi_ring_degraded';
+
+/**
+ * Ask the user to allow full-screen notifications.
+ *
+ * There is no runtime permission dialog for USE_FULL_SCREEN_INTENT on Android
+ * 14+ - it is special app access, grantable only from a system settings page -
+ * so the most we can do is explain why and deep-link there.
+ *
+ * Asked at most once, because a user who says no should not be nagged on every
+ * cold start - and then again after a call has actually rung without it, which
+ * is the point at which the cost of saying no becomes concrete. The Debug Panel
+ * can re-open the setting at any time, and granting it outside the app is
+ * picked up automatically by `canUseFullScreenIntent`.
+ */
+export async function promptForFullScreenIntent(): Promise<void> {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  if (await canUseFullScreenIntent()) {
+    return;
+  }
+  const degraded = await PlatformSecureStore.getItemAsync(
+    FSI_RING_DEGRADED_KEY,
+  );
+  if (
+    (await PlatformSecureStore.getItemAsync(FSI_PROMPT_DISMISSED_KEY)) &&
+    !degraded
+  ) {
+    return;
+  }
+  await PlatformSecureStore.deleteItemAsync(FSI_RING_DEGRADED_KEY).catch(
+    () => {},
+  );
+
+  Alert.alert(
+    i18next.t('incoming_call.fsi_prompt_title'),
+    i18next.t('incoming_call.fsi_prompt_body'),
+    [
+      {
+        text: i18next.t('incoming_call.fsi_prompt_dismiss'),
+        style: 'cancel',
+        onPress: () => {
+          PlatformSecureStore.setItemAsync(FSI_PROMPT_DISMISSED_KEY, '1').catch(
+            () => {},
+          );
+        },
+      },
+      {
+        text: i18next.t('incoming_call.fsi_prompt_cta'),
+        onPress: () => {
+          // Mark as asked either way: they have been shown the setting, and
+          // re-prompting on top of an open settings page helps nobody.
+          PlatformSecureStore.setItemAsync(FSI_PROMPT_DISMISSED_KEY, '1').catch(
+            () => {},
+          );
+          openFullScreenIntentSettings().catch(error =>
+            console.warn('[incoming-call] could not open FSI settings', error),
+          );
+        },
+      },
+    ],
+  );
+}
+
 export async function displayIncomingCall(call: IncomingCall): Promise<void> {
   // On iOS the OS renders the (time-sensitive) alert push itself.
   if (Platform.OS !== 'android') {
@@ -133,6 +200,10 @@ export async function displayIncomingCall(call: IncomingCall): Promise<void> {
     // correct fallback. Use openFullScreenIntentSettings() to let the user fix it.
     console.warn(
       '[incoming-call] full-screen intent DISABLED - the call screen will not appear on the lock screen',
+    );
+    // Re-arms promptForFullScreenIntent for a user who dismissed it once.
+    await PlatformSecureStore.setItemAsync(FSI_RING_DEGRADED_KEY, '1').catch(
+      () => {},
     );
   }
 

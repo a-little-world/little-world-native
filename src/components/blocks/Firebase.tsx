@@ -22,6 +22,7 @@ import {
   displayIncomingCall,
   getDisplayedIncomingCall,
   parseCallPush,
+  promptForFullScreenIntent,
 } from '@/src/utils/incomingCall';
 import {
   acceptIncomingCall,
@@ -134,7 +135,10 @@ function FireBase() {
       }
 
       try {
-        if (!(await ensureNotificationPermission())) {
+        if (await ensureNotificationPermission()) {
+          // Only worth asking once notifications themselves are allowed.
+          await promptForFullScreenIntent();
+        } else {
           console.warn('[push] notification permission not granted');
         }
       } catch (error) {

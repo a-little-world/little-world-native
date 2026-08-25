@@ -74,6 +74,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.WAKE_LOCK',
       'android.permission.BLUETOOTH',
       'android.permission.USE_FULL_SCREEN_INTENT',
+      // Marks this as a calling app. No ConnectionService is registered - this is
+      // the conventional signal Play and OEM heuristics use when deciding whether
+      // USE_FULL_SCREEN_INTENT stays granted at install. Signal declares it too.
+      'android.permission.MANAGE_OWN_CALLS',
       'android.permission.VIBRATE',
     ],
     allowBackup: true,
