@@ -33,6 +33,10 @@ import {
   ReactError,
   useDebugStore,
 } from '@/src/store/debugStore';
+import {
+  canUseFullScreenIntent,
+  openFullScreenIntentSettings,
+} from '@/src/utils/incomingCall';
 
 import { useDomCommunicationContext } from './DomCommunicationCore';
 
@@ -44,6 +48,7 @@ type SectionKey =
   | 'tokens'
   | 'dom'
   | 'appinfo'
+  | 'calls'
   | 'fetchErrors'
   | 'reactErrors';
 
@@ -277,6 +282,7 @@ export default function DebugPanel() {
 
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>(() => ({
     appinfo: true,
+    calls: false,
     backend: !!debugStore.get().backendUrlOverride,
     tokens: false,
     dom: false,
@@ -288,6 +294,14 @@ export default function DebugPanel() {
   const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>(
     {},
   );
+
+  const [fullScreenIntentOk, setFullScreenIntentOk] = useState<boolean | null>(
+    null,
+  );
+  const refreshFullScreenIntent = () =>
+    canUseFullScreenIntent()
+      .then(setFullScreenIntentOk)
+      .catch(() => {});
   const toggleError = (id: string) =>
     setExpandedErrors(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -589,6 +603,37 @@ export default function DebugPanel() {
                 <Row key={item.label} label={item.label} value={item.value} />
               ))}
               <Row label="Window origin" value={windowOrigin} />
+            </Section>
+
+            {/* ── Incoming calls ── */}
+            <Section
+              title="Incoming calls"
+              warning={fullScreenIntentOk === false}
+              expanded={expanded.calls}
+              onToggle={() => {
+                toggle('calls');
+                refreshFullScreenIntent();
+              }}
+            >
+              <Row
+                label="Full screen intent"
+                warning={fullScreenIntentOk === false}
+                value={
+                  fullScreenIntentOk === null
+                    ? '…'
+                    : fullScreenIntentOk
+                      ? 'allowed'
+                      : 'DENIED — no lock screen call UI'
+                }
+              />
+              <View style={styles.btnRow}>
+                <Btn label="Re-check" onPress={refreshFullScreenIntent} />
+                <Btn
+                  label="Open setting"
+                  color="#FF9500"
+                  onPress={() => openFullScreenIntentSettings()}
+                />
+              </View>
             </Section>
 
             {/* ── Backend URL ── */}

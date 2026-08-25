@@ -119,16 +119,26 @@ function FireBase() {
     const messaging = getMessaging();
 
     (async () => {
+      // Each step is isolated: a channel that fails validation must not stop us
+      // from asking for notification permission.
+      for (const [name, run] of [
+        ['channels', setUpNotificationChannels],
+        ['call channel', createIncomingCallChannel],
+        ['ios call category', setUpIosCallCategory],
+      ] as const) {
+        try {
+          await run();
+        } catch (error) {
+          console.error(`[push] ${name} setup failed`, error);
+        }
+      }
+
       try {
-        await setUpNotificationChannels();
-        await createIncomingCallChannel();
-        await setUpIosCallCategory();
-        const granted = await ensureNotificationPermission();
-        if (!granted) {
+        if (!(await ensureNotificationPermission())) {
           console.warn('[push] notification permission not granted');
         }
       } catch (error) {
-        console.error('[push] setup failed', error);
+        console.error('[push] permission request failed', error);
       }
     })();
 

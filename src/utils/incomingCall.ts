@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import * as IntentLauncher from 'expo-intent-launcher';
 import i18next from 'i18next';
 import notifee, {
   AndroidCategory,
@@ -9,6 +10,7 @@ import notifee, {
 } from 'react-native-notify-kit';
 
 import { environment } from '@/environment';
+import environmentNative from '@/environments/env';
 import { getAccessJwtToken } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
 import { getEffectiveBackendUrl } from '@/src/store/debugStore';
@@ -76,7 +78,9 @@ export async function createIncomingCallChannel(): Promise<void> {
     visibility: AndroidVisibility.PUBLIC,
     bypassDnd: true,
     vibration: true,
-    vibrationPattern: [0, 1000, 800, 1000],
+    // Every entry must be > 0: notifee rejects the conventional leading 0
+    // (`ms <= 0` fails validateAndroidChannel). Pairs are wait/vibrate.
+    vibrationPattern: [300, 1000, 800, 1000],
     // notifee's channel default is NO sound at all - the literal string
     // 'default' is required to get the system notification sound.
     // ponytail: the repo ships no audio assets, so we use the system sound.
@@ -86,20 +90,49 @@ export async function createIncomingCallChannel(): Promise<void> {
   });
 }
 
+/**
+ * Whether Android will honour our full-screen intent.
+ *
+ * Android 14+ treats USE_FULL_SCREEN_INTENT as special app access ("Full screen
+ * notifications") and grants it only to calling/alarm apps - the Play Store
+ * revokes it for everything else, and the user can revoke it by hand. When it is
+ * denied Android silently downgrades the notification to a heads-up banner,
+ * which on a locked screen is just an ordinary notification: no call screen.
+ */
+export async function canUseFullScreenIntent(): Promise<boolean> {
+  if (Platform.OS !== 'android') {
+    return true;
+  }
+  const settings = await notifee.getNotificationSettings();
+  // NOT_SUPPORTED means the OS predates the permission model, where full-screen
+  // intents are always allowed - only an explicit DISABLED is a problem.
+  return (
+    settings.android.fullScreenIntent !== AndroidNotificationSetting.DISABLED
+  );
+}
+
+/** Opens the system "Full screen notifications" page for this app. */
+export async function openFullScreenIntentSettings(): Promise<void> {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  await IntentLauncher.startActivityAsync(
+    'android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT',
+    { data: `package:${environmentNative.bundleId}` },
+  );
+}
+
 export async function displayIncomingCall(call: IncomingCall): Promise<void> {
   // On iOS the OS renders the (time-sensitive) alert push itself.
   if (Platform.OS !== 'android') {
     return;
   }
 
-  const settings = await notifee.getNotificationSettings();
-  if (
-    settings.android.fullScreenIntent !== AndroidNotificationSetting.ENABLED
-  ) {
-    // Android 14+ can revoke USE_FULL_SCREEN_INTENT. Displaying anyway
-    // degrades to a heads-up notification, which is the correct fallback.
+  if (!(await canUseFullScreenIntent())) {
+    // Display anyway: it degrades to a heads-up notification, which is the
+    // correct fallback. Use openFullScreenIntentSettings() to let the user fix it.
     console.warn(
-      '[incoming-call] full-screen intent not enabled, falling back to heads-up notification',
+      '[incoming-call] full-screen intent DISABLED - the call screen will not appear on the lock screen',
     );
   }
 
@@ -131,6 +164,9 @@ export async function displayIncomingCall(call: IncomingCall): Promise<void> {
       fullScreenAction: { id: 'default', launchActivity: 'default' },
       ongoing: true,
       autoCancel: false,
+      // Also set per-notification, not just on the channel: the caller's name
+      // must be readable on the lock screen, not collapsed to "new notification".
+      visibility: AndroidVisibility.PUBLIC,
       timeoutAfter: RING_TIMEOUT_MS,
       loopSound: true,
       ...(call.callerImageUrl ? { largeIcon: call.callerImageUrl } : {}),

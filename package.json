@@ -50,6 +50,7 @@
     "expo-doctor": "^1.19.8",
     "expo-font": "~55.0.6",
     "expo-haptics": "~55.0.14",
+    "expo-intent-launcher": "^55.0.15",
     "expo-jwt": "^1.8.2",
     "expo-linear-gradient": "~55.0.13",
     "expo-linking": "~55.0.13",
