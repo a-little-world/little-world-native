@@ -8,6 +8,11 @@ import {
   IncomingCall,
   useIncomingCallStore,
 } from '@/src/store/incomingCallStore';
+import {
+  cancelIncomingCall,
+  endLockScreenSession,
+  RING_TIMEOUT_MS,
+} from '@/src/utils/incomingCall';
 
 type Props = {
   onAccept: (call: IncomingCall) => void;
@@ -23,6 +28,23 @@ function IncomingCallOverlay({ onAccept, onDecline }: Props) {
   useEffect(() => {
     setImageFailed(false);
   }, [call?.sessionId]);
+
+  // An unanswered ring self-dismisses its notification via `timeoutAfter`, but
+  // nothing else tears down the overlay or lowers the lock-screen flag, which
+  // would leave the app parked over the keyguard.
+  // ponytail: the timer starts when the overlay mounts rather than when the ring
+  // did, so a cold launch mid-ring over-waits. It is a backstop, not a contract -
+  // the real fix is the server-side ring timeout.
+  const sessionId = call?.sessionId;
+  useEffect(() => {
+    if (!sessionId) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      cancelIncomingCall(sessionId).finally(endLockScreenSession);
+    }, RING_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [sessionId]);
 
   if (!call) {
     return null;

@@ -20,6 +20,7 @@ import {
   cancelIncomingCall,
   createIncomingCallChannel,
   displayIncomingCall,
+  endLockScreenSession,
   getDisplayedIncomingCall,
   parseCallPush,
   promptForFullScreenIntent,
@@ -75,6 +76,7 @@ async function handleCallPush(
 ) {
   if (parsed.type === 'call_cancelled') {
     await cancelIncomingCall(parsed.call.sessionId);
+    endLockScreenSession();
     return;
   }
 

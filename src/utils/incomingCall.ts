@@ -11,11 +11,17 @@ import notifee, {
 
 import { environment } from '@/environment';
 import environmentNative from '@/environments/env';
+import {
+  hideOverLockScreen,
+  isKeyguardLocked,
+  showOverLockScreen,
+} from '@/modules/lock-screen';
 import { getAccessJwtToken } from '@/src/api/helpers';
 import PlatformSecureStore from '@/src/helpers/secureStore';
 import { useAuthStore } from '@/src/store/authStore';
 import { getEffectiveBackendUrl } from '@/src/store/debugStore';
 import { IncomingCall, incomingCallStore } from '@/src/store/incomingCallStore';
+import { lockedSessionStore } from '@/src/store/lockedSessionStore';
 
 /**
  * Deliberately a NEW channel id: Android notification channels are immutable
@@ -25,7 +31,7 @@ import { IncomingCall, incomingCallStore } from '@/src/store/incomingCallStore';
  */
 export const INCOMING_CALL_CHANNEL_ID = 'incoming_calls_v2';
 
-const RING_TIMEOUT_MS = 45000;
+export const RING_TIMEOUT_MS = 45000;
 
 /** FCM data values are always strings; anything else is not our payload. */
 function asString(value: unknown): string {
@@ -207,6 +213,15 @@ export async function displayIncomingCall(call: IncomingCall): Promise<void> {
     );
   }
 
+  // Only when actually locked, so the flag and the restriction stay in lockstep -
+  // a raised flag that outlives its session is exactly how the app ends up
+  // bypassing the lock screen. Set before displaying, not after: the full-screen
+  // intent brings the activity forward immediately and reads the flag as it does.
+  if (isKeyguardLocked()) {
+    showOverLockScreen();
+    lockedSessionStore.get().setLocked(true);
+  }
+
   await notifee.displayNotification({
     // The cancel push targets this id.
     id: call.sessionId,
@@ -302,6 +317,16 @@ export async function cancelIncomingCall(sessionId: string): Promise<void> {
   if (incomingCallStore.get().call?.sessionId === sessionId) {
     incomingCallStore.get().clear();
   }
+}
+
+/**
+ * The single teardown point for a lock-screen call session - reached by decline,
+ * cancel push, ring timeout and the webapp's CALL_ENDED signal. Not by accept:
+ * the call itself has to keep drawing over the keyguard.
+ */
+export function endLockScreenSession(): void {
+  lockedSessionStore.get().setLocked(false);
+  hideOverLockScreen();
 }
 
 export async function declineCall(call: IncomingCall): Promise<void> {

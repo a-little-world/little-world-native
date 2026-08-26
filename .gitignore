@@ -61,3 +61,6 @@ credentials.json
 
 # Private iOS app upload script
 upload.sh
+
+# Custom native code
+!modules/**

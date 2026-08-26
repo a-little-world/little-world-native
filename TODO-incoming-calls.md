@@ -8,7 +8,7 @@ Branch `native-calls-new` in all three repos (native, `frontend/` submodule, `li
 
 ## Do next
 
-- [ ] **Cloud rebuild.** `expo-intent-launcher` was added, so a JS reload is not enough.
+- [ ] **Cloud rebuild.** `expo-intent-launcher` and the `modules/lock-screen` local native module were added, so a JS reload is not enough. **Gradle could not be validated locally** - there is no Android SDK on this machine, so `modules/lock-screen/android/build.gradle` has only been checked against `expo-intent-launcher`'s and by `expo-modules-autolinking search`, which does find the module. A build failure there would show up first in the cloud build.
 - [x] **Grant the full-screen intent permission.** Confirmed on a Pixel 10 / GrapheneOS: a fresh install does **not** auto-grant it, the in-app prompt fires on first launch and the settings deep-link works. Existing users get the same prompt on their first launch after updating, because the `incoming_call_fsi_prompt_dismissed` key is new and unset for everyone. Dismissing it re-arms once a call has actually rung without the permission (`incoming_call_fsi_ring_degraded`). Debug Panel -> _Incoming calls_ shows the state and re-opens the setting at any time. To re-test the prompt, clear both SecureStore keys or reinstall.
 - [ ] **Watch for Play revoking it.** Android 14+ makes `USE_FULL_SCREEN_INTENT` special app access; the Play Store revokes it for apps it does not classify as calling/alarm apps. There is currently no full-screen-intent declaration form in Play Console (checked), so nothing to file - but re-check the grant state on a Play-distributed build, since side-loaded and Play installs can differ. Nothing in this repo influences the grant beyond declaring the permission, which it does (plus `MANAGE_OWN_CALLS` as the conventional calling-app marker).
 
@@ -29,15 +29,29 @@ Not listed under Settings -> Apps -> Special app access -> Full screen notificat
 
 Nothing here has been verified on a phone except where noted.
 
-- [ ] Android locked → full-screen call UI over the keyguard, caller name + avatar, ringtone
-- [x] Android unlocked, another app in front → heads-up call banner
-- [ ] Android force-stopped → no push delivered. Expected OS behaviour, don't chase it
-- [ ] iOS locked → banner + ringtone, breaks through Focus, long-press reveals Accept/Decline
-- [ ] Accept (every state) → app foregrounds, call-setup modal for the right partner, LiveKit PreJoin appears
-- [ ] Decline → notification clears, `POST /api/call_rejected` lands with the right `partner_id` / `session_id`
-- [ ] Cancel push → a ringing notification disappears within a second
-- [ ] App already open and foregrounded → only the existing WebSocket modal, no duplicate native overlay
-- [ ] Full-screen intent revoked in Settings → degrades to heads-up, no crash
+**Lock-screen containment** (all with the phone locked unless stated):
+
+- [ ] Open the app, lock the phone, wake it -> keyguard, not the app. Needs no call; this is the regression that matters most
+- [ ] Ring -> full-screen call UI over the keyguard
+- [ ] Accept -> no unlock prompt, call runs over the keyguard
+- [ ] Mid-call, navigate anywhere else in the webapp -> `LockedScreen`, chats/profile/settings unreachable
+- [ ] End the call -> back to the keyguard
+- [ ] Mid-call, leave the app, unlock the phone properly, return -> restriction lifted, whole app reachable
+- [ ] Decline -> no unlock prompt, ring clears, back to the keyguard
+- [ ] Cancel push (answer the same call in a browser tab) -> ring clears, keyguard returns instead of the app appearing
+- [ ] Ignore the ring for the full timeout -> app disappears behind the keyguard
+- [ ] Phone **unlocked**, app in the foreground, call arrives, decline -> app stays foregrounded and fully navigable
+- [ ] Two rings in one process while locked -> the second still draws over the keyguard
+
+**Rest of the feature:**
+
+- [x] Android unlocked, another app in front -> heads-up call banner
+- [ ] Android force-stopped -> no push delivered. Expected OS behaviour, don't chase it
+- [ ] iOS locked -> banner + ringtone, breaks through Focus, long-press reveals Accept/Decline
+- [ ] Accept (every state) -> app foregrounds, call-setup modal for the right partner, LiveKit PreJoin appears
+- [ ] Decline -> notification clears, `POST /api/call_rejected` lands with the right `partner_id` / `session_id`
+- [ ] App already open and foregrounded -> only the existing WebSocket modal, no duplicate native overlay
+- [ ] Full-screen intent revoked in Settings -> degrades to heads-up, no crash
 
 ---
 

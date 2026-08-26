@@ -19,11 +19,13 @@ import { requestIntegrityCheck } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { useLockedSessionStore } from '@/src/store/lockedSessionStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import {
   registerFirebaseDeviceToken,
   unregisterFirebaseDeviceToken,
 } from '@/src/utils/firebase-util';
+import { endLockScreenSession } from '@/src/utils/incomingCall';
 
 import { LittleWorldDomRef } from './LittleWorldWebLazy';
 
@@ -132,6 +134,10 @@ export function DomCommunicationProvider({
             ok: true,
           };
         }
+        case 'CALL_ENDED': {
+          endLockScreenSession();
+          return { ok: true };
+        }
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
           // Sync debug config — also handles WebView reloads where `ready` was already true
@@ -139,6 +145,11 @@ export function DomCommunicationProvider({
           await sendToDom({
             action: 'SET_DEBUG_CONFIG',
             payload: { debugEnabled, backendUrlOverride },
+          });
+
+          await sendToDom({
+            action: 'SET_LOCKED_SESSION',
+            payload: { locked: useLockedSessionStore.getState().locked },
           });
 
           await sendToDom({
@@ -232,6 +243,19 @@ export function DomCommunicationProvider({
         state.backendUrlOverride !== prev.backendUrlOverride
       ) {
         syncDebugConfig(state.debugEnabled, state.backendUrlOverride);
+      }
+    });
+  }, [ready, sendToDom]);
+
+  useEffect(() => {
+    if (!ready) return;
+
+    return useLockedSessionStore.subscribe((state, prev) => {
+      if (state.locked !== prev.locked) {
+        sendToDom({
+          action: 'SET_LOCKED_SESSION',
+          payload: { locked: state.locked },
+        });
       }
     });
   }, [ready, sendToDom]);

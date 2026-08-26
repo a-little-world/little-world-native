@@ -9,6 +9,7 @@ import {
   createIncomingCallChannel,
   declineCall,
   displayIncomingCall,
+  endLockScreenSession,
   parseCallPush,
 } from '@/src/utils/incomingCall';
 
@@ -25,6 +26,7 @@ setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
 
   if (parsed.type === 'call_cancelled') {
     await cancelIncomingCall(parsed.call.sessionId);
+    endLockScreenSession();
     return;
   }
 
@@ -58,4 +60,5 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 
   await declineCall(parsed.call);
   await cancelIncomingCall(parsed.call.sessionId);
+  endLockScreenSession();
 });
