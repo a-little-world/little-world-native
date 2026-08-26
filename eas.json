@@ -4,7 +4,13 @@
     "appVersionSource": "local"
   },
   "build": {
+    "base": {
+      "env": {
+        "EAS_USE_CACHE": "1"
+      }
+    },
     "simulator": {
+      "extends": "base",
       "developmentClient": true,
       "credentialsSource": "remote",
       "ios": {
@@ -12,11 +18,13 @@
       }
     },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "credentialsSource": "remote",
       "distribution": "internal"
     },
     "staging": {
+      "extends": "base",
       "credentialsSource": "remote",
       "android": {
         "image": "latest",
@@ -27,6 +35,7 @@
       }
     },
     "production": {
+      "extends": "base",
       "credentialsSource": "remote",
       "android": {
         "image": "latest",

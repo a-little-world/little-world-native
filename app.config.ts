@@ -22,7 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: environmentNative.displayName,
   slug: 'little-world-app',
   version: APP_VERSION,
-  orientation: 'portrait',
+  orientation: 'default',
   icon: './src/assets/images/logo-image.png',
   userInterfaceStyle: 'automatic',
   owner: 'little-world',
