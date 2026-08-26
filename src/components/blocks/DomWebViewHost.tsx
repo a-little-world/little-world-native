@@ -8,6 +8,7 @@ import {
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
+import { getDeviceId } from '@/src/utils/device';
 
 import { useDomCommunicationContext } from './DomCommunicationCore';
 import LittleWorldWebLazy from './LittleWorldWebLazy';
@@ -51,12 +52,11 @@ export default function DomWebViewHost() {
   const getAccessToken = async () => useAuthStore.getState().accessToken;
 
   const setAccessTokens = async (
-    accessToken: string | undefined,
-    refreshToken: string | undefined,
-  ): Promise<void> => {
-    console.log('frontend setting access tokens', accessToken, refreshToken);
-    await updateTokens(accessToken, refreshToken);
-  };
+    accessToken: string | undefined | null,
+    refreshToken: string | undefined | null,
+  ): Promise<void> => updateTokens(accessToken, refreshToken);
+
+  const getInstallId = async () => getDeviceId();
 
   return (
     <View style={{ flex: 1, height: 800 }}>
@@ -67,6 +67,7 @@ export default function DomWebViewHost() {
         refreshAccessToken={refreshAccessTokens}
         getAccessToken={getAccessToken}
         setAccessTokens={setAccessTokens}
+        getInstallId={getInstallId}
         hasStoredToken={hasStoredToken}
       />
     </View>
