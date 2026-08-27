@@ -15,6 +15,7 @@ import type {
   DomCommunicationMessageFn,
   DomCommunicationResponse,
 } from '@/frontend/src';
+import { CallAudio } from '@/modules/call-audio';
 import { requestIntegrityCheck } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
@@ -132,6 +133,14 @@ export function DomCommunicationProvider({
             ok: true,
           };
         }
+        case 'CALL_STATE_CHANGED': {
+          if (payload.inCall) {
+            await CallAudio.start();
+          } else {
+            await CallAudio.stop();
+          }
+          return { ok: true };
+        }
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
           // Sync debug config — also handles WebView reloads where `ready` was already true
@@ -208,6 +217,8 @@ export function DomCommunicationProvider({
     },
     [],
   );
+
+  useEffect(() => () => void CallAudio.stop(), []);
 
   // ── Sync debug config to frontend ────────────────────────────────────────
   const { ready } = useWebViewStore();
