@@ -42,11 +42,10 @@ yarn-error.*
 
 app-example
 
-# iOS
-ios/
-
-# Android
-android/
+# Prebuild output
+/ios/
+/android/
+modules/*/android/build/
 
 # Cursor
 .cursorrules
