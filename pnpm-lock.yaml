@@ -256,8 +256,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^3.0.1
-        version: 3.1.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        specifier: ^3.1.1
+        version: 3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@babel/core':
         specifier: ^7.20.12
         version: 7.28.6
@@ -513,8 +513,8 @@ packages:
       graphql:
         optional: true
 
-  '@a-little-world/little-world-design-system-core@1.17.0':
-    resolution: {integrity: sha512-x0EdA3z4IOTSRZkchqhnWFbddfrnpZruP4Qf07J+t/GYgcKuQNAkGEN9sS1CBXCP1Vq4+9HOqcgtjD7egQHEkg==}
+  '@a-little-world/little-world-design-system-core@1.17.1':
+    resolution: {integrity: sha512-VnzmoOxRsAtsk8Q4nZYHL8kZklU+slMasa2klCn0+KAwPL/dGwx3WTBl8zUrcaQHKs6frEBvtp5n0PqCRpNQYQ==}
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
@@ -537,8 +537,8 @@ packages:
       react-native-svg: 15.12.1
       styled-components: ^6.1.19
 
-  '@a-little-world/little-world-design-system@3.1.0':
-    resolution: {integrity: sha512-QHE8/vr3zG4bGAwrpCUI4dOz9QtF/k4FRDkFHtTlBgeKdc7bQjFHe14ivkBVy4R2DgEARNYh2KUyPAiROJa/Nw==}
+  '@a-little-world/little-world-design-system@3.1.1':
+    resolution: {integrity: sha512-QDfmyovXtJSxnJ6PQoW/EA+NIokUuEeuoSL9TDv01gXrX+yvHC/zUi8Rc7Rqx/VbYqU7YYqr6+50qGe3itxccQ==}
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
@@ -9551,7 +9551,7 @@ snapshots:
     optionalDependencies:
       graphql: 16.8.1
 
-  '@a-little-world/little-world-design-system-core@1.17.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@a-little-world/little-world-design-system-core@1.17.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@babel/runtime': 7.29.7
       csstype: 3.2.3
@@ -9595,9 +9595,9 @@ snapshots:
       - '@types/react-dom'
       - react-native-web
 
-  '@a-little-world/little-world-design-system@3.1.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@a-little-world/little-world-design-system@3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.17.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@base-ui/react': 1.5.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-accordion': 1.2.12(@types/react@19.2.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-checkbox': 1.3.3(@types/react@19.2.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
