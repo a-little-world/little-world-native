@@ -43,6 +43,7 @@ export default function LittleWorldWebLazy(props: {
   refreshAccessToken: typeof refreshAccessTokens;
   getAccessToken: () => Promise<string | undefined>;
   setAccessTokens: typeof updateTokens;
+  getInstallId: () => Promise<string>;
   hasStoredToken: boolean;
   dom?: import('expo/dom').DOMProps;
 }) {
@@ -102,6 +103,7 @@ export default function LittleWorldWebLazy(props: {
       refreshAccessToken={props.refreshAccessToken}
       getAccessToken={props.getAccessToken}
       setAccessTokens={props.setAccessTokens}
+      getInstallId={props.getInstallId}
       hasStoredToken={props.hasStoredToken}
     />
   );
