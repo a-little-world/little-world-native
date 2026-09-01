@@ -559,7 +559,8 @@ export async function refreshAccessTokens(force = false): Promise<TokenStatus> {
     return accessTokenRefresh;
   }
 
-  const { refreshToken } = useAuthStore.getState();
+  const { refreshToken, tokenState: currentTokenState } =
+    useAuthStore.getState();
   if (!refreshToken) {
     useAuthStore.setState({
       tokenState: {
@@ -597,6 +598,7 @@ export async function refreshAccessTokens(force = false): Promise<TokenStatus> {
   useAuthStore.setState({
     tokenState: {
       isRefreshing: true,
+      status: currentTokenState?.status,
     },
   });
   syncTokenStateToDom();
