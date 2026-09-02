@@ -51,6 +51,8 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'e2e')
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    outputs:
+      backend-ref: ${{ steps.ref.outputs.ref }}
     env:
       E2E_BACKEND_URL: http://127.0.0.1:8000
       PLAYWRIGHT_INSTALL_FLAGS: --with-deps
@@ -254,10 +256,15 @@ jobs:
           BASE: ${{ github.event.pull_request.base.ref }}
           LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}
           RESULT: ${{ needs.tests.result }}
+          BACKEND_REF: ${{ needs.tests.outputs.backend-ref }}
         run: |
           # prod PRs run e2e unconditionally, no label needed
           if [ "$BASE" != "prod" ] && [ "$LABELED" != "true" ]; then
             echo "::error::add the 'e2e' label to this PR to run the e2e suite"
+            exit 1
+          fi
+          if [ "$BACKEND_REF" != "main" ]; then
+            echo "::error::e2e ran against backend ref '$BACKEND_REF' — set .backend-ref to main before merging"
             exit 1
           fi
           [ "$RESULT" = "success" ] || {
