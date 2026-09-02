@@ -22,7 +22,7 @@ on:
         required: false
         default: ''
   pull_request:
-    types: [opened, reopened, labeled, synchronize]
+    types: [opened, reopened, labeled, unlabeled, synchronize]
   # Fired by the backend repo on merge-to-main (see notify-native-e2e in that repo).
   # Runs native main against backend main immediately, catching drift without waiting
   # for a main -> prod PR to be open.
@@ -39,8 +39,8 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
-    name: E2E
+  tests:
+    name: E2E Tests
     # PRs to main: run when labeled `e2e` (iteration check, tests against .backend-ref).
     # PRs to prod: always run (the merge gate — forced against backend main, see Resolve).
     # repository_dispatch: backend merge-to-main drift check (also forced against main).
@@ -48,8 +48,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'repository_dispatch' ||
       github.event.pull_request.base.ref == 'prod' ||
-      (github.event.action == 'labeled' && github.event.label.name == 'e2e') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'e2e'))
+      contains(github.event.pull_request.labels.*.name, 'e2e')
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -244,3 +243,24 @@ jobs:
           name: backend-log
           path: backend.log
           if-no-files-found: ignore
+
+  e2e:
+    name: E2E
+    needs: tests
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}
+          RESULT: ${{ needs.tests.result }}
+        run: |
+          # prod PRs run e2e unconditionally, no label needed
+          if [ "$BASE" != "prod" ] && [ "$LABELED" != "true" ]; then
+            echo "::error::add the 'e2e' label to this PR to run the e2e suite"
+            exit 1
+          fi
+          [ "$RESULT" = "success" ] || {
+            echo "::error::e2e did not pass (result: $RESULT)"
+            exit 1
+          }
