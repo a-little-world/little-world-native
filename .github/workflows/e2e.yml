@@ -191,7 +191,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install workspace dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Metro transform cache
         # expo export's Metro cache (default FileStore at /tmp/metro-cache) is cold every
