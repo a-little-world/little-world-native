@@ -70,12 +70,7 @@ jobs:
           REF="${{ github.event.inputs.backendRef }}"
           BASE="${{ github.event.pull_request.base.ref }}"
           EVENT="${{ github.event_name }}"
-          # Force backend main for the prod merge gate AND the backend merge-to-main
-          # dispatch — native must pass against backend main regardless of .backend-ref
-          # or the dispatch input. main PRs use the custom ref.
-          if [ "$BASE" = "prod" ] || [ "$EVENT" = "repository_dispatch" ]; then
-            REF="main"
-          elif [ -z "$REF" ]; then
+          if [ -z "$REF" ]; then
             REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
           fi
           [ -n "$REF" ] || { echo "No backend ref (input empty and .backend-ref blank)" >&2; exit 1; }
