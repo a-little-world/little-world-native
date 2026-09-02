@@ -60,8 +60,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: environmentNative.bundleId,
     versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
+    icon: './assets/images/icons/Android_Icon.png',
     adaptiveIcon: {
-      foregroundImage: './src/assets/images/logo-image.png',
+      foregroundImage: './assets/images/icons/Android_Icon_Foreground.png',
+      monochromeImage: './assets/images/icons/Android_Icon_Monochrome.png',
       backgroundColor: '#ffffff',
     },
     permissions: [
@@ -121,7 +123,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './src/assets/images/logo-image.png',
+        icon: './assets/images/icons/Android_Notification_Icon.png',
       },
     ],
     ...(environmentNative.sentryProject
