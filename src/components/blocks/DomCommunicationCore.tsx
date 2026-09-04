@@ -18,7 +18,7 @@ import type {
   DomCommunicationMessageFn,
   DomCommunicationResponse,
 } from '@/frontend/src';
-import { requestIntegrityCheck } from '@/src/api/helpers';
+import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
@@ -142,7 +142,11 @@ export function DomCommunicationProvider({
           await sendToDom({
             action: 'SET_DEBUG_CONFIG',
             payload: { debugEnabled, backendUrlOverride },
-          });
+          }).catch(error =>
+            console.warn('SET_DEBUG_CONFIG failed during handshake', error),
+          );
+
+          await syncTokenStateToDom();
 
           await sendToDom({
             action: 'NATIVE_READY',

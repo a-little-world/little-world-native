@@ -90,4 +90,4 @@ runs:
 
     - name: Install workspace dependencies
       shell: bash
-      run: pnpm install --no-frozen-lockfile
+      run: pnpm install --frozen-lockfile
