@@ -253,8 +253,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^3.1.1
-        version: 3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        specifier: ^3.1.2
+        version: 3.1.2(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@babel/core':
         specifier: ^7.20.12
         version: 7.28.6
@@ -534,8 +534,8 @@ packages:
       react-native-svg: 15.12.1
       styled-components: ^6.1.19
 
-  '@a-little-world/little-world-design-system@3.1.1':
-    resolution: {integrity: sha512-QDfmyovXtJSxnJ6PQoW/EA+NIokUuEeuoSL9TDv01gXrX+yvHC/zUi8Rc7Rqx/VbYqU7YYqr6+50qGe3itxccQ==}
+  '@a-little-world/little-world-design-system@3.1.2':
+    resolution: {integrity: sha512-2KcRQcFsStwFFKbfQpwqLKahA16Svng3QrK2cozbxF8G3XjKve8g5l4IVJWPTKONrL1Z+hKMiH3rrmbPbhiMjQ==}
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
@@ -1614,7 +1614,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@55.0.24':
     resolution: {integrity: sha512-Z6Xh0WNTg1LvoZQ77zO3snF2cFiv1xf0VguDlwTL1Ql87oMOp30f7mjl9jeaSHqoWkgiAbmxgCKKIGjVX/keiA==}
@@ -5164,6 +5164,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   crypto-random-string@2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
@@ -9587,7 +9588,7 @@ snapshots:
       - '@types/react-dom'
       - react-native-web
 
-  '@a-little-world/little-world-design-system@3.1.1(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@a-little-world/little-world-design-system@3.1.2(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(styled-components@6.3.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@base-ui/react': 1.5.0(@types/react@19.2.4)(date-fns@3.6.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
