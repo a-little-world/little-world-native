@@ -1,6 +1,6 @@
 'use dom';
 
-import React, { lazy, Ref, useEffect, useRef } from 'react';
+import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 
 import { JSONValue } from 'expo/build/dom/dom.types';
 import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
@@ -50,9 +50,12 @@ export default function LittleWorldWebLazy(props: {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
   // Allow inner component to override how actions are handled
-  const registerReceiveHandler = (handler: DomCommunicationMessageFn) => {
-    domReceiveHandlerRef.current = handler;
-  };
+  const registerReceiveHandler = useCallback(
+    (handler: DomCommunicationMessageFn) => {
+      domReceiveHandlerRef.current = handler;
+    },
+    [],
+  );
 
   // Inject CSS to override #root display property and fonts
   useEffect(() => {
