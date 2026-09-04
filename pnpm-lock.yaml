@@ -104,6 +104,9 @@ importers:
       expo-modules-core:
         specifier: ~55.0.22
         version: 55.0.22(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
+      expo-navigation-bar:
+        specifier: ~55.0.12
+        version: 55.0.15(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
       expo-notifications:
         specifier: ~55.0.19
         version: 55.0.19(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
@@ -2185,9 +2188,6 @@ packages:
     peerDependencies:
       react: 19.2.4
       react-dom: 19.2.4
-
-  '@floating-ui/utils@0.2.10':
-    resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
@@ -5917,6 +5917,13 @@ packages:
     peerDependenciesMeta:
       react-native-worklets:
         optional: true
+
+  expo-navigation-bar@55.0.15:
+    resolution: {integrity: sha512-NZmgT8tf4keaYf3bNK4ZyRIyutwXrhlz2NBfMegJO1mRTyV1YUjblmqUY0NY4ZFLb1fEUYCt6tZLnKxlYiEO7Q==}
+    peerDependencies:
+      expo: '*'
+      react: 19.2.4
+      react-native: '*'
 
   expo-notifications@55.0.19:
     resolution: {integrity: sha512-t1DPN9xwSh5kN5T8k0lER/NbcuhMIxj/ukfDWzFOJb2WdfB+VBWaiBUj4K26agsX7tQFMz2wsCXpkYXLdfzSdw==}
@@ -11214,7 +11221,7 @@ snapshots:
 
   '@expo/json-file@10.0.13':
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       json5: 2.2.3
 
   '@expo/json-file@8.3.3':
@@ -11489,7 +11496,7 @@ snapshots:
 
   '@expo/require-utils@55.0.4(typescript@5.9.3)':
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       '@babel/core': 7.28.6
       '@babel/plugin-transform-modules-commonjs': 7.28.6(@babel/core@7.28.6)
     optionalDependencies:
@@ -11562,7 +11569,7 @@ snapshots:
 
   '@expo/xcpretty@4.4.0':
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       chalk: 4.1.2
       js-yaml: 4.1.1
 
@@ -11934,7 +11941,7 @@ snapshots:
   '@floating-ui/dom@1.7.4':
     dependencies:
       '@floating-ui/core': 1.7.4
-      '@floating-ui/utils': 0.2.10
+      '@floating-ui/utils': 0.2.11
 
   '@floating-ui/dom@1.7.5':
     dependencies:
@@ -11957,8 +11964,6 @@ snapshots:
       '@floating-ui/dom': 1.7.6
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
-
-  '@floating-ui/utils@0.2.10': {}
 
   '@floating-ui/utils@0.2.11': {}
 
@@ -16599,6 +16604,16 @@ snapshots:
     optionalDependencies:
       react-native-worklets: 0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
 
+  expo-navigation-bar@55.0.15(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4):
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+      expo: 55.0.15(@babel/core@7.28.6)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.9)(expo-router@55.0.12)(react-dom@19.2.4(react@19.2.4))(react-native-webview@13.16.0(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native-worklets@0.7.2(@babel/core@7.28.6)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4))(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      react: 19.2.4
+      react-native: 0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4)
+      react-native-is-edge-to-edge: 1.2.1(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)
+    transitivePeerDependencies:
+      - supports-color
+
   expo-notifications@55.0.19(expo@55.0.15)(react-native@0.83.4(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
     dependencies:
       '@expo/image-utils': 0.8.13(typescript@5.9.3)
@@ -18700,7 +18715,7 @@ snapshots:
 
   parse-json@5.2.0:
     dependencies:
-      '@babel/code-frame': 7.28.6
+      '@babel/code-frame': 7.29.0
       error-ex: 1.3.4
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
