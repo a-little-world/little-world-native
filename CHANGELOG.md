@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/a-little-world/little-world-native/compare/v1.1.0...v1.2.0) (2026-09-04)
+
+
+### Features
+
+* Implement push notifications ([#101](https://github.com/a-little-world/little-world-native/issues/101)) ([af10f22](https://github.com/a-little-world/little-world-native/commit/af10f22c42a975659239d452e49251236651e25f))
+
+
+### Bug Fixes
+
+* allow landscape orientation ([#104](https://github.com/a-little-world/little-world-native/issues/104)) ([522f631](https://github.com/a-little-world/little-world-native/commit/522f63160fce53689f73521e0654d099dfeee838))
+* move token refreshes to native ([#106](https://github.com/a-little-world/little-world-native/issues/106)) ([5de3367](https://github.com/a-little-world/little-world-native/commit/5de3367df20c69a2ba734a54a196a59945c1078d))
+* Update app Icon on Android ([#112](https://github.com/a-little-world/little-world-native/issues/112)) ([db815a4](https://github.com/a-little-world/little-world-native/commit/db815a43edff0da1658c3849c268042a25eda12e))
+
 ## [1.1.0](https://github.com/a-little-world/little-world-native/compare/v1.0.31...v1.1.0) (2026-07-17)
 
 
