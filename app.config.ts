@@ -5,7 +5,7 @@ import 'tsx';
 // Enable import of TypeScript files
 import environmentNative from './environments/env';
 
-const APP_VERSION = '1.1.0'; // x-release-please-version
+const APP_VERSION = '1.2.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
