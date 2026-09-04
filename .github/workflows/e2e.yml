@@ -22,7 +22,7 @@ on:
         required: false
         default: ''
   pull_request:
-    types: [opened, reopened, labeled, synchronize]
+    types: [opened, reopened, labeled, unlabeled, synchronize]
   # Fired by the backend repo on merge-to-main (see notify-native-e2e in that repo).
   # Runs native main against backend main immediately, catching drift without waiting
   # for a main -> prod PR to be open.
@@ -39,8 +39,8 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
-    name: E2E
+  tests:
+    name: E2E Tests
     # PRs to main: run when labeled `e2e` (iteration check, tests against .backend-ref).
     # PRs to prod: always run (the merge gate — forced against backend main, see Resolve).
     # repository_dispatch: backend merge-to-main drift check (also forced against main).
@@ -48,10 +48,11 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'repository_dispatch' ||
       github.event.pull_request.base.ref == 'prod' ||
-      (github.event.action == 'labeled' && github.event.label.name == 'e2e') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'e2e'))
+      contains(github.event.pull_request.labels.*.name, 'e2e')
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    outputs:
+      backend-ref: ${{ steps.ref.outputs.ref }}
     env:
       E2E_BACKEND_URL: http://127.0.0.1:8000
       PLAYWRIGHT_INSTALL_FLAGS: --with-deps
@@ -69,12 +70,7 @@ jobs:
           REF="${{ github.event.inputs.backendRef }}"
           BASE="${{ github.event.pull_request.base.ref }}"
           EVENT="${{ github.event_name }}"
-          # Force backend main for the prod merge gate AND the backend merge-to-main
-          # dispatch — native must pass against backend main regardless of .backend-ref
-          # or the dispatch input. main PRs use the custom ref.
-          if [ "$BASE" = "prod" ] || [ "$EVENT" = "repository_dispatch" ]; then
-            REF="main"
-          elif [ -z "$REF" ]; then
+          if [ -z "$REF" ]; then
             REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
           fi
           [ -n "$REF" ] || { echo "No backend ref (input empty and .backend-ref blank)" >&2; exit 1; }
@@ -191,7 +187,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install workspace dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Metro transform cache
         # expo export's Metro cache (default FileStore at /tmp/metro-cache) is cold every
@@ -244,3 +240,29 @@ jobs:
           name: backend-log
           path: backend.log
           if-no-files-found: ignore
+
+  e2e:
+    name: E2E
+    needs: tests
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}
+          RESULT: ${{ needs.tests.result }}
+          BACKEND_REF: ${{ needs.tests.outputs.backend-ref }}
+        run: |
+          # prod PRs run e2e unconditionally, no label needed
+          if [ "$BASE" != "prod" ] && [ "$LABELED" != "true" ]; then
+            echo "::error::add the 'e2e' label to this PR to run the e2e suite"
+            exit 1
+          fi
+          if [ "$BACKEND_REF" != "main" ]; then
+            echo "::error::e2e ran against backend ref '$BACKEND_REF' — set .backend-ref to main before merging"
+            exit 1
+          fi
+          [ "$RESULT" = "success" ] || {
+            echo "::error::e2e did not pass (result: $RESULT)"
+            exit 1
+          }

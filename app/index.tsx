@@ -24,7 +24,7 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       await loadStoredTokensIntoStore();
-      await refreshAccessTokens();
+      await refreshAccessTokens(); // also sets authStore tokenState
       setTokensLoaded(true);
       mutate(IS_AUTHENTICATED_ENDPOINT);
     })();

@@ -1,24 +1,31 @@
 import { create } from 'zustand';
 
+import { TokenStatus } from '../api/helpers';
+
+export interface TokenState {
+  isRefreshing: boolean;
+  status?: TokenStatus;
+}
+
 export type AuthState = {
   accessToken?: string;
   refreshToken?: string;
-  isTokenRefreshing: boolean;
+  tokenState?: TokenState;
 };
 
 type Actions = {
   setAccessToken(token: string | undefined): void;
   setRefreshToken(token: string | undefined): void;
-  setIsTokenRefreshing(isRefreshing: boolean): void;
+  setTokenState(state: TokenState): void;
 };
 
-export const useAuthStore = create<AuthState & Actions>((set, get) => ({
+export const useAuthStore = create<AuthState & Actions>(set => ({
   accessToken: undefined,
   refreshToken: undefined,
-  isTokenRefreshing: false,
+  tokenState: undefined,
   setAccessToken: accessToken => set({ accessToken }),
   setRefreshToken: refreshToken => set({ refreshToken }),
-  setIsTokenRefreshing: isTokenRefreshing => set({ isTokenRefreshing }),
+  setTokenState: tokenState => set({ tokenState }),
 }));
 
 // For places where you’re not inside React (e.g., router loaders, handlers)
