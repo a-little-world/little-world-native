@@ -54,6 +54,7 @@
     "expo-linear-gradient": "~55.0.13",
     "expo-linking": "~55.0.13",
     "expo-modules-core": "~55.0.22",
+    "expo-navigation-bar": "~55.0.12",
     "expo-notifications": "~55.0.19",
     "expo-router": "~55.0.12",
     "expo-secure-store": "~55.0.13",

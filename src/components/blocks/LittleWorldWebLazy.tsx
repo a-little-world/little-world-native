@@ -45,6 +45,10 @@ export default function LittleWorldWebLazy(props: {
   setAccessTokens: typeof updateTokens;
   getInstallId: () => Promise<string>;
   hasStoredToken: boolean;
+  safeTop: number;
+  safeBottom: number;
+  safeLeft: number;
+  safeRight: number;
   dom?: import('expo/dom').DOMProps;
 }) {
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
@@ -67,6 +71,14 @@ export default function LittleWorldWebLazy(props: {
       cleanupFonts();
     };
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement.style;
+    root.setProperty('--safe-top', `${props.safeTop}px`);
+    root.setProperty('--safe-bottom', `${props.safeBottom}px`);
+    root.setProperty('--safe-left', `${props.safeLeft}px`);
+    root.setProperty('--safe-right', `${props.safeRight}px`);
+  }, [props.safeTop, props.safeBottom, props.safeLeft, props.safeRight]);
 
   useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
     sendMessageToDom: (...args: JSONValue[]) => {
@@ -96,7 +108,7 @@ export default function LittleWorldWebLazy(props: {
 
   return (
     <LW
-      dom={{ matchContents: true, allowsBackForwardNavigationGestures: true }}
+      dom={{ allowsBackForwardNavigationGestures: true }}
       sendMessageToReactNative={props.sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
       apiFetchNative={props.apiFetchNative}
