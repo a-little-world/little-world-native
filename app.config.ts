@@ -5,7 +5,7 @@ import 'tsx';
 // Enable import of TypeScript files
 import environmentNative from './environments/env';
 
-const APP_VERSION = '1.1.0'; // x-release-please-version
+const APP_VERSION = '1.2.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
@@ -60,8 +60,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: environmentNative.bundleId,
     versionCode: ANDROID_VERSION_CODE,
     googleServicesFile: environmentNative.googleServiceInfoFileAndroid,
+    icon: './assets/images/icons/Android_Icon.png',
     adaptiveIcon: {
-      foregroundImage: './src/assets/images/logo-image.png',
+      foregroundImage: './assets/images/icons/Android_Icon_Foreground.png',
+      monochromeImage: './assets/images/icons/Android_Icon_Monochrome.png',
       backgroundColor: '#ffffff',
     },
     permissions: [
@@ -99,6 +101,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-router',
+    ['expo-navigation-bar', { barStyle: 'dark' }],
     'expo-font',
     'expo-web-browser',
     [
@@ -121,7 +124,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './src/assets/images/logo-image.png',
+        icon: './assets/images/icons/Android_Notification_Icon.png',
       },
     ],
     ...(environmentNative.sentryProject

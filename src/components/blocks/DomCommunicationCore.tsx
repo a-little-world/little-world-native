@@ -7,7 +7,10 @@ import {
   useEffect,
   useRef,
 } from 'react';
+import { Platform } from 'react-native';
 
+import * as NavigationBar from 'expo-navigation-bar';
+import { setStatusBarStyle } from 'expo-status-bar';
 import uuid from 'react-native-uuid';
 
 import type {
@@ -16,7 +19,7 @@ import type {
   DomCommunicationResponse,
 } from '@/frontend/src';
 import { CallAudio } from '@/modules/call-audio';
-import { requestIntegrityCheck } from '@/src/api/helpers';
+import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
@@ -148,7 +151,11 @@ export function DomCommunicationProvider({
           await sendToDom({
             action: 'SET_DEBUG_CONFIG',
             payload: { debugEnabled, backendUrlOverride },
-          });
+          }).catch(error =>
+            console.warn('SET_DEBUG_CONFIG failed during handshake', error),
+          );
+
+          await syncTokenStateToDom();
 
           await sendToDom({
             action: 'NATIVE_READY',
@@ -174,6 +181,15 @@ export function DomCommunicationProvider({
               message,
             };
           }
+        }
+        case 'SET_THEME': {
+          const dark = message.payload.mode === 'dark';
+          // keep status and navigation bar readable
+          setStatusBarStyle(dark ? 'light' : 'dark');
+          if (Platform.OS === 'android') {
+            NavigationBar.setStyle(dark ? 'light' : 'dark');
+          }
+          return { ok: true };
         }
         case 'CONSOLE_LOG': {
           console.log(

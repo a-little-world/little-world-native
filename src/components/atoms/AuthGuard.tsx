@@ -18,21 +18,21 @@ function AuthGuard({ children }: { children: ReactNode }) {
       },
     },
   );
-  const { isTokenRefreshing } = useAuthStore();
+  const { tokenState } = useAuthStore();
 
   // Store previous authenticated state to prevent flickering during loading/token refresh
   const prevAuthenticatedRef = useRef<boolean>(false);
 
   const isAuthenticated = useMemo(() => {
     // During loading, maintain previous state
-    if (isValidating || isTokenRefreshing) {
+    if (isValidating || tokenState?.isRefreshing) {
       return prevAuthenticatedRef.current;
     }
 
     prevAuthenticatedRef.current = Boolean(authenticated);
 
     return Boolean(authenticated);
-  }, [authenticated, isValidating, isTokenRefreshing]);
+  }, [authenticated, isValidating, tokenState]);
 
   return isAuthenticated ? children : null;
 }
