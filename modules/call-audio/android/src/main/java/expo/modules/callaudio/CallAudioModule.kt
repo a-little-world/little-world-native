@@ -130,7 +130,10 @@ class CallAudioModule : Module() {
 
     val cb = object : AudioDeviceCallback() {
       override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
-        if (active) applyResolvedStream()
+        if (active) {
+          adoptCommunicationDevice(addedDevices)
+          applyResolvedStream()
+        }
       }
       override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
         if (active) applyResolvedStream()
@@ -138,6 +141,35 @@ class CallAudioModule : Module() {
     }
     deviceCallback = cb
     am.registerAudioDeviceCallback(cb, null)
+  }
+
+  // The WebView won't re-route an already-running call itself, so adopt a
+  // headset that connects mid-call at the OS layer. No-op if none was added.
+  private fun adoptCommunicationDevice(added: Array<out AudioDeviceInfo>?) {
+    if (added == null) return
+    val device = added.firstOrNull { it.isSink() && isHeadsetRoute(it) } ?: return
+    val am = audioManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (!am.setCommunicationDevice(device)) {
+        Log.w("CallAudio", "setCommunicationDevice rejected type=${device.type}")
+      }
+    } else {
+      @Suppress("DEPRECATION")
+      if (device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+        am.startBluetoothSco()
+        am.isBluetoothScoOn = true
+      }
+    }
+  }
+
+  private fun isHeadsetRoute(device: AudioDeviceInfo): Boolean {
+    return when (device.type) {
+      AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+      AudioDeviceInfo.TYPE_BLE_HEADSET,
+      AudioDeviceInfo.TYPE_WIRED_HEADSET,
+      AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> true
+      else -> false
+    }
   }
 
   private fun unregisterRouteListeners() {
