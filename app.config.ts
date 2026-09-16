@@ -140,6 +140,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       : []),
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
+    './plugins/with-media-volume-buttons',
   ],
   experiments: {
     typedRoutes: true,
