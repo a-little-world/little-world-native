@@ -8,7 +8,7 @@ on:
       profile:
         description: 'EAS build profile'
         required: true
-        default: 'staging'
+        default: 'development'
         type: choice
         options:
           - simulator
