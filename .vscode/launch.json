@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "E2E Link Tests - Web (debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/e2e_simulations",
+            "python": "${workspaceFolder}/e2e_simulations/.venv/bin/python",
+            "module": "pytest",
+            "args": [
+                "-q",
+                "-s",
+                "--headed",
+                "--slowmo=250",
+                "tests/test_main_frontend_links.py"
+            ]
+        },
+        {
+            "name": "E2E Link Tests - Native (debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/e2e_simulations",
+            "python": "${workspaceFolder}/e2e_simulations/.venv/bin/python",
+            "module": "pytest",
+            "args": [
+                "-q",
+                "-s",
+                "--headed",
+                "--slowmo=250",
+                "tests/test_native_links.py"
+            ]
+        }
+    ]
+}

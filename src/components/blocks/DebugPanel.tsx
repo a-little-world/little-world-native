@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -14,6 +15,7 @@ import {
 import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
 
 import { environment } from '@/environment';
+import { CallAudio } from '@/modules/call-audio';
 import {
   apiFetch,
   clearJwtTokens,
@@ -39,11 +41,50 @@ import { useDomCommunicationContext } from './DomCommunicationCore';
 const DEVELOPER_SECRET_DIGEST =
   '446bb2136d0c9299b80da0ed06c22a131cd5f5f1d0459c4a39f2b0db5608d40a';
 
+const modeName: Record<number, string> = {
+  0: 'NORMAL',
+  1: 'RINGTONE',
+  2: 'IN_CALL',
+  3: 'IN_COMMUNICATION',
+};
+
+const deviceTypeName: Record<number, string> = {
+  0: 'UNKNOWN',
+  1: 'BUILTIN_EARPIECE',
+  2: 'BUILTIN_SPEAKER',
+  3: 'WIRED_HEADSET',
+  4: 'WIRED_HEADPHONES',
+  5: 'LINE_ANALOG',
+  6: 'LINE_DIGITAL',
+  7: 'BLUETOOTH_SCO',
+  8: 'BLUETOOTH_A2DP',
+  9: 'HDMI',
+  10: 'USB_DEVICE',
+  11: 'USB_ACCESSORY',
+  12: 'DOCK',
+  13: 'FM',
+  14: 'BUILTIN_MIC',
+  15: 'FM_TUNER',
+  16: 'TV_TUNER',
+  17: 'TELECOPY',
+  18: 'AUX_LINE',
+  19: 'IP',
+  22: 'BUS',
+  23: 'USB_HEADSET',
+  24: 'HEARING_AID',
+  26: 'REMOTE_SUBMIX',
+  27: 'BLE_HEADSET',
+  30: 'BLE_SPEAKER',
+  31: 'ECHO_REFERENCE',
+  32: 'BLE_BROADCAST',
+};
+
 type SectionKey =
   | 'backend'
   | 'tokens'
   | 'dom'
   | 'appinfo'
+  | 'audio'
   | 'fetchErrors'
   | 'reactErrors';
 
@@ -275,14 +316,57 @@ export default function DebugPanel() {
   const [secretInput, setSecretInput] = useState('');
   const [secretError, setSecretError] = useState(false);
 
+  // Drag position of the panel
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_evt, g) =>
+        Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4,
+      onPanResponderGrant: () => {
+        dragStartRef.current = { ...dragOffsetRef.current };
+      },
+      onPanResponderMove: (_evt, gesture) => {
+        const next = {
+          x: dragStartRef.current.x + gesture.dx,
+          y: dragStartRef.current.y + gesture.dy,
+        };
+        dragOffsetRef.current = next;
+        setDragOffset(next);
+      },
+    }),
+  ).current;
+
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>(() => ({
     appinfo: true,
     backend: !!debugStore.get().backendUrlOverride,
     tokens: false,
     dom: false,
+    audio: false,
     fetchErrors: false,
     reactErrors: false,
   }));
+
+  // Poll audio state while panel is open
+  const [audioState, setAudioState] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    const tick = async () => {
+      const s = await CallAudio.getDebugState();
+      if (!cancelled) setAudioState(s);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [visible]);
 
   // Track which individual error items are expanded
   const [expandedErrors, setExpandedErrors] = useState<Record<string, boolean>>(
@@ -446,7 +530,14 @@ export default function DebugPanel() {
       const next = prev + 1;
       if (next >= tapsRequired) {
         if (debugStore.get().debugEnabled) {
-          setVisible(true);
+          setVisible(v => {
+            const next = !v;
+            if (next) {
+              dragOffsetRef.current = { x: 0, y: 0 };
+              setDragOffset({ x: 0, y: 0 });
+            }
+            return next;
+          });
         } else {
           setSecretInput('');
           setSecretError(false);
@@ -488,6 +579,18 @@ export default function DebugPanel() {
   const handleStopDebugging = () => {
     setVisible(false);
     debugStore.get().setDebugEnabled(false);
+  };
+
+  const fmtAudioValue = (key: string, v: unknown) => {
+    if (typeof v === 'boolean') return v ? 'on' : 'off';
+    switch (key) {
+      case 'mode':
+        return `${v} (${modeName[v as number] ?? '?'})`;
+      case 'communicationDeviceType':
+        return `${v} (${deviceTypeName[v as number] ?? '?'})`;
+      default:
+        return String(v);
+    }
   };
 
   const truncate = (s: string | null | undefined, len = 32) => {
@@ -560,9 +663,19 @@ export default function DebugPanel() {
       </Modal>
 
       {visible && (
-        <View style={styles.panel}>
+        <View
+          style={[
+            styles.panel,
+            {
+              transform: [
+                { translateX: dragOffset.x },
+                { translateY: dragOffset.y },
+              ],
+            },
+          ]}
+        >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} {...panResponder.panHandlers}>
             <View>
               <Text style={styles.headerTitle}>Debug Panel</Text>
               {clock ? <Text style={styles.headerClock}>{clock}</Text> : null}
@@ -589,6 +702,21 @@ export default function DebugPanel() {
                 <Row key={item.label} label={item.label} value={item.value} />
               ))}
               <Row label="Window origin" value={windowOrigin} />
+            </Section>
+
+            {/* ── Audio ── */}
+            <Section
+              title="Audio"
+              expanded={expanded.audio}
+              onToggle={() => toggle('audio')}
+            >
+              {audioState == null ? (
+                <Text style={styles.emptyText}>No audio state</Text>
+              ) : (
+                Object.entries(audioState).map(([k, v]) => (
+                  <Row key={k} label={k} value={fmtAudioValue(k, v)} />
+                ))
+              )}
             </Section>
 
             {/* ── Backend URL ── */}

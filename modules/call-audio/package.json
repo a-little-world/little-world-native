@@ -1,0 +1,13 @@
+{
+  "name": "call-audio",
+  "version": "0.1.0",
+  "description": "Android-only native module that routes call audio to the communication channel",
+  "main": "index.ts",
+  "types": "index.ts",
+  "keywords": [
+    "expo",
+    "expo-module",
+    "audio",
+    "android"
+  ]
+}
