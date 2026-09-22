@@ -1,0 +1,39 @@
+name: Submodules
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: submodules-up-to-date-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  up-to-date:
+    name: Submodules are up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Verify each submodule is at its main HEAD
+        run: |
+          set -uo pipefail
+          failed=0
+          for sm_path in $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'); do
+            pinned=$(git rev-parse "HEAD:$sm_path")
+            git -C "$sm_path" fetch -q origin main
+            latest=$(git -C "$sm_path" rev-parse origin/main)
+            if [ "$pinned" != "$latest" ]; then
+              echo "::error::$sm_path is behind main (pinned $pinned, main $latest) - run 'git -C $sm_path fetch origin main && git -C $sm_path checkout --detach origin/main && git add $sm_path' and commit the reference"
+              failed=1
+            else
+              echo "$sm_path is at main HEAD ($pinned)"
+            fi
+          done
+          exit $failed
