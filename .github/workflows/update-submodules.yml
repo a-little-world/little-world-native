@@ -46,6 +46,19 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "paths=$(git diff --name-only | paste -sd, -)" >> "$GITHUB_OUTPUT"
 
+      - name: Setup pnpm
+        if: steps.bump.outputs.changed == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node
+        if: steps.bump.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
       - name: Push branch and open PR
         if: steps.bump.outputs.changed == 'true'
         env:
@@ -60,16 +73,30 @@ jobs:
           git checkout -B "$branch" main
           git add -u
           git commit -m "chore: update submodules ($PATHS)"
+
+          pnpm install --lockfile-only
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            git add pnpm-lock.yaml
+            git commit -m "chore: update lockfile"
+          fi
+
+          title="chore: update submodules ($PATHS)"
+          body="Automated submodule bump triggered by a push to a subrepo's main branch."
+          if ! git diff --quiet main...HEAD -- pnpm-lock.yaml; then
+            title="$title + lockfile"
+            body="$body"$'\n\n'"pnpm-lock.yaml was regenerated to match the bumped submodules."
+          fi
+
           git push -f origin "$branch"
 
           pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number')
           if [ -n "$pr" ]; then
-            gh pr edit "$pr" --title "chore: update submodules ($PATHS)" --add-label e2e
+            gh pr edit "$pr" --title "$title" --body "$body" --add-label e2e
           else
             gh pr create \
               --base main \
               --head "$branch" \
-              --title "chore: update submodules ($PATHS)" \
-              --body "Automated submodule bump triggered by a push to a subrepo's main branch." \
+              --title "$title" \
+              --body "$body" \
               --label e2e
           fi
