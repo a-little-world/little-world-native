@@ -1,0 +1,102 @@
+name: Update submodules
+
+# Triggered by a subrepo when it pushes to main. Each subrepo runs
+# `.github/workflows/notify-native.yml`, which posts a repository_dispatch
+# here; that workflow needs a BOT_PAT secret with access to this repo.
+# `.gitmodules` uses relative URLs, so the submodules live next to this repo.
+
+on:
+  repository_dispatch:
+    types: [submodule-update]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-submodules
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Bump submodules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (with submodules)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Bump submodules to latest main
+        id: bump
+        run: |
+          set -euo pipefail
+          for sm_path in $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'); do
+            git -C "$sm_path" fetch -q origin main
+            git -C "$sm_path" checkout -q --detach origin/main
+          done
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::All submodules already at main HEAD"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "paths=$(git diff --name-only | paste -sd, -)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        if: steps.bump.outputs.changed == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node
+        if: steps.bump.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Push branch and open PR
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT }}
+          PATHS: ${{ steps.bump.outputs.paths }}
+        run: |
+          set -euo pipefail
+          branch="chore/update-submodules"
+
+          git config user.name "littleworld-bot"
+          git config user.email "littleworld-bot@users.noreply.github.com"
+          git checkout -B "$branch" main
+          git add -u
+          git commit -m "chore: update submodules ($PATHS)"
+
+          pnpm install --lockfile-only
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            git add pnpm-lock.yaml
+            git commit -m "chore: update lockfile"
+          fi
+
+          title="chore: update submodules ($PATHS)"
+          body="Automated submodule bump triggered by a push to a subrepo's main branch."
+          if ! git diff --quiet main...HEAD -- pnpm-lock.yaml; then
+            title="$title + lockfile"
+            body="$body"$'\n\n'"pnpm-lock.yaml was regenerated to match the bumped submodules."
+          fi
+
+          git push -f origin "$branch"
+
+          pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body "$body" --add-label e2e
+          else
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "$title" \
+              --body "$body" \
+              --label e2e
+          fi
