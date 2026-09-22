@@ -16,13 +16,19 @@ permissions:
 
 concurrency:
   group: update-submodules
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update:
     name: Bump submodules
     runs-on: ubuntu-latest
     steps:
+      # Subrepos merged back-to-back fire one dispatch each; let the later one
+      # cancel this run (cancel-in-progress) so we bump once instead of twice.
+      - name: Coalesce rapid dispatches
+        if: github.event_name == 'repository_dispatch'
+        run: sleep 60
+
       - name: Checkout main (with submodules)
         uses: actions/checkout@v4
         with:
@@ -90,13 +96,20 @@ jobs:
           git push -f origin "$branch"
 
           pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number')
-          if [ -n "$pr" ]; then
-            gh pr edit "$pr" --title "$title" --body "$body" --add-label e2e
-          else
+          if [ -z "$pr" ]; then
             gh pr create \
               --base main \
               --head "$branch" \
               --title "$title" \
               --body "$body" \
               --label e2e
+            exit 0
           fi
+
+          # Only edit when something actually differs: every gh pr edit fires
+          # pull_request events that re-run the whole check suite.
+          edit=()
+          if [ "$(gh pr view "$pr" --json title -q .title)" != "$title" ]; then edit+=(--title "$title"); fi
+          if [ "$(gh pr view "$pr" --json body -q .body)" != "$body" ]; then edit+=(--body "$body"); fi
+          if [ "$(gh pr view "$pr" --json labels -q '[.labels[].name] | index("e2e") != null')" != "true" ]; then edit+=(--add-label e2e); fi
+          if [ "${#edit[@]}" -gt 0 ]; then gh pr edit "$pr" "${edit[@]}"; fi
