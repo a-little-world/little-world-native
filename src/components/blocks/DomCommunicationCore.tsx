@@ -20,7 +20,6 @@ import type {
 } from '@/frontend/src';
 import { CallAudio } from '@/modules/call-audio';
 import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
-import { useAuthStore } from '@/src/store/authStore';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
@@ -59,7 +58,6 @@ export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
   const domRef = useRef<LittleWorldDomRef | null>(null);
-  const authStore = useAuthStore();
 
   const pendingRequestsRef = useRef<
     Map<
@@ -143,6 +141,10 @@ export function DomCommunicationProvider({
             await CallAudio.stop();
           }
           return { ok: true };
+        }
+        case 'GET_AUDIO_STATE': {
+          const state = await CallAudio.getAudioState();
+          return { ok: true, data: state };
         }
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
@@ -233,8 +235,6 @@ export function DomCommunicationProvider({
     },
     [],
   );
-
-  useEffect(() => () => void CallAudio.stop(), []);
 
   // ── Sync debug config to frontend ────────────────────────────────────────
   const { ready } = useWebViewStore();

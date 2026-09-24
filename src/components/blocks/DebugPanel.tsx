@@ -15,7 +15,7 @@ import {
 import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
 
 import { environment } from '@/environment';
-import { CallAudio } from '@/modules/call-audio';
+import { CallAudio, type CallAudioDebugState } from '@/modules/call-audio';
 import {
   apiFetch,
   clearJwtTokens,
@@ -350,7 +350,7 @@ export default function DebugPanel() {
   }));
 
   // Poll audio state while panel is open
-  const [audioState, setAudioState] = useState<Record<string, unknown> | null>(
+  const [audioState, setAudioState] = useState<CallAudioDebugState | null>(
     null,
   );
   useEffect(() => {
@@ -583,6 +583,7 @@ export default function DebugPanel() {
 
   const fmtAudioValue = (key: string, v: unknown) => {
     if (typeof v === 'boolean') return v ? 'on' : 'off';
+    if (v !== null && typeof v === 'object') return JSON.stringify(v);
     switch (key) {
       case 'mode':
         return `${v} (${modeName[v as number] ?? '?'})`;
