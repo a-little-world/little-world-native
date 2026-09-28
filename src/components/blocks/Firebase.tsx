@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import {
@@ -10,6 +10,7 @@ import {
 } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 
+import { useAuthStore } from '@/src/store/authStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
@@ -57,6 +58,9 @@ async function clearNotifications() {
 
 function FireBase() {
   const webViewReady = useWebViewStore(state => state.ready);
+  const accessToken = useAuthStore(state => state.accessToken);
+  const [shouldRegisterToken, setShouldRegisterToken] = useState(false);
+  const registeringRef = useRef(false);
 
   useEffect(() => {
     if (!webViewReady || !pendingPath) {
@@ -68,6 +72,17 @@ function FireBase() {
   }, [webViewReady]);
 
   useEffect(() => {
+    if (!accessToken || !shouldRegisterToken || registeringRef.current) {
+      return;
+    }
+    registeringRef.current = true;
+    registerFirebaseDeviceToken().finally(() => {
+      registeringRef.current = false;
+      setShouldRegisterToken(false);
+    });
+  }, [accessToken, shouldRegisterToken, setShouldRegisterToken]);
+
+  useEffect(() => {
     const messaging = getMessaging();
 
     (async () => {
@@ -76,7 +91,9 @@ function FireBase() {
         const granted = await ensureNotificationPermission();
         if (!granted) {
           console.warn('[push] notification permission not granted');
+          return;
         }
+        setShouldRegisterToken(true);
       } catch (error) {
         console.error('[push] setup failed', error);
       }
@@ -110,7 +127,7 @@ function FireBase() {
       );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
-      registerFirebaseDeviceToken(),
+      setShouldRegisterToken(true),
     );
 
     // clear notificaitons upon app open
