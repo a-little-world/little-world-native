@@ -211,12 +211,14 @@ async function apiFetchOnce<T = any>(
 type TokenError = {
   status?: number;
   code?: string;
-  data?: { code?: string };
+  data?: { code?: string; detail?: string };
 };
 
 function isTokenError(error: TokenError | undefined | null): boolean {
   const tokenMissingError =
-    error?.status === 403 && !useAuthStore.getState().accessToken;
+    error?.status === 403 &&
+    (!useAuthStore.getState().accessToken ||
+      error?.data?.detail === 'Authentication credentials were not provided.');
   return (
     error?.status === 401 ||
     error?.code === 'token_not_valid' ||
