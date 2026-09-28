@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/a-little-world/little-world-native/compare/v1.2.0...v1.2.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* bug material bestellen via the app ([#115](https://github.com/a-little-world/little-world-native/issues/115)) ([6452128](https://github.com/a-little-world/little-world-native/commit/6452128a4296b2818c9814ff856241888b066189))
+* call audio issues ([#118](https://github.com/a-little-world/little-world-native/issues/118)) ([9fd2bcb](https://github.com/a-little-world/little-world-native/commit/9fd2bcba56bc22f7fdb7de34207978e9801236a2))
+
 ## [1.2.0](https://github.com/a-little-world/little-world-native/compare/v1.1.0...v1.2.0) (2026-09-11)
 
 
