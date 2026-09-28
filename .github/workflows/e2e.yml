@@ -1,18 +1,20 @@
 name: E2E
 
-# Runs the e2e suite against a backend built + started INSIDE
-# this pipeline, pinned to a single backend ref (`.backend-ref`, overridable via
-# the workflow_dispatch input). The backend repo is checked out ephemerally
-# (no working-tree clutter here) and built with only the frontend it needs, with
-# Docker layer caching via the GitHub Actions cache.
+# Runs the e2e suite against a backend pinned to a single ref (`.backend-ref`,
+# overridable via the workflow_dispatch input). The backend repo is checked out
+# ephemerally (no working-tree clutter here) and started via its own ci compose
+# (`--no-build`), so the container env + redis wiring stay in lockstep with the
+# backend (no drift).
 #
-# Optimisation: the backend's Dockerfile.full builds three webpack frontends
-# (admin_panel, main, cookie_banner) and COPYs them into the final image. The e2e
-# suite serves the native app separately from dist/, so we strip the admin_panel +
-# main_frontend COPYs — those stages then go unreferenced and BuildKit skips them.
-# cookie_banner is kept: the backend won't start without it built + served. We run
-# the image via the backend's own ci compose (`--no-build`) so the container env +
-# redis wiring stay in lockstep with the backend (no drift).
+# When the ref is `main` we pull the test image the backend publishes for main
+# (ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test)
+# instead of building. Any other ref (iteration / workflow_dispatch
+# override) is built from source with only the frontend it needs: Dockerfile.full
+# builds three webpack frontends (admin_panel, main, cookie_banner) and COPYs them
+# in, so we strip the admin_panel + main_frontend COPYs — the e2e suite serves the
+# native app separately from dist/, so those stages go unreferenced and BuildKit
+# skips them. cookie_banner is kept: the backend won't start without it built +
+# served.
 
 on:
   workflow_dispatch:
@@ -37,6 +39,8 @@ concurrency:
 
 permissions:
   contents: read
+  # Pull the backend's main-test image from GHCR (see package's Actions access).
+  packages: read
 
 jobs:
   tests:
@@ -76,6 +80,8 @@ jobs:
           [ -n "$REF" ] || { echo "No backend ref (input empty and .backend-ref blank)" >&2; exit 1; }
           echo "Backend ref: $REF"
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          # main -> pull the backend's published main-test image; anything else -> build.
+          echo "use_prebuilt=$([ "$REF" = main ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout backend (ephemeral, no submodules)
         uses: actions/checkout@v4
@@ -90,9 +96,11 @@ jobs:
           submodules: recursive
 
       - name: Setup Docker Buildx
+        if: steps.ref.outputs.use_prebuilt != 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Build backend image (frontend-free, cached)
+        if: steps.ref.outputs.use_prebuilt != 'true'
         working-directory: backend
         run: |
           set -euo pipefail
@@ -118,6 +126,16 @@ jobs:
             -t lw-backend:e2e \
             -f Dockerfile.backend-slim \
             .
+
+      - name: Pull prebuilt backend image (backend main-test)
+        if: steps.ref.outputs.use_prebuilt == 'true'
+        run: |
+          set -euo pipefail
+          # Fine-grained PATs can't touch GitHub Packages, so use the workflow token
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # Retag to the local name the compose file expects (APP_IMAGE_URL).
+          docker pull ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test
+          docker tag ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test lw-backend:e2e
 
       - name: Start backend + redis (ci compose, prebuilt image)
         working-directory: backend
