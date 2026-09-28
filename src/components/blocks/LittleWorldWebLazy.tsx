@@ -108,11 +108,9 @@ export default function LittleWorldWebLazy(props: {
 
   return (
     <LW
-      dom={{ allowsBackForwardNavigationGestures: true }}
       sendMessageToReactNative={props.sendToReactNative}
       registerReceiveHandler={registerReceiveHandler}
       apiFetchNative={props.apiFetchNative}
-      refreshAccessToken={props.refreshAccessToken}
       getAccessToken={props.getAccessToken}
       setAccessTokens={props.setAccessTokens}
       getInstallId={props.getInstallId}

@@ -65,6 +65,11 @@ export default function DomWebViewHost() {
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
         ref={domRef}
+        dom={{
+          allowsBackForwardNavigationGestures: true,
+          allowsInlineMediaPlayback: true,
+          mediaPlaybackRequiresUserAction: false,
+        }}
         sendToReactNative={sendToReactNative}
         apiFetchNative={fetcher}
         refreshAccessToken={refreshAccessTokens}
