@@ -39,6 +39,8 @@ concurrency:
 
 permissions:
   contents: read
+  # Pull the backend's main-test image from GHCR (see package's Actions access).
+  packages: read
 
 jobs:
   tests:
@@ -129,7 +131,8 @@ jobs:
         if: steps.ref.outputs.use_prebuilt == 'true'
         run: |
           set -euo pipefail
-          echo "${{ secrets.BOT_PAT }}" | docker login ghcr.io -u littleworld-bot --password-stdin
+          # Fine-grained PATs can't touch GitHub Packages, so use the workflow token
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Retag to the local name the compose file expects (APP_IMAGE_URL).
           docker pull ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test
           docker tag ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test lw-backend:e2e
