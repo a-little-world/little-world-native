@@ -4,6 +4,16 @@ export const DOM_OVERRIDE_CSS = `
     height: 100% !important;
     width: 100% !important;
   }
+
+  // Modals portal to <body>, i.e. outside the safe-area container (\`body\` padding).
+  dialog[aria-label='dialog backdrop'] {
+    padding-top: calc(var(--safe-top) + 16px) !important;
+    padding-bottom: calc(var(--safe-bottom) + 16px) !important;
+  }
+  dialog[aria-label='dialog backdrop'] > button {
+    top: calc(var(--safe-top) + 12px) !important;
+    right: calc(var(--safe-right) + 12px) !important;
+  }
 `;
 
 /**
