@@ -7,7 +7,10 @@ import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
 
 import { apiFetch, refreshAccessTokens, updateTokens } from '@/src/api/helpers';
 import { applyFontInjectionWithRetry } from '@/src/utils/domFontInjection';
-import { injectDomStyleOverrides } from '@/src/utils/domStyleOverride';
+import {
+  injectCalModalSafeAreaFix,
+  injectDomStyleOverrides,
+} from '@/src/utils/domStyleOverride';
 
 import type {
   DomCommunicationMessage,
@@ -65,10 +68,12 @@ export default function LittleWorldWebLazy(props: {
   useEffect(() => {
     const cleanupRoot = injectDomStyleOverrides();
     const cleanupFonts = applyFontInjectionWithRetry();
+    const cleanupCalModal = injectCalModalSafeAreaFix();
 
     return () => {
       cleanupRoot();
       cleanupFonts();
+      cleanupCalModal();
     };
   }, []);
 
