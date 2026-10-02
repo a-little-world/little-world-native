@@ -32,7 +32,10 @@ const CAL_MODAL_SHADOW_CSS = `
  */
 export function injectCalModalSafeAreaFix(): () => void {
   const patch = (box: Element) => {
-    if (!box.shadowRoot || box.shadowRoot.querySelector('style[data-cal-safe-area]')) {
+    if (
+      !box.shadowRoot ||
+      box.shadowRoot.querySelector('style[data-cal-safe-area]')
+    ) {
       return;
     }
     const style = document.createElement('style');
