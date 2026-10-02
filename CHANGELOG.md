@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.2](https://github.com/a-little-world/little-world-native/compare/v1.2.1...v1.2.2) (2026-10-02)
+
+
+### Bug Fixes
+
+* allow going to matches profile on new match popup ([#132](https://github.com/a-little-world/little-world-native/issues/132)) ([a8ada6e](https://github.com/a-little-world/little-world-native/commit/a8ada6e9193ef02ce13e2d8099a4cc307d3c16bc))
+* donation page not rendering correctly ([#131](https://github.com/a-little-world/little-world-native/issues/131)) ([48ee116](https://github.com/a-little-world/little-world-native/commit/48ee1161592b2749806462a2a7f6b448876c069a))
+* modal close button alignment ([#130](https://github.com/a-little-world/little-world-native/issues/130)) ([7d3f761](https://github.com/a-little-world/little-world-native/commit/7d3f7617e5d9594c62ecfe1a9c5281729eadc753))
+* push token registration fails ([#126](https://github.com/a-little-world/little-world-native/issues/126)) ([158fb4e](https://github.com/a-little-world/little-world-native/commit/158fb4e31e35daf48fe022a1b8e2eea80a064955))
+
 ## [1.2.1](https://github.com/a-little-world/little-world-native/compare/v1.2.0...v1.2.1) (2026-09-28)
 
 
