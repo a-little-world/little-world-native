@@ -86,6 +86,48 @@ To automatically check the project for any expo warnings run:
 pnpm exec expo-doctor
 ```
 
+## 🐛 Debugging
+
+The app runs two separate JavaScript engines, so there are two debuggers:
+
+- **Native (Hermes)** — the app shell, native modules and everything under `src/`.
+- **WebView** — everything under `frontend/`, which `src/components/blocks/LittleWorldWebLazy.tsx` renders as a [DOM component](https://docs.expo.dev/guides/dom-components/) inside a WebView.
+
+### Native app (React Native DevTools)
+
+With Metro running, press `j` in the Metro terminal. React Native DevTools opens with Console, Sources, Network, Components and Profiler. Breakpoints set in files under `src/` resolve through source maps.
+
+### `frontend/` code (WebView)
+
+`frontend/` runs in the phone's WebView (Chromium on Android, WebKit on iOS) and does **not** appear in React Native DevTools. Debug it with Chrome's WebView inspector:
+
+1. Enable **USB debugging** on the phone (Settings → Developer options → USB debugging) and connect it via USB. (Wireless debugging over the same network works too.)
+2. Confirm the device is connected:
+
+   ```bash
+   adb devices
+   ```
+
+3. Reload the app and open a screen that renders the Little World web content, so the DOM component is mounted and its lazy `frontend/` chunk is loaded.
+4. Open `chrome://inspect` in Chrome on your computer and click **inspect** on the WebView entry.
+5. In the **Sources** panel, open the **Page** tab and use quick-open to search for a file (e.g. one under `frontend/src/`), then set your breakpoints. Source maps map the served bundle back to the original TypeScript.
+
+Useful DevTools shortcuts:
+
+| Action              | macOS | Windows / Linux           |
+| ------------------- | ----- | ------------------------- |
+| Quick-open a source | `⌘P`  | `Ctrl+P`                  |
+| Search all sources  | `⌘⌥F` | `Ctrl+Shift+F`            |
+| Open DevTools       | `⌘⌥I` | `Ctrl+Shift+I` (or `F12`) |
+
+WebView debugging is enabled automatically in development via `webviewDebuggingEnabled: __DEV__` in `src/components/blocks/DomWebViewHost.tsx`.
+
+> The "drop a folder to sync edits to the workspace" prompt belongs to the **Filesystem** pane and is disabled for remote sessions (`Can't add file system: Restricted to local DevTools`). It is only for live-editing local files — setting breakpoints does not need it. Stay on the **Page** tab.
+
+### `frontend/` without a device
+
+Press `w` in the Metro terminal to open the web build. On web the DOM component renders inline (no WebView), so all of `frontend/` is debuggable in Chrome with source maps and no adb. Great for frontend logic, but note it is not the device runtime.
+
 ## 🔀 Pull Requests
 
 We use [release-please](https://github.com/googleapis/release-please) to automate versioning and changelog generation. It reads the **PR title** of every merged PR and uses [Conventional Commits](https://www.conventionalcommits.org/) to decide what the next release looks like. Formatting your PRs correctly is therefore required for releases to work.
