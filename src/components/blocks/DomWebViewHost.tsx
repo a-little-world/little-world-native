@@ -69,6 +69,8 @@ export default function DomWebViewHost() {
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,
           mediaPlaybackRequiresUserAction: false,
+          // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
+          webviewDebuggingEnabled: __DEV__,
         }}
         sendToReactNative={sendToReactNative}
         apiFetchNative={fetcher}

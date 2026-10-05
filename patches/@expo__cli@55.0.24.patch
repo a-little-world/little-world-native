@@ -1,0 +1,46 @@
+diff --git a/build/src/start/server/BundlerDevServer.js b/build/src/start/server/BundlerDevServer.js
+index bc6bb7484d9bf8b38377cd20cc75a1db30fb757c..5397f6aeeedec740cdd661dca532ea6d14ea0e97 100644
+--- a/build/src/start/server/BundlerDevServer.js
++++ b/build/src/start/server/BundlerDevServer.js
+@@ -331,7 +331,11 @@ class BundlerDevServer {
+         if (this.name !== 'metro') {
+             throw new _errors.CommandError('DEV_SERVER', `Cannot get the JS inspector base url - bundler[${this.name}]`);
+         }
+-        return this.getUrlCreator().constructUrl({
++        // query metro locally — behind EXPO_PACKAGER_PROXY_URL the constructed URL points at
++        // the reverse proxy, which may not forward /json/list or /open-debugger
++        return this.getDevServerUrl({
++            hostType: 'localhost'
++        }) ?? this.getUrlCreator().constructUrl({
+             scheme: 'http'
+         });
+     }
+diff --git a/build/src/start/server/UrlCreator.js b/build/src/start/server/UrlCreator.js
+index dee1759f6ebccd3dfccb67211c0c029447be4870..0641dca1b9aa5baddd48a58c06e64b6a72cf7538 100644
+--- a/build/src/start/server/UrlCreator.js
++++ b/build/src/start/server/UrlCreator.js
+@@ -149,9 +149,10 @@ class UrlCreator {
+         };
+     }
+     getUrlComponents(options) {
+-        // Proxy comes first.
++        // Proxy comes first — except for explicit localhost requests (CLI-internal URLs such
++        // as the DevTools frontend must reach metro directly, not the reverse proxy).
+         const proxyURL = getProxyUrl();
+-        if (proxyURL) {
++        if (proxyURL && options.hostType !== 'localhost') {
+             return getUrlComponentsFromProxyUrl(options, proxyURL);
+         }
+         // Ngrok.
+@@ -178,7 +179,10 @@ function getUrlComponentsFromProxyUrl(options, url) {
+         if (protocol === 'http') {
+             protocol = 'https';
+         }
+-        if (!parsedProxyUrl.port) {
++        // keep :443 even for scheme:'' callers (hostUri/debuggerHost) — RN only upgrades the
++        // inspector socket to wss when the host ends in ':443' (DevSupportHttpClient.kt),
++        // else it dials cleartext http://host:80 which 301s behind a TLS-terminating proxy
++        if (!parsedProxyUrl.port && (protocol === 'http' || protocol === '')) {
+             parsedProxyUrl.port = '443';
+         }
+     }
