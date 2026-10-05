@@ -136,11 +136,7 @@
       "react-native-libsodium",
       "@sentry/cli",
       "@sentry/react-native"
-    ],
-    "patchedDependencies": {
-      "@expo/cli@55.0.24": "patches/@expo__cli@55.0.24.patch",
-      "@react-native/dev-middleware@0.83.4": "patches/@react-native__dev-middleware@0.83.4.patch"
-    }
+    ]
   },
   "expo": {
     "doctor": {
