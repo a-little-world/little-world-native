@@ -9,6 +9,8 @@ on:
   repository_dispatch:
     types: [submodule-update]
   workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: write
@@ -97,13 +99,23 @@ jobs:
 
           pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number')
           if [ -z "$pr" ]; then
-            gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "$title" \
-              --body "$body" \
-              --label e2e
-            exit 0
+            # Reuse a PR we previously closed as superseded; only a real merge starts a new one.
+            # The branch was already force-pushed above, and a PR tracks its head branch, so
+            # reopening it shows the new bump.
+            pr=$(gh pr list --head "$branch" --state closed --label superseded \
+                   --json number,state -q '[.[] | select(.state=="CLOSED")][0].number')
+            if [ -n "$pr" ]; then
+              gh pr reopen "$pr"
+              gh pr edit "$pr" --remove-label superseded || true
+            else
+              gh pr create \
+                --base main \
+                --head "$branch" \
+                --title "$title" \
+                --body "$body" \
+                --label e2e
+              exit 0
+            fi
           fi
 
           # Only edit when something actually differs: every gh pr edit fires
@@ -113,3 +125,23 @@ jobs:
           if [ "$(gh pr view "$pr" --json body -q .body)" != "$body" ]; then edit+=(--body "$body"); fi
           if [ "$(gh pr view "$pr" --json labels -q '[.labels[].name] | index("e2e") != null')" != "true" ]; then edit+=(--add-label e2e); fi
           if [ "${#edit[@]}" -gt 0 ]; then gh pr edit "$pr" "${edit[@]}"; fi
+
+      # Only reached when main is already at every submodule HEAD, so any open
+      # bot PR is a no-op and must never be merged.
+      - name: Close superseded update PR
+        if: steps.bump.outputs.changed != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT }}
+        run: |
+          set -euo pipefail
+          branch="chore/update-submodules"
+          pr=$(gh pr list --head "$branch" --state open \
+                 --json number -q '.[0].number')
+          if [ -z "$pr" ]; then
+            echo "::notice::No open update PR to close"
+            exit 0
+          fi
+          gh pr close "$pr" --comment "Submodules already at repo main HEAD; superseded."
+          # Best-effort: tag it so the next bump reopens this PR instead of opening a new one.
+          gh pr edit "$pr" --add-label superseded \
+            || echo "::warning::could not mark #$pr as superseded; next bump will open a new PR"
