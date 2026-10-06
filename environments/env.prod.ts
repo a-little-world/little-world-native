@@ -2,6 +2,7 @@ import { EnvironmentNative } from './env.types';
 
 const environmentNative: EnvironmentNative = {
   bundleId: 'com.littleworld.littleworldapp',
+  scheme: 'littleworld',
   displayName: 'Little World',
   googleCloudProjectNumber: '601387323189',
   googleServiceInfoFileIOS:

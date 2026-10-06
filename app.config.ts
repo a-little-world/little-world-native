@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: environmentNative.displayName,
   slug: 'little-world-app',
+  scheme: environmentNative.scheme,
   version: APP_VERSION,
   orientation: 'default',
   icon: './src/assets/images/logo-image.png',
