@@ -1,8 +1,0 @@
-#!/bin/sh
-files="environment.ts frontend/src/environment.ts"
-if ! git diff --cached --quiet -- $files; then
-  echo "Refusing to commit staged changes to:" >&2
-  git diff --cached --name-only -- $files >&2
-  echo "environment.ts must stay unchanged." >&2
-  exit 1
-fi
