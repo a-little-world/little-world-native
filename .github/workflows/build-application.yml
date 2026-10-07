@@ -88,6 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p release-artifacts
           if [ "${BUILD_LOCALLY}" = "true" ]; then
             mkdir -p local-artifacts
             EAS_LOCAL_BUILD_ARTIFACTS_DIR="$PWD/local-artifacts" \
