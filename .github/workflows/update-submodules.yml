@@ -95,27 +95,34 @@ jobs:
             body="$body"$'\n\n'"pnpm-lock.yaml was regenerated to match the bumped submodules."
           fi
 
-          git push -f origin "$branch"
-
+          # Resolve the PR before pushing: GitHub refuses to change a PR's state once
+          # its head branch has been force-pushed since it was closed, and the push
+          # below is always a force-push.
           pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number')
           if [ -z "$pr" ]; then
             # Reuse a PR we previously closed as superseded; only a real merge starts a new one.
-            # The branch was already force-pushed above, and a PR tracks its head branch, so
-            # reopening it shows the new bump.
             pr=$(gh pr list --head "$branch" --state closed --label superseded \
                    --json number,state -q '[.[] | select(.state=="CLOSED")][0].number')
             if [ -n "$pr" ]; then
-              gh pr reopen "$pr"
-              gh pr edit "$pr" --remove-label superseded || true
-            else
-              gh pr create \
-                --base main \
-                --head "$branch" \
-                --title "$title" \
-                --body "$body" \
-                --label e2e
-              exit 0
+              if gh pr reopen "$pr"; then
+                gh pr edit "$pr" --remove-label superseded || true
+              else
+                # Can't be reopened (e.g. branch force-pushed since close): open a fresh one.
+                pr=""
+              fi
             fi
+          fi
+
+          git push -f origin "$branch"
+
+          if [ -z "$pr" ]; then
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "$title" \
+              --body "$body" \
+              --label e2e
+            exit 0
           fi
 
           # Only edit when something actually differs: every gh pr edit fires
