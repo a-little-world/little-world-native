@@ -29,6 +29,11 @@ on:
         required: true
         default: true
         type: boolean
+      buildLocally:
+        description: 'Build locally in the GitHub runner instead of EAS cloud (iOS runs on a macOS runner)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -52,6 +57,7 @@ jobs:
       IS_CI_BUILD: 'true'
       PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
+      BUILD_LOCALLY: ${{ github.event.inputs.buildLocally || 'false' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -77,22 +83,40 @@ jobs:
           env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android (EAS)
+      - name: Build Android
         id: build
         shell: bash
         run: |
           set -euo pipefail
-          eas build --platform android --profile "$PROFILE" --non-interactive --json > build_output.json
-          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
-          if [ -z "$URL" ]; then
-            echo "Could not find android artifact URL" >&2
-            cat build_output.json >&2
-            exit 1
+          mkdir -p release-artifacts
+          if [ "${BUILD_LOCALLY}" = "true" ]; then
+            mkdir -p local-artifacts
+            EAS_LOCAL_BUILD_ARTIFACTS_DIR="$PWD/local-artifacts" \
+              eas build --platform android --profile "$PROFILE" --local --non-interactive
+            ART=$(find local-artifacts -maxdepth 1 -type f \( -name '*.apk' -o -name '*.aab' \) | head -n1)
+            if [ -z "$ART" ]; then
+              echo "Local build produced no .apk/.aab artifact" >&2
+              ls -la local-artifacts >&2
+              exit 1
+            fi
+            EXT="${ART##*.}"
+            mv "$ART" "eas-build.${EXT}"
+            echo "url=" >> "$GITHUB_OUTPUT"
+          else
+            eas build --platform android --profile "$PROFILE" --non-interactive --json > build_output.json
+            URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+            if [ -z "$URL" ]; then
+              echo "Could not find android artifact URL" >&2
+              cat build_output.json >&2
+              exit 1
+            fi
+            EXT="${URL##*.}"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
           fi
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
-          echo "ext=${URL##*.}" >> "$GITHUB_OUTPUT"
+          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
 
       - name: Download Android artifact from EAS
+        if: env.BUILD_LOCALLY != 'true'
         shell: bash
         env:
           URL: ${{ steps.build.outputs.url }}
@@ -175,7 +199,7 @@ jobs:
       (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
         contains(github.event.pull_request.labels.*.name, 'build-ios')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.buildIos == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.buildLocally == 'true' && 'macos-latest' || 'ubuntu-latest' }}
     concurrency:
       group: staging-build-ios-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
@@ -184,6 +208,7 @@ jobs:
       IS_CI_BUILD: 'true'
       PROFILE: ${{ github.event.inputs.profile || 'staging' }}
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
+      BUILD_LOCALLY: ${{ github.event.inputs.buildLocally || 'false' }}
     steps:
       - name: Checkout little-world-native with submodule at pinned commit
         uses: actions/checkout@v4
@@ -209,7 +234,7 @@ jobs:
           env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build iOS (EAS)
+      - name: Build iOS
         id: build
         shell: bash
         env:
@@ -217,17 +242,31 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          eas build --platform ios --profile "$PROFILE" --non-interactive --json > build_output.json
-          URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
-          if [ -z "$URL" ]; then
-            echo "Could not find iOS artifact URL" >&2
-            cat build_output.json >&2
-            exit 1
-          fi
           OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-ios.ipa"
-          curl -fL -o "$OUT" "$URL"
+          if [ "${BUILD_LOCALLY}" = "true" ]; then
+            mkdir -p "$GITHUB_WORKSPACE/local-artifacts"
+            EAS_LOCAL_BUILD_ARTIFACTS_DIR="$GITHUB_WORKSPACE/local-artifacts" \
+              eas build --platform ios --profile "$PROFILE" --local --non-interactive
+            IPA=$(find "$GITHUB_WORKSPACE/local-artifacts" -maxdepth 1 -type f -name '*.ipa' | head -n1)
+            if [ -z "$IPA" ]; then
+              echo "Local build produced no .ipa artifact" >&2
+              ls -la "$GITHUB_WORKSPACE/local-artifacts" >&2
+              exit 1
+            fi
+            mv "$IPA" "$OUT"
+            echo "url=" >> "$GITHUB_OUTPUT"
+          else
+            eas build --platform ios --profile "$PROFILE" --non-interactive --json > build_output.json
+            URL=$(jq -r '.[0].artifacts.buildUrl // empty' build_output.json)
+            if [ -z "$URL" ]; then
+              echo "Could not find iOS artifact URL" >&2
+              cat build_output.json >&2
+              exit 1
+            fi
+            curl -fL -o "$OUT" "$URL"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+          fi
           ls -lh "$OUT"
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
