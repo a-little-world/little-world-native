@@ -32,6 +32,7 @@ import { useAuthStore } from '@/src/store/authStore';
 import {
   debugStore,
   FetchError,
+  getEffectiveBackendUrl,
   ReactError,
   useDebugStore,
 } from '@/src/store/debugStore';
@@ -376,9 +377,7 @@ export default function DebugPanel() {
     setExpandedErrors(prev => ({ ...prev, [id]: !prev[id] }));
 
   // Backend URL input
-  const [urlInput, setUrlInput] = useState(
-    () => debugStore.get().backendUrlOverride ?? environment.backendUrl,
-  );
+  const [urlInput, setUrlInput] = useState(() => getEffectiveBackendUrl());
 
   // Sync urlInput once the store finishes rehydrating from SecureStore
   useEffect(() => {
