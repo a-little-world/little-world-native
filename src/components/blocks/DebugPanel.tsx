@@ -23,7 +23,6 @@ import {
   saveJwtTokens,
 } from '@/src/api/helpers';
 import {
-  getBackendUrl,
   secureStoreIsAvailable,
   supportsAppIntegrity,
 } from '@/src/helpers/appInfos';
@@ -600,7 +599,7 @@ export default function DebugPanel() {
 
   const appInfoRows = useMemo(
     () => [
-      { label: 'Backend URL', value: getBackendUrl() },
+      { label: 'Environment Backend URL', value: environment.backendUrl },
       { label: 'Integrity support', value: String(supportsAppIntegrity()) },
       {
         label: 'SecureStore available',
