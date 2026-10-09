@@ -124,8 +124,7 @@ jobs:
               --base main \
               --head "$branch" \
               --title "$title" \
-              --body "$body" \
-              --label e2e
+              --body "$body"
             exit 0
           fi
 
@@ -134,7 +133,6 @@ jobs:
           edit=()
           if [ "$(gh pr view "$pr" --json title -q .title)" != "$title" ]; then edit+=(--title "$title"); fi
           if [ "$(gh pr view "$pr" --json body -q .body)" != "$body" ]; then edit+=(--body "$body"); fi
-          if [ "$(gh pr view "$pr" --json labels -q '[.labels[].name] | index("e2e") != null')" != "true" ]; then edit+=(--add-label e2e); fi
           if [ "${#edit[@]}" -gt 0 ]; then gh pr edit "$pr" "${edit[@]}"; fi
 
       # Only reached when main is already at every submodule HEAD, so any open
