@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.17.1",
-    "@a-little-world/little-world-design-system-native": "^0.11.4",
+    "@a-little-world/little-world-design-system-native": "file:./a-little-world-little-world-design-system-native-0.11.5.tgz",
     "@a-little-world/little-world-frontend-shared": "^0.1.1",
     "@babel/runtime": "^7.27.6",
     "@expo/app-integrity": "^0.1.9",
