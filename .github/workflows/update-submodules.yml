@@ -150,6 +150,9 @@ jobs:
             echo "::notice::No open update PR to close"
             exit 0
           fi
+          # strip before adding superseded, so its labeled event can't start e2e on the closed PR
+          labels=$(gh pr view "$pr" --json labels -q '[.labels[].name | select(. != "superseded")] | join(",")')
+          if [ -n "$labels" ]; then gh pr edit "$pr" --remove-label "$labels"; fi
           gh pr close "$pr" --comment "Submodules already at repo main HEAD; superseded."
           # Best-effort: tag it so the next bump reopens this PR instead of opening a new one.
           gh pr edit "$pr" --add-label superseded \
