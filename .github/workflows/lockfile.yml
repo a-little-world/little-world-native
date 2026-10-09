@@ -36,6 +36,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      - name: Check shared deps match frontend
+        run: node .github/scripts/sync-shared-deps.mts --check
+
       - name: Check lockfile
         run: pnpm install --frozen-lockfile --lockfile-only
 

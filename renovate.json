@@ -1,0 +1,55 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "group:allNonMajor"],
+  "enabledManagers": ["npm"],
+  "cloneSubmodules": true,
+  "cloneSubmodulesFilter": ["frontend"],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "frontend/**",
+    "e2e_simulations/**",
+    "modules/**"
+  ],
+  "semanticCommits": "enabled",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Shared with frontend: versions come from frontend/package.json via update-submodules",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "swr",
+        "zustand",
+        "i18next",
+        "react-i18next",
+        "react-hook-form",
+        "styled-components",
+        "js-cookie",
+        "livekit-client"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Expo SDK-bound packages: patch only, SDK upgrades go through `expo install --fix` by hand",
+      "matchPackageNames": [
+        "expo",
+        "expo-*",
+        "@expo/*",
+        "babel-preset-expo",
+        "react-test-renderer",
+        "react-native",
+        "react-native-*",
+        "@types/react",
+        "metro-*"
+      ],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
+    }
+  ]
+}

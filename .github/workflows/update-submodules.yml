@@ -82,10 +82,11 @@ jobs:
           git add -u
           git commit -m "chore: update submodules ($PATHS)"
 
+          node .github/scripts/sync-shared-deps.mts --fix
           pnpm install --lockfile-only
-          if ! git diff --quiet -- pnpm-lock.yaml; then
-            git add pnpm-lock.yaml
-            git commit -m "chore: update lockfile"
+          if ! git diff --quiet -- package.json pnpm-lock.yaml; then
+            git add package.json pnpm-lock.yaml
+            git commit -m "chore: sync shared deps and lockfile"
           fi
 
           title="chore: update submodules ($PATHS)"
@@ -93,6 +94,9 @@ jobs:
           if ! git diff --quiet main...HEAD -- pnpm-lock.yaml; then
             title="$title + lockfile"
             body="$body"$'\n\n'"pnpm-lock.yaml was regenerated to match the bumped submodules."
+          fi
+          if ! git diff --quiet main...HEAD -- package.json; then
+            body="$body"$'\n\n'"Shared deps in native package.json were pinned to the versions resolved in frontend/pnpm-lock.yaml."
           fi
 
           # Resolve the PR before pushing: GitHub refuses to change a PR's state once
