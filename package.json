@@ -64,7 +64,7 @@
     "expo-symbols": "~55.0.7",
     "expo-system-ui": "~55.0.15",
     "expo-task-manager": "~55.0.14",
-    "expo-web-browser": "~55.0.14",
+    "expo-web-browser": "~57.0.3",
     "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.3.1",
     "js-cookie": "^3.0.5",
