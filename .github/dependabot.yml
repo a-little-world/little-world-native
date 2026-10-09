@@ -1,9 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: 'npm'
-    directory: '/'
-    exclude-paths:
-      - 'frontend/**'
-      - 'e2e_simulations/**'
-    schedule:
-      interval: 'weekly'
