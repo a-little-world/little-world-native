@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Create app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ vars.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -70,7 +70,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -153,7 +153,7 @@ jobs:
 
       - name: Upload android artifact
         id: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
           path: release-artifacts/*
@@ -222,7 +222,7 @@ jobs:
     steps:
       - name: Create app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ vars.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -231,7 +231,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -289,7 +289,7 @@ jobs:
           ls -lh "$OUT"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
           path: release-artifacts/*
