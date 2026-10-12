@@ -2,7 +2,7 @@ name: Update submodules
 
 # Triggered by a subrepo when it pushes to main. Each subrepo runs
 # `.github/workflows/notify-native.yml`, which posts a repository_dispatch
-# here; that workflow needs a BOT_PAT secret with access to this repo.
+# here; that workflow needs a little-world-bot app token with access to this repo.
 # `.gitmodules` uses relative URLs, so the submodules live next to this repo.
 
 on:
@@ -31,12 +31,23 @@ jobs:
         if: github.event_name == 'repository_dispatch'
         run: sleep 60
 
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Checkout main (with submodules)
         uses: actions/checkout@v4
         with:
           ref: main
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Bump submodules to latest main
         id: bump
@@ -70,14 +81,14 @@ jobs:
       - name: Push branch and open PR
         if: steps.bump.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.BOT_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PATHS: ${{ steps.bump.outputs.paths }}
         run: |
           set -euo pipefail
           branch="chore/update-submodules"
 
-          git config user.name "littleworld-bot"
-          git config user.email "littleworld-bot@users.noreply.github.com"
+          git config user.name "little-world-bot[bot]"
+          git config user.email "341493121+little-world-bot[bot]@users.noreply.github.com"
           git checkout -B "$branch" main
           git add -u
           git commit -m "chore: update submodules ($PATHS)"
@@ -140,7 +151,7 @@ jobs:
       - name: Close superseded update PR
         if: steps.bump.outputs.changed != 'true'
         env:
-          GH_TOKEN: ${{ secrets.BOT_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
           branch="chore/update-submodules"

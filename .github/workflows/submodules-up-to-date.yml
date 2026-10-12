@@ -15,11 +15,21 @@ jobs:
     name: Submodules are up-to-date
     runs-on: ubuntu-latest
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Verify each submodule is at its main HEAD
         run: |
