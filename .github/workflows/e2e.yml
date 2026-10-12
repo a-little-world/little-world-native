@@ -61,11 +61,21 @@ jobs:
       E2E_BACKEND_URL: http://127.0.0.1:8000
       PLAYWRIGHT_INSTALL_FLAGS: --with-deps
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests,little-world-backend,little-world-patenmatch-frontend,little-world-backend-docs,little-world-backend-scripts
+          permission-contents: read
+
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Resolve backend ref
         id: ref
@@ -89,7 +99,7 @@ jobs:
           repository: a-little-world/little-world-backend
           ref: ${{ steps.ref.outputs.ref }}
           path: backend
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           # Recursive: the backend won't start without its cookie-consent submodule.
           # Frontend submodules get cloned too but are never built (stages stripped
           # below), so this is clone cost only — and checkout wires submodule auth.
@@ -104,7 +114,7 @@ jobs:
         working-directory: backend
         run: |
           set -euo pipefail
-          echo "${{ secrets.BOT_PAT }}" | docker login ghcr.io -u littleworld-bot --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Drop only the admin_panel + main_frontend COPYs (and their mkdirs) from
           # the backend stage. Those stages then go unreferenced and BuildKit skips
           # building them. We keep cookie_banner_frontend: the backend won't start
