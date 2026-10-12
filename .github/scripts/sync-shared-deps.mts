@@ -25,7 +25,7 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const frontendVersion = (name: string) =>
   frontendLock.match(
     new RegExp(
-      `^ {6}${escapeRegExp(name)}:\\n {8}specifier: .*\\n {8}version: ([^(\\s]+)`,
+      `^ {6}'?${escapeRegExp(name)}'?:\\n {8}specifier: .*\\n {8}version: ([^(\\s]+)`,
       'm',
     ),
   )?.[1];

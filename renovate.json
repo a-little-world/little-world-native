@@ -35,7 +35,10 @@
         "react-hook-form",
         "styled-components",
         "js-cookie",
-        "livekit-client"
+        "livekit-client",
+        "prettier",
+        "@a-little-world/little-world-prettier-config",
+        "typescript"
       ],
       "enabled": false
     },
