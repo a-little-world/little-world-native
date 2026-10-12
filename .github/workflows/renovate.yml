@@ -1,6 +1,11 @@
 name: Renovate
 
 on:
+  # dashboard / PR checkboxes
+  issues:
+    types: [edited]
+  pull_request:
+    types: [edited]
   schedule:
     # daily for security PRs; regular updates gated by renovate.json schedule
     - cron: '0 4 * * *'
@@ -19,13 +24,20 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: renovate
-  cancel-in-progress: false
-
 jobs:
   renovate:
     name: Renovate
+    # skip renovate's own edits, else every run triggers the next
+    if: >
+      github.actor != 'little-world-bot[bot]' && (
+        github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issues' && github.event.issue.title == 'Dependency Dashboard') ||
+        (github.event_name == 'pull_request' && startsWith(github.head_ref, 'renovate/'))
+      )
+    # job-level so skipped runs can't displace a pending real one
+    concurrency:
+      group: renovate
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Create app token
