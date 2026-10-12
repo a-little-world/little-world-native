@@ -229,7 +229,7 @@ importers:
         specifier: 24.19.1
         version: 24.19.1
       '@types/react':
-        specifier: ~19.1.17
+        specifier: 19.1.17
         version: 19.1.17
       '@types/react-test-renderer':
         specifier: 19.1.0
@@ -15365,7 +15365,7 @@ snapshots:
 
   '@types/react-test-renderer@19.1.0':
     dependencies:
-      '@types/react': 19.1.17
+      '@types/react': 19.2.8
 
   '@types/react@19.1.17':
     dependencies:
