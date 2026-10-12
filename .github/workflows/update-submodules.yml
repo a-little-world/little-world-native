@@ -33,7 +33,7 @@ jobs:
 
       - name: Create app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ vars.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -43,7 +43,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Checkout main (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: main
           submodules: recursive
@@ -67,13 +67,13 @@ jobs:
 
       - name: Setup pnpm
         if: steps.bump.outputs.changed == 'true'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           package_json_file: package.json
 
       - name: Setup Node
         if: steps.bump.outputs.changed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: pnpm

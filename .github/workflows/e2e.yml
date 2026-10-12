@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Create app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ vars.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -72,7 +72,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -94,7 +94,7 @@ jobs:
           echo "use_prebuilt=$([ "$REF" = main ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout backend (ephemeral, no submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: a-little-world/little-world-backend
           ref: ${{ steps.ref.outputs.ref }}
@@ -107,7 +107,7 @@ jobs:
 
       - name: Setup Docker Buildx
         if: steps.ref.outputs.use_prebuilt != 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Build backend image (frontend-free, cached)
         if: steps.ref.outputs.use_prebuilt != 'true'
@@ -199,20 +199,20 @@ jobs:
           exit 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           package_json_file: package.json
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          python-version: '3.12'
+          python-version: '3.15.0'
 
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
@@ -222,7 +222,7 @@ jobs:
         # run otherwise. Metro invalidates entries per-module by content hash, so restoring
         # a stale cache is safe — changed modules recompute, unchanged ones are reused.
         # Unique key per sha to always save a warmed cache; restore-keys grabs the latest.
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: /tmp/metro-cache
           key: metro-${{ runner.os }}-${{ github.sha }}
@@ -232,7 +232,7 @@ jobs:
       - name: Cache Python venv
         # run_native.sh reuses e2e_simulations/.venv if present, so caching it skips the
         # rebuild + pip install. Keyed on requirements.txt: deps change -> fresh venv.
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: e2e_simulations/.venv
           key: e2e-venv-${{ runner.os }}-py3.12-${{ hashFiles('e2e_simulations/requirements.txt') }}
@@ -241,7 +241,7 @@ jobs:
         # playwright install re-downloads chromium every run otherwise. Keyed on
         # requirements.txt (which pins the playwright version); a version bump busts it,
         # and playwright install still backfills anything missing after a partial restore.
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('e2e_simulations/requirements.txt') }}
@@ -263,7 +263,7 @@ jobs:
 
       - name: Upload backend logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: backend-log
           path: backend.log
