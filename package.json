@@ -110,7 +110,7 @@
   },
   "private": true,
   "prettier": "@a-little-world/little-world-prettier-config",
-  "packageManager": "pnpm@10.22.0",
+  "packageManager": "pnpm@10.34.5",
   "pnpm": {
     "overrides": {
       "react": "19.2.8",
