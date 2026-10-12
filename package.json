@@ -99,7 +99,7 @@
     "@types/react": "19.1.17",
     "@types/react-test-renderer": "19.1.0",
     "babel-preset-expo": "55.0.18",
-    "eas-cli": "18.7.0",
+    "eas-cli": "24.12.1",
     "metro-minify-terser": "0.83.3",
     "prettier": "3.8.4",
     "react-dom": "19.2.8",
