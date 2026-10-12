@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "group:allNonMajor"],
+  "extends": ["config:best-practices", "group:allNonMajor"],
   "enabledManagers": ["npm", "github-actions"],
   "cloneSubmodules": true,
   "cloneSubmodulesFilter": ["frontend"],
@@ -11,11 +11,15 @@
     "modules/**"
   ],
   "semanticCommits": "enabled",
+  "addLabels": ["bundle"],
   "schedule": ["before 6am on monday"],
-  "prConcurrentLimit": 5,
+  "prHourlyLimit": 10,
+  "rangeStrategy": "bump",
+  "lockFileMaintenance": { "enabled": false },
   "vulnerabilityAlerts": {
     "labels": ["security"],
-    "schedule": ["at any time"]
+    "schedule": ["at any time"],
+    "rangeStrategy": "bump"
   },
   "osvVulnerabilityAlerts": true,
   "packageRules": [
@@ -50,6 +54,16 @@
       ],
       "matchUpdateTypes": ["major", "minor"],
       "enabled": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    },
+    {
+      "description": "Runtime majors need the full e2e suite: CI blocks merge until the e2e label is added",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["major"],
+      "additionalBranchPrefix": "major_"
     }
   ]
 }

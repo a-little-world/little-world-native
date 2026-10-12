@@ -267,12 +267,18 @@ jobs:
     steps:
       - env:
           BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
           LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}
           RESULT: ${{ needs.tests.result }}
           BACKEND_REF: ${{ needs.tests.outputs.backend-ref }}
         run: |
-          # prod PRs run e2e unconditionally, no label needed
+          # e2e label required. Only prod PRs (always run tests) and non-major renovate PRs (skip tests) may omit it.
+          # renovate/major_* = major dependency update (see renovate.json)
           if [ "$BASE" != "prod" ] && [ "$LABELED" != "true" ]; then
+            if [[ "$HEAD" == renovate/* && "$HEAD" != renovate/major_* ]]; then
+              echo "::notice::Renovate PR without e2e label; skipping tests"
+              exit 0
+            fi
             echo "::error::add the 'e2e' label to this PR to run the e2e suite"
             exit 1
           fi

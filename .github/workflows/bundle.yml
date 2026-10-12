@@ -1,0 +1,46 @@
+name: Bundle
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    name: Metro bundle (android, web)
+    if: >
+      startsWith(github.head_ref, 'renovate/') ||
+      contains(github.event.pull_request.labels.*.name, 'bundle')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.BOT_PAT }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync environment into frontend
+        run: ./_scripts/setup_local_frontend.sh
+
+      - name: Bundle
+        run: pnpm exec expo export --platform android --platform web --output-dir "$RUNNER_TEMP/bundle"
