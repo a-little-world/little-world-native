@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/a-little-world/little-world-native/compare/v1.2.2...v1.2.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* youtube video embed inside self onboarding ([#147](https://github.com/a-little-world/little-world-native/issues/147)) ([33a6c5f](https://github.com/a-little-world/little-world-native/commit/33a6c5f595ff51fa202f358e138aa2456d0b09e7))
+
 ## [1.2.2](https://github.com/a-little-world/little-world-native/compare/v1.2.1...v1.2.2) (2026-10-06)
 
 
