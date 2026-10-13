@@ -50,7 +50,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -92,7 +92,7 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup workspace (submit-only)
         uses: ./.github/actions/setup-build-workspace
@@ -136,7 +136,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -178,7 +178,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Download artifacts from EAS
         shell: bash
@@ -221,7 +221,7 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup workspace (submit-only)
         uses: ./.github/actions/setup-build-workspace
@@ -257,7 +257,7 @@ jobs:
       ANDROID_BUILD: ${{ needs.build-android.outputs.app-build-version }}
     steps:
       - name: Checkout (full history for --auto commit detection)
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
