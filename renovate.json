@@ -64,6 +64,10 @@
       "groupName": "github actions"
     },
     {
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major"]
+    },
+    {
       "description": "Runtime majors need the full e2e suite: CI blocks merge until the e2e label is added",
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["major"],
