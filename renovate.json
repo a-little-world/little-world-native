@@ -11,7 +11,7 @@
     "modules/**"
   ],
   "semanticCommits": "enabled",
-  "addLabels": ["bundle"],
+  "addLabels": ["bundle", "renovate"],
   "schedule": ["before 6am on monday"],
   "prHourlyLimit": 10,
   "rangeStrategy": "bump",
