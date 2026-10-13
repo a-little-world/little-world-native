@@ -70,7 +70,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -153,7 +153,7 @@ jobs:
 
       - name: Upload android artifact
         id: upload
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
           path: release-artifacts/*
@@ -231,7 +231,7 @@ jobs:
           permission-contents: read
 
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
@@ -289,7 +289,7 @@ jobs:
           ls -lh "$OUT"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
           path: release-artifacts/*
