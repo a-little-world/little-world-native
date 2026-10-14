@@ -5,11 +5,21 @@ const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 
 const proxyRequests = false;
 const frontendPath = path.resolve(__dirname, 'frontend');
+const livekitPackages = path.join(frontendPath, 'livekit/packages');
+const livekitEntries = {
+  '@livekit/components-core': 'core/src/index.ts',
+  '@livekit/components-react': 'react/src/index.ts',
+  '@livekit/components-react/hooks': 'react/src/hooks/index.ts',
+  '@livekit/components-react/prefabs': 'react/src/prefabs/index.ts',
+  '@livekit/components-styles': 'styles/scss/index.scss',
+};
 
 module.exports = (() => {
   const config = getSentryExpoConfig(__dirname);
 
   const { transformer, resolver } = config;
+
+  config.transformerPath = require.resolve('./metro-livekit-transformer.js');
 
   config.transformer = {
     ...transformer,
@@ -44,17 +54,37 @@ module.exports = (() => {
   };
 
   config.watchFolders = [...(config.watchFolders ?? []), frontendPath];
+  // treat the fork like node_modules: its own builds bundle these cycles away
+  config.resolver.requireCycleIgnorePatterns = [
+    ...config.resolver.requireCycleIgnorePatterns,
+    /frontend\/livekit\//,
+  ];
   // Follow pnpm symlinks so the workspace virtual store resolves to one physical file per package.
   config.resolver.unstable_enableSymlinks = true;
 
   config.resolver.resolveRequest = (context, moduleName, platform) => {
+    const livekitEntry = livekitEntries[moduleName];
+    if (livekitEntry) {
+      moduleName = path.join(livekitPackages, livekitEntry);
+    }
     // Native (ios/android) can't process .css, so stub it out there. The web/DOM
     // bundle (rendered in the DOM-component WebView) CAN — let Expo's built-in CSS
     // transform bundle it so the native app matches the web app's styling.
-    if (moduleName.endsWith('.css') && platform !== 'web') {
+    if (/\.s?css$/.test(moduleName) && platform !== 'web') {
       return {
         type: 'sourceFile',
         filePath: path.resolve(__dirname, '_metro_css_stub.js'),
+      };
+    }
+    // single copy of react/livekit-client, even if the fork has its own node_modules
+    if (
+      context.originModulePath.startsWith(livekitPackages) &&
+      !moduleName.startsWith('.') &&
+      !path.isAbsolute(moduleName)
+    ) {
+      context = {
+        ...context,
+        originModulePath: path.join(frontendPath, 'package.json'),
       };
     }
     return context.resolveRequest(context, moduleName, platform);
