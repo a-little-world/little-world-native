@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import styled from 'styled-components/native';
 
 import LogoImageSvg from '@/src/assets/images/logo-image.svg';
@@ -49,11 +49,11 @@ const Wrapper = ({
   asLink?: boolean;
   children: React.ReactNode;
 }) => {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   if (asLink) {
     return (
-      <TouchableOpacity onPress={() => navigation.navigate(getAppRoute())}>
+      <TouchableOpacity onPress={() => router.navigate(getAppRoute())}>
         {children}
       </TouchableOpacity>
     );

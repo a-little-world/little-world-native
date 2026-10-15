@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 
 import * as NavigationBar from 'expo-navigation-bar';
 import { setStatusBarStyle } from 'expo-status-bar';
+import { JSONValue } from 'expo/build/dom/dom.types';
 import uuid from 'react-native-uuid';
 
 import type {
@@ -95,9 +96,8 @@ export function DomCommunicationProvider({
           }, REQUEST_TIMEOUT);
         },
       );
-      const messageWithId = { ...message, requestId };
+      const messageWithId: JSONValue = { ...message, requestId } as JSONValue;
 
-      // Send the request to DOM component (don't await the return value)
       handler(messageWithId);
 
       // Wait for the response to come via the callback

@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     zIndex: 1000,
-    cursor: 'default',
+    cursor: 'auto',
     // backgroundColor: "transparent",
   },
 
