@@ -1,31 +1,32 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["dom", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": [
     "**/*.ts",
-    ".github/scripts/**/*.mts",
     "**/*.tsx",
-    "**/*.jsx",
-    "**/*.js",
+    ".github/scripts/**/*.mts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "extends": "expo/tsconfig.base"
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "android",
+    "ios",
+    "native_build",
+    "builds",
+    "e2e_simulations",
+    "frontend"
+  ]
 }

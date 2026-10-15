@@ -14,7 +14,7 @@ This is the native expo app for Little World.
 
 ### Installation & Setup
 
-The `little-world-frontend` repository is included as a git submodule under `./frontend`. There is no longer a separate clone or pack/update step — `pnpm run start` syncs your local `environment.ts` into the submodule automatically (see `_scripts/setup_local_frontend.sh`).
+The `little-world-frontend` repository is included as a git submodule under `./frontend`. There is no longer a separate clone or pack/update step — `pnpm run start` syncs your local `environment.ts` into the submodule and rebuilds the frontend's type declarations (needed by `pnpm typecheck`, see `frontend/src.d.ts`) automatically (see `_scripts/setup_local_frontend.sh`).
 
 ```bash
 # Clone with submodules

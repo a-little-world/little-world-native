@@ -16,7 +16,7 @@ import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   LittleWorldWebNativeProps,
-} from '../../../frontend/src';
+} from '@/frontend/src';
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
