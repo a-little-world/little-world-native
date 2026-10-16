@@ -251,8 +251,8 @@ export async function apiFetch<T = any>(
       return apiFetchOnce<T>(endpoint, options, source);
     }
 
-    if (status !== TokenStatus.ERROR) {
-      await navigateToLogin(true);
+    if (status === TokenStatus.EXPIRED || status === TokenStatus.MISSING) {
+      await navigateToLogin(status === TokenStatus.EXPIRED);
     }
     throw error;
   }
