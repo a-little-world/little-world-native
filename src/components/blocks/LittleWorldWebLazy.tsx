@@ -27,7 +27,7 @@ const LittleWorldWebNative = lazy(() => {
   // if (typeof window === "undefined") {
   //   return Promise.resolve({ default: () => null });
   // }
-  return import('../../../frontend/src').then(m => ({
+  return import('@/frontend/src').then(m => ({
     default: m.LittleWorldWebNative,
   }));
 });
