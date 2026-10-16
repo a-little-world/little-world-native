@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   eslint:
-    name: eslint
+    name: Lint (ESLint)
     runs-on: ubuntu-latest
     steps:
       - name: Create app token
@@ -38,7 +38,7 @@ jobs:
         run: pnpm run lint
 
   typecheck:
-    name: typecheck
+    name: Typecheck (tsc)
     runs-on: ubuntu-latest
     steps:
       - name: Create app token
@@ -73,7 +73,7 @@ jobs:
         run: pnpm run typecheck
 
   format:
-    name: format
+    name: Format Check (Prettier)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
