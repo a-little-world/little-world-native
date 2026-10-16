@@ -18,7 +18,7 @@ import type {
 import { IS_AUTHENTICATED_ENDPOINT } from '.';
 import { API_FIELDS } from '../constants';
 import { Cookies } from '../constants/CookieMock';
-import PlatformSecureStore, * as SecureStore from '../helpers/secureStore';
+import * as SecureStore from '../helpers/secureStore';
 import { authStore, useAuthStore } from '../store/authStore';
 import {
   debugStore,
@@ -160,7 +160,7 @@ async function apiFetchOnce<T = any>(
 
     try {
       return (await response.json()) as T;
-    } catch (_e) {
+    } catch {
       return null as T;
     }
   } catch (error: any) {
@@ -328,11 +328,11 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     throw new Error('Integrity check not supported on device');
   }
 
-  let keyId = await PlatformSecureStore.getItemAsync(APP_INTEGRITY_KEY_ID_KEY);
+  let keyId = await SecureStore.getItemAsync(APP_INTEGRITY_KEY_ID_KEY);
   if (!keyId) {
     keyId = await AppIntegrity.generateKeyAsync();
 
-    await PlatformSecureStore.setItemAsync(APP_INTEGRITY_KEY_ID_KEY, keyId);
+    await SecureStore.setItemAsync(APP_INTEGRITY_KEY_ID_KEY, keyId);
   }
 
   const { challenge, challengeId } = await fetchIntegrityChallenge();
@@ -345,7 +345,7 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     return { platform: 'ios', keyId, challengeId, attestationObject };
   } catch (error) {
     if (error !== 'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE') {
-      await PlatformSecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
+      await SecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
     }
     throw new Error('Integrity check failed', { cause: error });
   }
@@ -637,7 +637,7 @@ export async function refreshAccessTokens(force = false): Promise<TokenStatus> {
       }
 
       return TokenStatus.ERROR;
-    } catch (_e) {
+    } catch {
       return TokenStatus.ERROR;
     } finally {
       accessTokenRefresh = undefined;

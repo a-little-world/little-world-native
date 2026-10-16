@@ -22,8 +22,10 @@
     "format": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore-cli",
     "format:check": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .prettierignore-cli",
     "prebuild": "expo prebuild --clean",
-    "frontend:setup": "./_scripts/setup_local_frontend.sh",
-    "export-web": "expo export --platform web --output-dir native_build"
+    "frontend:setup": "./_scripts/setup_local_frontend.sh && pnpm frontend:types",
+    "frontend:types": "pnpm --dir frontend build:types",
+    "export-web": "expo export --platform web --output-dir native_build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@a-little-world/little-world-design-system-core": "^1.17.1",
@@ -100,6 +102,8 @@
     "@types/react-test-renderer": "19.3.0",
     "babel-preset-expo": "55.0.25",
     "eas-cli": "24.12.1",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~55.0.1",
     "metro-minify-terser": "0.83.3",
     "prettier": "3.8.4",
     "react-dom": "19.2.8",

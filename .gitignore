@@ -7,7 +7,9 @@ node_modules/
 .expo/
 native_build/
 web-build/
-expo-env.d.ts
+# expo-env.d.ts is committed on purpose: it pulls in expo/types, whose
+# react-native-web augmentation is what lets styles use web-only CSS values.
+# Without it, CI typechecking diverges from local (position: 'fixed' etc.).
 
 # Native
 *.orig.*

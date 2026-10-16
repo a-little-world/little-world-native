@@ -37,6 +37,7 @@ export async function setUpNotificationChannels(): Promise<void> {
   await Promise.all(
     Object.entries(NOTIFICATION_CHANNELS).map(([id, channelInput]) =>
       setNotificationChannelAsync(id, {
+        // eslint-disable-next-line import/no-named-as-default-member -- i18next's named exports are unbound; only the default instance is safe to call
         name: i18next.t(`notification_channel.${id}`),
         ...channelInput,
       }),

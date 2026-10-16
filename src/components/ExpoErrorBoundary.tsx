@@ -1,6 +1,6 @@
 // src/components/dev/ErrorBoundary.tsx
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text } from 'react-native';
 
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
