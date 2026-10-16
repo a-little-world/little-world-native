@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
-import styled from 'styled-components/native';
+import { styled } from 'styled-components/native';
 
 import LogoImageSvg from '@/src/assets/images/logo-image.svg';
 import LogoTextSvg from '@/src/assets/images/logo-text.svg';

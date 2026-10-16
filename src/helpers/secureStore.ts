@@ -5,15 +5,9 @@
  */
 import { Platform } from 'react-native';
 
-import { WebSecureStore } from './webSecureStore';
+import * as NativeSecureStore from 'expo-secure-store';
 
-// Import native SecureStore
-let NativeSecureStore: any = null;
-try {
-  NativeSecureStore = require('expo-secure-store');
-} catch (error) {
-  console.log('expo-secure-store not available, using web implementation');
-}
+import { WebSecureStore } from './webSecureStore';
 
 /**
  * Platform-aware SecureStore that automatically chooses the right implementation
@@ -22,18 +16,8 @@ class PlatformSecureStore {
   private static getSecureStore() {
     if (Platform.OS === 'web') {
       return WebSecureStore;
-    } else if (
-      (Platform.OS === 'ios' || Platform.OS === 'android') &&
-      NativeSecureStore
-    ) {
-      return NativeSecureStore;
-    } else {
-      // Fallback to web implementation if native is not available
-      console.warn(
-        'Native SecureStore not available, falling back to web implementation',
-      );
-      return WebSecureStore;
     }
+    return NativeSecureStore;
   }
 
   /**
@@ -64,16 +48,10 @@ class PlatformSecureStore {
    * Check if secure storage is available
    */
   static isAvailable(): boolean {
-    const secureStore = this.getSecureStore();
     if (Platform.OS === 'web') {
       return WebSecureStore.isAvailable();
-    } else if (
-      (Platform.OS === 'ios' || Platform.OS === 'android') &&
-      NativeSecureStore
-    ) {
-      return true; // Native SecureStore is always available if imported
     }
-    return false;
+    return Platform.OS === 'ios' || Platform.OS === 'android';
   }
 
   /**
@@ -82,14 +60,11 @@ class PlatformSecureStore {
   static getPlatform(): 'web' | 'native' | 'fallback' {
     if (Platform.OS === 'web') {
       return 'web';
-    } else if (
-      (Platform.OS === 'ios' || Platform.OS === 'android') &&
-      NativeSecureStore
-    ) {
-      return 'native';
-    } else {
-      return 'fallback';
     }
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      return 'native';
+    }
+    return 'fallback';
   }
 }
 

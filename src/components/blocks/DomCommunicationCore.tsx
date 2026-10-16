@@ -233,7 +233,7 @@ export function DomCommunicationProvider({
         }
       }
     },
-    [],
+    [sendToDom],
   );
 
   // ── Sync debug config to frontend ────────────────────────────────────────
