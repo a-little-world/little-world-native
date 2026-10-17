@@ -36,7 +36,7 @@
     "@expo/metro-runtime": "~55.0.12",
     "@expo/vector-icons": "~15.0.3",
     "@react-native-firebase/app": "^23.8.8",
-    "@react-native-firebase/messaging": "^23.8.8",
+    "@react-native-firebase/messaging": "^26.4.0",
     "@react-navigation/bottom-tabs": "^7.20.0",
     "@react-navigation/native": "^7.5.0",
     "@rn-primitives/portal": "^1.5.3",
