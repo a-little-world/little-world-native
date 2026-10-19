@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices", "group:allNonMajor"],
+  "extends": [
+    "config:best-practices",
+    "group:allNonMajor",
+    "mergeConfidence:all-badges"
+  ],
   "enabledManagers": ["npm", "github-actions"],
   "cloneSubmodules": true,
   "cloneSubmodulesFilter": ["frontend"],
@@ -16,7 +20,9 @@
   "prHourlyLimit": 10,
   "rangeStrategy": "bump",
   "rebaseWhen": "behind-base-branch",
-  "lockFileMaintenance": { "enabled": false },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
   "vulnerabilityAlerts": {
     "labels": ["security"],
     "schedule": ["at any time"],
