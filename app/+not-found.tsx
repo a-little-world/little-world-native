@@ -32,7 +32,7 @@ export default function NotFoundScreen() {
         <Card>
           <CardHeader>Uh oh!</CardHeader>
           <CardContent>
-            <Text>This screen doesn't exist.</Text>
+            <Text>This screen doesn&apos;t exist.</Text>
           </CardContent>
           <CardFooter>
             <Link asChild href="/">

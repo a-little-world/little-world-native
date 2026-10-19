@@ -59,11 +59,21 @@ jobs:
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
       BUILD_LOCALLY: ${{ github.event.inputs.buildLocally || 'false' }}
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Resolve env-file from profile
         id: envfile
@@ -143,7 +153,7 @@ jobs:
 
       - name: Upload android artifact
         id: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-android
           path: release-artifacts/*
@@ -210,11 +220,21 @@ jobs:
       BASE_URL: ${{ github.event.inputs.baseUrl || 'https://stage.little-world.com' }}
       BUILD_LOCALLY: ${{ github.event.inputs.buildLocally || 'false' }}
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Resolve env-file from profile
         id: envfile
@@ -269,7 +289,7 @@ jobs:
           ls -lh "$OUT"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: little-world_${{ steps.setup.outputs.version }}-${{ env.PROFILE }}-ios
           path: release-artifacts/*

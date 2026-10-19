@@ -5,18 +5,17 @@ import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 import { JSONValue } from 'expo/build/dom/dom.types';
 import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
 
+import type {
+  DomCommunicationMessage,
+  DomCommunicationMessageFn,
+  LittleWorldWebNativeProps,
+} from '@/frontend/src';
 import { apiFetch, refreshAccessTokens, updateTokens } from '@/src/api/helpers';
 import { applyFontInjectionWithRetry } from '@/src/utils/domFontInjection';
 import {
   injectCalModalSafeAreaFix,
   injectDomStyleOverrides,
 } from '@/src/utils/domStyleOverride';
-
-import type {
-  DomCommunicationMessage,
-  DomCommunicationMessageFn,
-  LittleWorldWebNativeProps,
-} from '../../../frontend/src';
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
@@ -28,7 +27,7 @@ const LittleWorldWebNative = lazy(() => {
   // if (typeof window === "undefined") {
   //   return Promise.resolve({ default: () => null });
   // }
-  return import('../../../frontend/src').then(m => ({
+  return import('@/frontend/src').then(m => ({
     default: m.LittleWorldWebNative,
   }));
 });

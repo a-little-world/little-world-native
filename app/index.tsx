@@ -33,7 +33,7 @@ export default function Page() {
       {Platform.OS !== 'web' && <FireBase />}
       <View style={{ backgroundColor: '#fff' }} />
       <StatusBar style="dark" />
-      <View style={{ flex: 1, width: '100%', display: 'block' }}>
+      <View style={{ flex: 1, width: '100%' }}>
         {tokensLoaded && <DomWebViewHost />}
       </View>
     </View>

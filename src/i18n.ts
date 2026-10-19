@@ -10,6 +10,7 @@ import translationEN from './locale/en.json';
 /*
 I'm overwriting the seperators here since the backend also uses '.' in the translations!
 */
+// eslint-disable-next-line import/no-named-as-default-member -- i18next's named exports are unbound; only the default instance is safe to call
 i18next.use(initReactI18next).init({
   nsSeparator: ':::',
   keySeparator: '::',
@@ -31,7 +32,6 @@ i18next.use(initReactI18next).init({
   fallbackLng: LANGUAGES.de,
 });
 
-// eslint-disable-next-line import/prefer-default-export
 export const updateTranslationResources = ({
   apiTranslations,
 }: {

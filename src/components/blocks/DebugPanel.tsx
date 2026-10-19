@@ -308,7 +308,7 @@ export default function DebugPanel() {
   } = useDebugStore();
 
   const [visible, setVisible] = useState(false);
-  const [tapCount, setTapCount] = useState(0);
+  const [, setTapCount] = useState(0);
   const tapResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Secret dialog
@@ -414,7 +414,7 @@ export default function DebugPanel() {
         ),
       )
       .catch(() => setWindowOrigin('error'));
-  }, [visible]);
+  }, [visible, sendToDom]);
 
   const toggle = (key: SectionKey) =>
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
@@ -627,7 +627,7 @@ export default function DebugPanel() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              So you think you're a developer, huh? Prove it.
+              So you think you&apos;re a developer, huh? Prove it.
             </Text>
             <TextInput
               style={[styles.input, styles.modalInput]}
@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     zIndex: 1000,
-    cursor: 'default',
+    cursor: 'auto',
     // backgroundColor: "transparent",
   },
 

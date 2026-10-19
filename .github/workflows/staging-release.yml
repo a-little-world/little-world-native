@@ -35,11 +35,21 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: 'true'
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup build workspace
         id: setup
@@ -81,7 +91,7 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup workspace (submit-only)
         uses: ./.github/actions/setup-build-workspace
@@ -115,11 +125,21 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
       IS_CI_BUILD: 'true'
     steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
       - name: Checkout little-world-native with submodule at pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
-          token: ${{ secrets.BOT_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup build workspace
         id: setup
@@ -166,7 +186,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Download artifacts from EAS
         shell: bash
@@ -208,7 +228,7 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=16384
     steps:
       - name: Checkout little-world-native
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup workspace (submit-only)
         uses: ./.github/actions/setup-build-workspace
@@ -244,7 +264,7 @@ jobs:
       ANDROID_BUILD: ${{ needs.build-android.outputs.app-build-version }}
     steps:
       - name: Checkout (full history for --auto commit detection)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
