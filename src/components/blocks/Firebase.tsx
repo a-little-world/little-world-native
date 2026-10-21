@@ -13,7 +13,7 @@ import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '@/src/store/authStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
-import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
+import { registerInstallation } from '@/src/utils/firebase-util';
 import {
   ensureNotificationPermission,
   setUpNotificationChannels,
@@ -59,7 +59,7 @@ async function clearNotifications() {
 function FireBase() {
   const webViewReady = useWebViewStore(state => state.ready);
   const accessToken = useAuthStore(state => state.accessToken);
-  const [shouldRegisterToken, setShouldRegisterToken] = useState(false);
+  const [shouldRegister, setShouldRegister] = useState(false);
   const registeringRef = useRef(false);
 
   useEffect(() => {
@@ -72,15 +72,15 @@ function FireBase() {
   }, [webViewReady]);
 
   useEffect(() => {
-    if (!accessToken || !shouldRegisterToken || registeringRef.current) {
+    if (!accessToken || !shouldRegister || registeringRef.current) {
       return;
     }
     registeringRef.current = true;
-    registerFirebaseDeviceToken().finally(() => {
+    registerInstallation().finally(() => {
       registeringRef.current = false;
-      setShouldRegisterToken(false);
+      setShouldRegister(false);
     });
-  }, [accessToken, shouldRegisterToken, setShouldRegisterToken]);
+  }, [accessToken, shouldRegister]);
 
   useEffect(() => {
     const messaging = getMessaging();
@@ -88,15 +88,13 @@ function FireBase() {
     (async () => {
       try {
         await setUpNotificationChannels();
-        const granted = await ensureNotificationPermission();
-        if (!granted) {
+        if (!(await ensureNotificationPermission())) {
           console.warn('[push] notification permission not granted');
-          return;
         }
-        setShouldRegisterToken(true);
       } catch (error) {
         console.error('[push] setup failed', error);
       }
+      setShouldRegister(true);
     })();
 
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
@@ -127,7 +125,7 @@ function FireBase() {
       );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
-      setShouldRegisterToken(true),
+      setShouldRegister(true),
     );
 
     // clear notificaitons upon app open

@@ -1,29 +1,40 @@
 import { getMessaging } from '@react-native-firebase/messaging';
 import * as Device from 'expo-device';
 import { Platform } from 'expo-modules-core';
+import { getPermissionsAsync } from 'expo-notifications';
 
 import { apiFetch } from '../api/helpers';
 import { getDeviceId } from './device';
 import { ensureNotificationPermission } from './notifications';
 
-export async function registerFirebaseDeviceToken(): Promise<void> {
-  if (!Device.isDevice || !(await ensureNotificationPermission())) {
-    return;
-  }
-
+// registers without push permission too, never prompts
+export async function registerInstallation(): Promise<void> {
   try {
-    await apiFetch('/api/push_notifications/register', {
+    const pushAllowed =
+      Device.isDevice && (await getPermissionsAsync()).granted;
+    await apiFetch('/api/installations/register', {
       method: 'POST',
       body: {
         install_id: await getDeviceId(),
-        token: await getMessaging().getToken(),
         platform: Platform.OS,
         model_name: Device.modelName,
+        token: pushAllowed
+          ? await getMessaging()
+              .getToken()
+              .catch(() => undefined)
+          : undefined,
       },
     });
   } catch {
     // ignore
   }
+}
+
+export async function registerFirebaseDeviceToken(): Promise<void> {
+  if (Device.isDevice) {
+    await ensureNotificationPermission();
+  }
+  await registerInstallation();
 }
 
 export async function unregisterFirebaseDeviceToken(): Promise<void> {
