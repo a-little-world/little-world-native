@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@a-little-world/little-world-design-system-core': file:./a-little-world-little-world-design-system-core-2.0.0.tgz
   react: 19.2.8
   react-dom: 19.2.8
   swr: 2.5.1
@@ -24,11 +25,11 @@ importers:
   .:
     dependencies:
       '@a-little-world/little-world-design-system-core':
-        specifier: ^1.17.1
-        version: 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: file:a-little-world-little-world-design-system-core-2.0.0.tgz
+        version: file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@a-little-world/little-world-design-system-native':
-        specifier: ^0.11.4
-        version: 0.11.4(b2d93cd6fb98514fcba473127f49cd7e)
+        specifier: file:./a-little-world-little-world-design-system-native-0.12.0.tgz
+        version: file:a-little-world-little-world-design-system-native-0.12.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)
       '@a-little-world/little-world-frontend-shared':
         specifier: ^0.1.1
         version: 0.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -271,8 +272,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^3.1.2
-        version: 3.1.2(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@6.30.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))
+        specifier: file:./a-little-world-little-world-design-system-4.0.0.tgz
+        version: file:frontend/a-little-world-little-world-design-system-4.0.0.tgz(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@6.30.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))
       '@babel/core':
         specifier: ^7.29.7
         version: 7.29.7
@@ -528,14 +529,16 @@ packages:
       graphql:
         optional: true
 
-  '@a-little-world/little-world-design-system-core@1.17.1':
-    resolution: {integrity: sha512-VnzmoOxRsAtsk8Q4nZYHL8kZklU+slMasa2klCn0+KAwPL/dGwx3WTBl8zUrcaQHKs6frEBvtp5n0PqCRpNQYQ==}
+  '@a-little-world/little-world-design-system-core@file:a-little-world-little-world-design-system-core-2.0.0.tgz':
+    resolution: {integrity: sha512-MbySUq47jCBiMWERlMQdG0mIuEIjTMjyl89oAUut1f0955zXIAwIvBXvegya2OKCFwfivj7yn0FRg2GIAi65Tw==, tarball: file:a-little-world-little-world-design-system-core-2.0.0.tgz}
+    version: 2.0.0
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
 
-  '@a-little-world/little-world-design-system-native@0.11.4':
-    resolution: {integrity: sha512-CVfiWBFFrEA2VNwm6KM/11joyPDZGuO2pn2Zq0ik89+PLJK9NQ8IWJxOPojocd7h4VK6uHSPLVb4cumclvIgmQ==}
+  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-0.12.0.tgz':
+    resolution: {integrity: sha512-7MtiKwH4UtdwvNvg8ZA91NpNo8FZEzYv+lZgVoOrRhiAaiJJLpWR7AGppb5OkoRVyEU7Nl9MGfDRplIoJCtb5A==, tarball: file:a-little-world-little-world-design-system-native-0.12.0.tgz}
+    version: 0.12.0
     peerDependencies:
       '@babel/runtime': ^7.27.6
       '@react-navigation/native': ^7.0.14
@@ -546,8 +549,9 @@ packages:
       react-native-svg: 15.12.1
       styled-components: 6.5.3
 
-  '@a-little-world/little-world-design-system@3.1.2':
-    resolution: {integrity: sha512-2KcRQcFsStwFFKbfQpwqLKahA16Svng3QrK2cozbxF8G3XjKve8g5l4IVJWPTKONrL1Z+hKMiH3rrmbPbhiMjQ==}
+  '@a-little-world/little-world-design-system@file:frontend/a-little-world-little-world-design-system-4.0.0.tgz':
+    resolution: {integrity: sha512-wWCQNodkR7lHv1296FCiy8cQFvqnDNpPMVzx0OxWUrNPEQWbSv3x9e/1+IS+OhBFEzcBx1VHgeSi9QbEQMmA2g==, tarball: file:frontend/a-little-world-little-world-design-system-4.0.0.tgz}
+    version: 4.0.0
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
@@ -1747,7 +1751,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@55.0.36':
     resolution: {integrity: sha512-jVMEXmxeUKXAzJdRWQer7fyogjPMYiTbrGOrlioJlwMuFqKfao3FeFInmATMNGLhNN01aBs/s6pnJKqiAdlUQg==}
@@ -2332,12 +2336,6 @@ packages:
 
   '@floating-ui/dom@1.7.6':
     resolution: {integrity: sha512-9gZSAI5XM36880PPMm//9dfiEngYoC6Am2izES1FF406YFsjvyBMmeJ2g4SAju3xWwtuynNRFL2s9hgxpLI5SQ==}
-
-  '@floating-ui/react-dom@2.1.7':
-    resolution: {integrity: sha512-0tLRojf/1Go2JgEVm+3Frg9A3IW8bJgKgdO0BN5RkF//ufuz2joZM63Npau2ff3J6lUVYgDSNzNkR+aH3IVfjg==}
-    peerDependencies:
-      react: 19.2.8
-      react-dom: 19.2.8
 
   '@floating-ui/react-dom@2.1.8':
     resolution: {integrity: sha512-cC52bHwM/n/CxS87FH0yWdngEZrjdtLW/qVruo68qg+prK7ZQ4YGdut2GyDVpoGeAYe/h899rVeOVm6Oi40k2A==}
@@ -7710,9 +7708,6 @@ packages:
   lodash.topairs@4.3.0:
     resolution: {integrity: sha512-qrRMbykBSEGdOgQLJJqVSdPWMD7Q+GJJ5jMRfQYb+LTLsw3tYVIabnCzRqTJb2WTo17PG5gNzXuFaZgYH/9SAQ==}
 
-  lodash@4.17.23:
-    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
-
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
 
@@ -10161,18 +10156,18 @@ snapshots:
     optionalDependencies:
       graphql: 16.8.1
 
-  '@a-little-world/little-world-design-system-core@1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@a-little-world/little-world-design-system-core@file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@babel/runtime': 7.29.10
       csstype: 3.2.3
-      lodash: 4.17.23
+      lodash: 4.18.1
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       svgson: 5.3.1
 
-  '@a-little-world/little-world-design-system-native@0.11.4(b2d93cd6fb98514fcba473127f49cd7e)':
+  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-0.12.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@a-little-world/little-world-design-system-core': file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/runtime': 7.29.10
       '@react-navigation/native': 7.5.1(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
       '@rn-primitives/accordion': 1.2.0(@types/react@19.1.17)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
@@ -10196,9 +10191,9 @@ snapshots:
       - '@types/react-dom'
       - react-native-web
 
-  '@a-little-world/little-world-design-system@3.1.2(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@6.30.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))':
+  '@a-little-world/little-world-design-system@file:frontend/a-little-world-little-world-design-system-4.0.0.tgz(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@6.30.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@a-little-world/little-world-design-system-core': file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@base-ui/react': 1.5.0(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-accordion': 1.2.12(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-checkbox': 1.3.3(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -12725,12 +12720,6 @@ snapshots:
       '@floating-ui/core': 1.7.5
       '@floating-ui/utils': 0.2.11
 
-  '@floating-ui/react-dom@2.1.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@floating-ui/dom': 1.7.6
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-
   '@floating-ui/react-dom@2.1.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@floating-ui/dom': 1.7.6
@@ -13836,7 +13825,7 @@ snapshots:
 
   '@radix-ui/react-popper@1.2.8(@types/react@19.1.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@floating-ui/react-dom': 2.1.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@floating-ui/react-dom': 2.1.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-arrow': 1.1.7(@types/react@19.1.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.1.17)(react@19.2.8)
       '@radix-ui/react-context': 1.1.2(@types/react@19.1.17)(react@19.2.8)
@@ -13853,7 +13842,7 @@ snapshots:
 
   '@radix-ui/react-popper@1.2.8(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@floating-ui/react-dom': 2.1.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@floating-ui/react-dom': 2.1.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-arrow': 1.1.7(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.8)(react@19.2.8)
       '@radix-ui/react-context': 1.1.2(@types/react@19.2.8)(react@19.2.8)
@@ -19374,8 +19363,6 @@ snapshots:
   lodash.throttle@4.1.1: {}
 
   lodash.topairs@4.3.0: {}
-
-  lodash@4.17.23: {}
 
   lodash@4.18.1: {}
 
