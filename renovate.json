@@ -66,6 +66,11 @@
       "enabled": false
     },
     {
+      "description": "0.2.0 root entry loads the web form engine and crashes on native; hold until the /translations entry is published",
+      "matchPackageNames": ["@a-little-world/little-world-frontend-shared"],
+      "allowedVersions": "0.1.1"
+    },
+    {
       "matchManagers": ["github-actions"],
       "groupName": "github actions"
     },
