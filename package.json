@@ -117,7 +117,6 @@
   "packageManager": "pnpm@10.34.7",
   "pnpm": {
     "overrides": {
-      "@a-little-world/little-world-design-system-core": "file:./a-little-world-little-world-design-system-core-2.0.0.tgz",
       "react": "19.2.8",
       "react-dom": "19.2.8",
       "swr": "2.5.1",
@@ -156,5 +155,8 @@
         "listUnknownPackages": false
       }
     }
+  },
+  "resolutions": {
+    "@a-little-world/little-world-design-system-core": "file:./a-little-world-little-world-design-system-core-2.0.0.tgz"
   }
 }
