@@ -24,9 +24,6 @@ export const NOTIFICATION_CHANNELS: Record<
   announcements: {
     importance: AndroidImportance.DEFAULT,
   },
-  incoming_calls: {
-    importance: AndroidImportance.MAX,
-  },
 };
 
 export async function setUpNotificationChannels(): Promise<void> {
