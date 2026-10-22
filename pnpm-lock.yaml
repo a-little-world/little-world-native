@@ -48,8 +48,8 @@ importers:
         specifier: ^23.8.8
         version: 23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
       '@react-native-firebase/messaging':
-        specifier: ^23.8.8
-        version: 23.8.8(@react-native-firebase/app@23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(expo@55.0.31)
+        specifier: ^26.4.0
+        version: 26.4.0(@react-native-firebase/app@23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(expo@55.0.31)
       '@react-navigation/bottom-tabs':
         specifier: ^7.21.0
         version: 7.21.0(@react-navigation/native@7.5.1(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(react-native-safe-area-context@5.6.2(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(react-native-screens@4.23.0(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
@@ -3511,10 +3511,10 @@ packages:
       expo:
         optional: true
 
-  '@react-native-firebase/messaging@23.8.8':
-    resolution: {integrity: sha512-7Po3/0M9SjYftWFZDueNqvbYDgycE/p7rYrcPDBjxWXsVPO98woLPIFRDuYIJDlTVFyYFjpCTF8kDIGBWPTFzQ==}
+  '@react-native-firebase/messaging@26.4.0':
+    resolution: {integrity: sha512-OmUyc/C6urbzBbOlUQP2sob71gn2irbbWQQtK8VPCh/rwdCTw1YMhVA+CR7NroKTHKnU+iOyGYVohbxFQlGVLA==}
     peerDependencies:
-      '@react-native-firebase/app': 23.8.8
+      '@react-native-firebase/app': 26.4.0
       expo: '>=47.0.0'
     peerDependenciesMeta:
       expo:
@@ -14504,7 +14504,7 @@ snapshots:
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
 
-  '@react-native-firebase/messaging@23.8.8(@react-native-firebase/app@23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(expo@55.0.31)':
+  '@react-native-firebase/messaging@26.4.0(@react-native-firebase/app@23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(expo@55.0.31)':
     dependencies:
       '@react-native-firebase/app': 23.8.8(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
     optionalDependencies:
