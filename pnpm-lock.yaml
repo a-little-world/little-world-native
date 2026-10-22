@@ -28,8 +28,8 @@ importers:
         specifier: file:a-little-world-little-world-design-system-core-2.0.0.tgz
         version: file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@a-little-world/little-world-design-system-native':
-        specifier: file:./a-little-world-little-world-design-system-native-0.12.0.tgz
-        version: file:a-little-world-little-world-design-system-native-0.12.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)
+        specifier: file:./a-little-world-little-world-design-system-native-1.0.0.tgz
+        version: file:a-little-world-little-world-design-system-native-1.0.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)
       '@a-little-world/little-world-frontend-shared':
         specifier: ^0.1.1
         version: 0.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -530,15 +530,15 @@ packages:
         optional: true
 
   '@a-little-world/little-world-design-system-core@file:a-little-world-little-world-design-system-core-2.0.0.tgz':
-    resolution: {integrity: sha512-MuR49v/uBQun2s4FtgkCAQJ6V9eFX8nuuss5U30fnkWd93yLFtaYsoKqaKc/6gvhs7LeDymAWas/8zbDTgeTSg==, tarball: file:a-little-world-little-world-design-system-core-2.0.0.tgz}
+    resolution: {integrity: sha512-ZHf8aU87osWfgkzXWRnU8CLaC6PAX9v7oUGRv1evOr0A8iPKRR6PvbokQ2Fz6v2KYRTepjiThh+P7t0TtJEXzQ==, tarball: file:a-little-world-little-world-design-system-core-2.0.0.tgz}
     version: 2.0.0
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
 
-  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-0.12.0.tgz':
-    resolution: {integrity: sha512-wA9MjN1OPrUw8t8t8sK9NHwl/jp79VK2RnF6fNznXGJneYAp09ngbYyV/c0QDZQ/jZVrLu6rYXlz2CUTto805w==, tarball: file:a-little-world-little-world-design-system-native-0.12.0.tgz}
-    version: 0.12.0
+  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-1.0.0.tgz':
+    resolution: {integrity: sha512-TR9OTrqv5vm6Na/3tWgqVMaV5dS1EpITycaahuAQuAZOIWZ2SbXWCvfakc8wUbvUQMMSvBmcoE+44b1Vo5QbrQ==, tarball: file:a-little-world-little-world-design-system-native-1.0.0.tgz}
+    version: 1.0.0
     peerDependencies:
       '@babel/runtime': ^7.27.6
       '@react-navigation/native': ^7.0.14
@@ -550,7 +550,7 @@ packages:
       styled-components: 6.5.3
 
   '@a-little-world/little-world-design-system@file:frontend/a-little-world-little-world-design-system-4.0.0.tgz':
-    resolution: {integrity: sha512-B5NZY++P0trvViQ+iS7CK/FAfQ3gDrzk14PXZ/XhxtP0r7AepFK0rp7LV8msIbk1eKhZH8C4B+M44Du69gwqqw==, tarball: file:frontend/a-little-world-little-world-design-system-4.0.0.tgz}
+    resolution: {integrity: sha512-JDARR9W5f6W0Q4nKbJCegL4GhhWMPQnH6l/sz5zWgrtof8MlJW5jiB3gHOlfuJMwoAiWm0auI1/C7lpoisysdA==, tarball: file:frontend/a-little-world-little-world-design-system-4.0.0.tgz}
     version: 4.0.0
     peerDependencies:
       react: 19.2.8
@@ -10165,7 +10165,7 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
       svgson: 5.3.1
 
-  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-0.12.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)':
+  '@a-little-world/little-world-design-system-native@file:a-little-world-little-world-design-system-native-1.0.0.tgz(b2d93cd6fb98514fcba473127f49cd7e)':
     dependencies:
       '@a-little-world/little-world-design-system-core': file:a-little-world-little-world-design-system-core-2.0.0.tgz(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/runtime': 7.29.10
