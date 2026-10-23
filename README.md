@@ -6,22 +6,22 @@ Setup and day-to-day development: see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Repository layout
 
-| Path               | Contents                                                                 |
-| ------------------ | ------------------------------------------------------------------------ |
-| `app/`             | Expo Router routes                                                       |
-| `src/`             | Native app code (components, API, store, translations)                   |
-| `frontend/`        | Submodule: [little-world-frontend], rendered as a DOM component          |
-| `e2e_simulations/` | Submodule: [little-world-e2e-tests]                                      |
-| `modules/`         | Local Expo modules (`call-audio`)                                        |
-| `environments/`    | Per-variant native config (bundle ID, Firebase, Sentry)                  |
-| `environment.ts`   | Backend URL etc. for local development, synced into `frontend/` on start |
+| Path                               | Contents                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| [`app/`](app)                      | Expo Router routes                                                       |
+| [`src/`](src)                      | Native app code (components, API, store, translations)                   |
+| `frontend/`                        | Submodule: [little-world-frontend], rendered as a DOM component          |
+| `e2e_simulations/`                 | Submodule: [little-world-e2e-tests]                                      |
+| [`modules/`](modules)              | Local Expo modules (`call-audio`)                                        |
+| [`environments/`](environments)    | Per-variant native config (bundle ID, Firebase, Sentry)                  |
+| [`environment.ts`](environment.ts) | Backend URL etc. for local development, synced into `frontend/` on start |
 
 [little-world-frontend]: https://github.com/a-little-world/little-world-frontend
 [little-world-e2e-tests]: https://github.com/a-little-world/little-world-e2e-tests
 
 ## Pull requests
 
-Versioning and changelog are automated with [release-please](https://github.com/googleapis/release-please), which reads the **PR title** of each merged PR. Titles must follow [Conventional Commits](https://www.conventionalcommits.org/) (checked by `lint-pr-title.yml`).
+Versioning and changelog are automated with [release-please](https://github.com/googleapis/release-please), which reads the **PR title** of each merged PR. Titles must follow [Conventional Commits](https://www.conventionalcommits.org/) (checked by [`lint-pr-title.yml`](.github/workflows/lint-pr-title.yml)).
 
 ### Title
 
@@ -84,20 +84,20 @@ Beta and prod are independent tracks. A beta release does not touch `main` or bu
 
 ### Production
 
-1. Merge PRs with conventional titles. release-please keeps a **Release PR** open that bumps `APP_VERSION` in `app.config.ts` and updates `CHANGELOG.md`.
+1. Merge PRs with conventional titles. release-please keeps a **Release PR** open that bumps `APP_VERSION` in [`app.config.ts`](app.config.ts) and updates [`CHANGELOG.md`](CHANGELOG.md).
 2. Merge the Release PR. release-please tags the commit and publishes GitHub release `vX.Y.Z`.
-3. `production-release.yml` builds both platforms (`production` EAS profile), submits to the stores, attaches the `.ipa`/`.aab` to the release and notifies Sentry.
+3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches the `.ipa`/`.aab` to the release and notifies Sentry.
 
 ### Beta
 
-1. **Actions -> Staging (Beta) Release -> Run workflow** on `main`.
+1. **Actions -> Staging (Beta) Release -> Run workflow** on `main` ([`staging-release.yml`](.github/workflows/staging-release.yml)).
 2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches artifacts to pre-release `vX.Y.Z-beta.<run>`.
 
 Can be run any number of times between production releases.
 
 ### Version and build numbers
 
-- **Version** (`APP_VERSION` in `app.config.ts`): owned by release-please. Don't edit manually.
+- **Version** (`APP_VERSION` in [`app.config.ts`](app.config.ts)): owned by release-please. Don't edit manually.
 - **Build number** (iOS `CFBundleVersion`, Android `versionCode`): must strictly increase per upload.
   - Prod: derived from the version
   - Beta: CI run number (`EAS_BUILD_NUMBER`)
@@ -114,7 +114,7 @@ The `Signer #1 certificate SHA-256 digest` must match the SHA-256 fingerprint of
 
 ## Translations
 
-i18next, set up in `src/i18n.ts`. Two sources, merged at startup:
+i18next, set up in [`src/i18n.ts`](src/i18n.ts). Two sources, merged at startup:
 
 - **Shared** ([little-world-frontend-shared](https://github.com/a-little-world/little-world-frontend-shared/tree/main/src/translations)): strings used across all Little World apps. Add common strings there.
-- **Local** (`src/locale/en.json`, `src/locale/de.json`): app-specific strings only. Override shared keys.
+- **Local** ([`src/locale/en.json`](src/locale/en.json), [`src/locale/de.json`](src/locale/de.json)): app-specific strings only. Override shared keys.

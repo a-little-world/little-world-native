@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Node.js 24 (see `.nvmrc`)
-- pnpm (version pinned in `package.json`, `corepack enable` picks it up)
+- Node.js 24 (see [`.nvmrc`](.nvmrc))
+- pnpm (version pinned in [`package.json`](package.json), `corepack enable` picks it up)
 - Xcode (iOS) and/or Android Studio (Android), only for local builds
 
 Use `pnpm exec` for local binaries (`expo`, `eas`, ...), not `npx`.
@@ -25,7 +25,7 @@ pnpm install
 
 ## Configuration
 
-Edit `environment.ts` at the repo root to choose the backend:
+Edit [`environment.ts`](environment.ts) at the repo root to choose the backend:
 
 ```ts
 export const environment: Environment = {
@@ -36,7 +36,7 @@ export const environment: Environment = {
 
 - Copied to `frontend/src/environment.ts` on every `pnpm start`. Don't edit the copy.
 - On a physical device, use your machine's LAN IP instead of `localhost`.
-- Native variant config (bundle ID, Firebase, Sentry) lives in `environments/`. Local builds use `env.ts` (Dev variant); CI swaps in `env.staging.ts` / `env.prod.ts`.
+- Native variant config (bundle ID, Firebase, Sentry) lives in [`environments/`](environments). Local builds use [`env.ts`](environments/env.ts) (Dev variant); CI swaps in [`env.staging.ts`](environments/env.staging.ts) / [`env.prod.ts`](environments/env.prod.ts).
 
 ## Running
 
@@ -44,7 +44,7 @@ export const environment: Environment = {
 pnpm start
 ```
 
-Syncs `environment.ts`, builds the frontend type declarations, then starts Metro on port 9000. Extra flags are passed through to `expo start`, e.g. `pnpm start --clear` or `pnpm start --tunnel`.
+Syncs [`environment.ts`](environment.ts), builds the frontend type declarations, then starts Metro on port 9000. Extra flags are passed through to `expo start`, e.g. `pnpm start --clear` or `pnpm start --tunnel`.
 
 Everything else is done from the Metro terminal:
 
@@ -73,7 +73,7 @@ Otherwise the app tries to load the bundle from `<public-domain>:9000`.
 
 ## Development builds
 
-Profiles (`eas.json`):
+Profiles ([`eas.json`](eas.json)):
 
 - `simulator`: iOS simulator
 - `development`: physical devices (iOS + Android), Android emulator
@@ -125,7 +125,7 @@ Add `-d` to pick a device.
 
 ### GitHub Actions
 
-**Actions -> Build Application -> Run workflow**:
+**Actions -> Build Application -> Run workflow** ([`build-application.yml`](.github/workflows/build-application.yml)):
 
 - pick profile, backend URL and platforms
 - `buildLocally`: build in the GitHub runner instead of on EAS
@@ -134,7 +134,7 @@ On PRs, adding the label `build-android` or `build-ios` builds that platform on 
 
 ## Checks
 
-Same as CI (`checks.yml`):
+Same as CI ([`checks.yml`](.github/workflows/checks.yml)):
 
 ```bash
 pnpm lint
@@ -147,11 +147,11 @@ E2E tests live in the `e2e_simulations/` submodule. See its README.
 
 ## Debugging
 
-`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via `src/components/blocks/LittleWorldWebLazy.tsx`. Debug it with the DevTools of any Chromium browser (Chrome, Edge, Brave, ...).
+`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via [`src/components/blocks/LittleWorldWebLazy.tsx`](src/components/blocks/LittleWorldWebLazy.tsx). Debug it with the DevTools of any Chromium browser (Chrome, Edge, Brave, ...).
 
 ### `frontend/` on Android
 
-WebView debugging is enabled in dev via `webviewDebuggingEnabled` in `DomWebViewHost.tsx`.
+WebView debugging is enabled in dev via `webviewDebuggingEnabled` in [`DomWebViewHost.tsx`](src/components/blocks/DomWebViewHost.tsx).
 
 1. Enable USB debugging on the phone and connect it (USB or wireless).
 2. Check the connection:
@@ -160,7 +160,7 @@ WebView debugging is enabled in dev via `webviewDebuggingEnabled` in `DomWebView
    adb devices
    ```
 
-3. Open a screen that renders the web content, so the DOM component is mounted. Currently always the case: `app/index.tsx` renders `DomWebViewHost`.
+3. Open a screen that renders the web content, so the DOM component is mounted. Currently always the case: [`app/index.tsx`](app/index.tsx) renders `DomWebViewHost`.
 4. Open `chrome://inspect` in the browser and click **inspect** on the WebView entry. If that fails, use **inspect fallback**.
 
    ![chrome://inspect listing the app's WebView](docs/images/debug_inspector.webp)
