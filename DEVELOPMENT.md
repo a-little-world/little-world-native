@@ -4,7 +4,7 @@
 
 - Node.js 24 (see `.nvmrc`)
 - pnpm (version pinned in `package.json`, `corepack enable` picks it up)
-- Xcode (iOS) and/or Android Studio (Android), only for [local builds](#local)
+- Xcode (iOS) and/or Android Studio (Android), only for local builds
 
 Use `pnpm exec` for local binaries (`expo`, `eas`, ...), not `npx`.
 
@@ -44,7 +44,19 @@ export const environment: Environment = {
 pnpm start
 ```
 
-Syncs `environment.ts`, builds the frontend type declarations, then starts Metro on port 9000.
+Syncs `environment.ts`, builds the frontend type declarations, then starts Metro on port 9000. Extra flags are passed through to `expo start`, e.g. `pnpm start --clear` or `pnpm start --tunnel`.
+
+Everything else is done from the Metro terminal:
+
+| Key                   | Action                                       |
+| --------------------- | -------------------------------------------- |
+| `s`                   | switch between development build and Expo Go |
+| `a` / `i` / `w`       | open on Android / iOS / web                  |
+| `shift+a` / `shift+i` | choose Android / iOS device or simulator     |
+| `r`                   | reload app                                   |
+| `m`                   | toggle dev menu                              |
+| `j`                   | open React Native DevTools                   |
+| `?`                   | show all commands                            |
 
 Native modules (LiveKit, Firebase) need a development build. Rebuild only when native code or dependencies change; JS changes load from Metro.
 
@@ -60,29 +72,45 @@ Some features only work on a physical device, not in a simulator/emulator:
 - push notifications
 - app integrity checks
 
-### Local
+### EAS cloud
 
-Requires Xcode / Android Studio.
+Requires access to the Expo project (`pnpm exec eas login`).
+
+```bash
+pnpm exec eas build --platform "$PLATFORM" --profile "$PROFILE"
+```
+
+- `PLATFORM`: `ios` or `android`
+- `PROFILE`: see above
+
+Install the latest build on a simulator / emulator:
+
+```bash
+pnpm exec eas build:run --platform "$PLATFORM"
+```
+
+### EAS local
+
+Same build, run on your machine. Requires Xcode / Android Studio.
+
+Also requires access to the Expo project: signing credentials are fetched from EAS (`credentialsSource: remote`).
+
+```bash
+pnpm exec eas build --platform "$PLATFORM" --profile "$PROFILE" --local
+```
+
+Writes the artifact (`.ipa`, `.apk`, `.tar.gz`, ...) to the repo root.
+
+### Without Expo access
+
+Debug build with local signing, installed directly on a simulator / connected device. Requires Xcode / Android Studio.
 
 ```bash
 pnpm exec expo run:ios
 pnpm exec expo run:android
-pnpm android-device        # pick a connected Android device
 ```
 
-### EAS (cloud)
-
-Requires access to the Expo project.
-
-```bash
-pnpm exec eas login
-
-pnpm exec eas build --platform ios --profile simulator
-pnpm exec eas build --platform android --profile development
-
-# install the latest build on a simulator / emulator
-pnpm exec eas build:run --platform ios
-```
+Add `-d` to pick a device.
 
 ### GitHub Actions
 
