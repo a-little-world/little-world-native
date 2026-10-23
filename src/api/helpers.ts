@@ -413,72 +413,41 @@ const REFRESH_TOKEN_KEY = 'dom_auth_refresh_token';
 const INTEGRITY_BYPASS_TOKEN_KEY = 'dom_auth_integrity_bypass_token';
 
 export async function getAccessJwtToken() {
-  try {
-    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
-      return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-    }
-  } catch {}
-  return null;
+  return SecureStore.getItemAsync(ACCESS_TOKEN_KEY).catch(() => null);
 }
 
 export async function getRefreshJwtToken() {
+  return SecureStore.getItemAsync(REFRESH_TOKEN_KEY).catch(() => null);
+}
+
+async function setOrDelete(key: string, value: string | undefined | null) {
   try {
-    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
-      return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    if (value) {
+      await SecureStore.setItemAsync(key, value);
+    } else {
+      await SecureStore.deleteItemAsync(key);
     }
   } catch {}
-  return null;
 }
 
 export async function saveJwtTokens(
   accessToken: string | undefined | null,
   refreshToken: string | undefined | null,
 ) {
-  try {
-    if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
-      if (accessToken) {
-        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-      } else {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-      }
-
-      if (refreshToken) {
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
-      } else {
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-      }
-    }
-  } catch {}
+  await setOrDelete(ACCESS_TOKEN_KEY, accessToken);
+  await setOrDelete(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 export async function clearJwtTokens() {
-  try {
-    if (SecureStore && typeof SecureStore.deleteItemAsync === 'function') {
-      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-    }
-  } catch {}
+  await saveJwtTokens(null, null);
 }
 
 export async function getIntegrityBypassToken() {
-  try {
-    if (SecureStore && typeof SecureStore.getItemAsync === 'function') {
-      return SecureStore.getItemAsync(INTEGRITY_BYPASS_TOKEN_KEY);
-    }
-  } catch {}
-  return null;
+  return SecureStore.getItemAsync(INTEGRITY_BYPASS_TOKEN_KEY).catch(() => null);
 }
 
 export async function saveIntegrityBypassToken(token: string | null) {
-  try {
-    if (SecureStore && typeof SecureStore.setItemAsync === 'function') {
-      if (token) {
-        await SecureStore.setItemAsync(INTEGRITY_BYPASS_TOKEN_KEY, token);
-      } else {
-        await SecureStore.deleteItemAsync(INTEGRITY_BYPASS_TOKEN_KEY);
-      }
-    }
-  } catch {}
+  await setOrDelete(INTEGRITY_BYPASS_TOKEN_KEY, token);
 }
 
 export async function loadStoredTokensIntoStore() {
