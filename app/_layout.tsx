@@ -1,6 +1,9 @@
 // app/_layout.tsx
 // import * as SplashScreen from "expo-splash-screen";
 import environmentNative from '@/environments/env';
+import DebugBanner, {
+  InsetsProvider,
+} from '@/src/components/blocks/DebugBanner';
 import DebugPanel from '@/src/components/blocks/DebugPanel';
 import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
 
@@ -60,16 +63,19 @@ export default Sentry.wrap(function RootLayout() {
         <NativeThemeProvider>
           <DomCommunicationProvider>
             <DebugPanel />
-            {fontsLoaded && ( // start rendering as early as possible
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  // Back navigation gestures are handled inside the WebView
-                  // -> disable here so they are not consumed prematurely
-                  gestureEnabled: false,
-                }}
-              />
-            )}
+            <DebugBanner />
+            <InsetsProvider>
+              {fontsLoaded && ( // start rendering as early as possible
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    // Back navigation gestures are handled inside the WebView
+                    // -> disable here so they are not consumed prematurely
+                    gestureEnabled: false,
+                  }}
+                />
+              )}
+            </InsetsProvider>
           </DomCommunicationProvider>
         </NativeThemeProvider>
       </View>
