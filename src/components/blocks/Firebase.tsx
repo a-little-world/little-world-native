@@ -121,11 +121,6 @@ function FireBase() {
       openPath(extractPath(remoteMessage?.data)),
     );
 
-    const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener(response =>
-        openPath(extractPath(response.notification.request.content.data)),
-      );
-
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
       setShouldRegisterToken(true),
     );
@@ -141,7 +136,6 @@ function FireBase() {
     return () => {
       messageUnsubscribe();
       openedUnsubscribe();
-      responseSubscription.remove();
       tokenRefreshUnsubscribe();
       appStateSubscription.remove();
     };
