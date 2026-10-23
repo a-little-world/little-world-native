@@ -86,12 +86,12 @@ Beta and prod are independent tracks. A beta release does not touch `main` or bu
 
 1. Merge PRs with conventional titles. release-please keeps a **Release PR** open that bumps `APP_VERSION` in [`app.config.ts`](app.config.ts) and updates [`CHANGELOG.md`](CHANGELOG.md).
 2. Merge the Release PR. release-please tags the commit and publishes GitHub release `vX.Y.Z`.
-3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches the `.ipa`/`.aab` to the release and notifies Sentry.
+3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches a [signed APK](#verifying-the-android-apk) to the release and notifies Sentry.
 
 ### Beta
 
 1. **Actions -> Staging (Beta) Release -> Run workflow** on `main` ([`staging-release.yml`](.github/workflows/staging-release.yml)).
-2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches artifacts to pre-release `vX.Y.Z-beta.<run>`.
+2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches a signed APK to pre-release `vX.Y.Z-beta.<run>`.
 
 Can be run any number of times between production releases.
 
@@ -104,13 +104,19 @@ Can be run any number of times between production releases.
 
 ### Verifying the Android APK
 
-Each production release includes a universal APK built from the same AAB and signed with our own key:
+Production and beta releases include a universal APK, built from the store AAB and signed with Little World's release key. Verify with `apksigner` (Android SDK build-tools):
 
 ```bash
 apksigner verify --print-certs little-world_<version>-android.apk
 ```
 
-The `Signer #1 certificate SHA-256 digest` must match the SHA-256 fingerprint of Little World's signing certificate.
+`Signer #1 certificate SHA-256 digest` must be:
+
+```
+50:A0:B0:9D:34:0F:12:7F:68:3B:0D:0F:00:82:4A:31:55:48:BF:24:AF:57:9A:27:94:8A:B4:2B:ED:C9:D3:FB
+```
+
+Play Store installs are signed by Google, the GitHub APK by us. Android only updates an app with a matching signature, so switching between the two requires uninstalling first.
 
 ## Translations
 

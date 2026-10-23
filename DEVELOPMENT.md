@@ -145,6 +145,34 @@ pnpm exec expo-doctor
 
 E2E tests live in the `e2e_simulations/` submodule. See its README.
 
+## Frontend submodule
+
+`frontend/` is pinned to a commit of [little-world-frontend](https://github.com/a-little-world/little-world-frontend). It's a regular git repo, so branch, commit and push inside it as usual.
+
+1. Make the change in `frontend/` and open a PR in the frontend repo.
+2. After it's merged to `main`, [`update-submodules.yml`](.github/workflows/update-submodules.yml) opens a `chore/update-submodules` PR here that bumps the pointer and syncs [shared dependencies](#dependencies).
+
+PRs here fail [`submodules-up-to-date.yml`](.github/workflows/submodules-up-to-date.yml) unless every submodule is at its `main` HEAD. To bump manually:
+
+```bash
+git -C frontend fetch origin main
+git -C frontend checkout --detach origin/main
+git add frontend
+```
+
+## Dependencies
+
+- **Shared with frontend** (keys of `pnpm.overrides` in [`package.json`](package.json): `react`, `swr`, `zustand`, ...): pinned to the versions in `frontend/pnpm-lock.yaml`. Bump them in the frontend; the submodule bump PR syncs them here. Checked by [`lockfile.yml`](.github/workflows/lockfile.yml). To sync manually:
+
+  ```bash
+  node .github/scripts/sync-shared-deps.mts --fix
+  pnpm install
+  ```
+
+  A new shared dependency goes into `pnpm.overrides` and the "Shared with frontend" rule in [`renovate.json`](renovate.json).
+
+- **Expo SDK packages**: install with `pnpm exec expo install <package>` to get the version matching the SDK.
+
 ## Debugging
 
 `frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via [`src/components/blocks/LittleWorldWebLazy.tsx`](src/components/blocks/LittleWorldWebLazy.tsx). Debug it with the DevTools of any Chromium browser (Chrome, Edge, Brave, ...).
