@@ -288,8 +288,8 @@ const ROUTES = [
   { label: 'Sign Up', value: '/sign-up' },
   { label: 'Login', value: '/login' },
   { label: 'Profile', value: '/app/profile' },
-  { label: 'Settings', value: '/settings' },
-  { label: 'Help', value: '/help' },
+  { label: 'Settings', value: '/app/settings' },
+  { label: 'Help', value: '/app/help' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
