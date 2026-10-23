@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.4](https://github.com/a-little-world/little-world-native/compare/v1.2.3...v1.2.4) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([48680d1](https://github.com/a-little-world/little-world-native/commit/48680d1be527808245206d28cde742b68585d6a7))
+* **deps:** update all non-major dependencies ([284ee11](https://github.com/a-little-world/little-world-native/commit/284ee115cda128c6c0390f1c25e3f41b18661437))
+* **deps:** update dependency http-proxy-middleware to ^3.0.7 [security] ([f4d102d](https://github.com/a-little-world/little-world-native/commit/f4d102d5b9f0ad4c92586c2c3052864fc2c0dc61))
+* do not show session expiry message when logging out ([#192](https://github.com/a-little-world/little-world-native/issues/192)) ([086ded4](https://github.com/a-little-world/little-world-native/commit/086ded439e8f3ea03ec8cca0d09aaaaf468f0fc1))
+* **Notification:** remove duplicate notification handler ([#207](https://github.com/a-little-world/little-world-native/issues/207)) ([2f8344d](https://github.com/a-little-world/little-world-native/commit/2f8344d78a9952ec183f1952c6424e7075b4e571))
+* remove youtube tracking params from links + fix parser to ignore them ([#168](https://github.com/a-little-world/little-world-native/issues/168)) ([d32be7e](https://github.com/a-little-world/little-world-native/commit/d32be7e8c7797e86e72b0959319c414255a87d72))
+* revert shared frontend package update ([#202](https://github.com/a-little-world/little-world-native/issues/202)) ([b71b3a2](https://github.com/a-little-world/little-world-native/commit/b71b3a2ab3435736337510f6e7069d870e475aab))
+* webview request timeouts ([#206](https://github.com/a-little-world/little-world-native/issues/206)) ([5c5971f](https://github.com/a-little-world/little-world-native/commit/5c5971f5208caaa6d8ed1cdbb7190d67f1cc8377))
+
 ## [1.2.3](https://github.com/a-little-world/little-world-native/compare/v1.2.2...v1.2.3) (2026-10-09)
 
 
