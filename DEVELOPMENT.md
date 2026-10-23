@@ -55,7 +55,6 @@ Everything else is done from the Metro terminal:
 | `shift+a` / `shift+i` | choose Android / iOS device or simulator     |
 | `r`                   | reload app                                   |
 | `m`                   | toggle dev menu                              |
-| `j`                   | open React Native DevTools                   |
 | `?`                   | show all commands                            |
 
 Native modules (LiveKit, Firebase) need a development build. Rebuild only when native code or dependencies change; JS changes load from Metro.
@@ -136,18 +135,11 @@ E2E tests live in the `e2e_simulations/` submodule. See its README.
 
 ## Debugging
 
-The app runs two JS engines, each with its own debugger:
-
-- **Native (Hermes)**: app shell, native modules, `src/`
-- **WebView**: `frontend/`, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via `src/components/blocks/LittleWorldWebLazy.tsx`
-
-### Native
-
-Press `j` in the Metro terminal. React Native DevTools opens with Console, Sources, Network, Components and Profiler.
+`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via `src/components/blocks/LittleWorldWebLazy.tsx`. Debug it with the DevTools of any Chromium browser (Chrome, Edge, Brave, ...).
 
 ### `frontend/` on Android
 
-`frontend/` code does not show up in React Native DevTools. Use Chrome's WebView inspector instead (enabled in dev via `webviewDebuggingEnabled` in `DomWebViewHost.tsx`):
+WebView debugging is enabled in dev via `webviewDebuggingEnabled` in `DomWebViewHost.tsx`.
 
 1. Enable USB debugging on the phone and connect it (USB or wireless).
 2. Check the connection:
@@ -156,15 +148,28 @@ Press `j` in the Metro terminal. React Native DevTools opens with Console, Sourc
    adb devices
    ```
 
-3. Open a screen that renders the web content, so the DOM component is mounted.
-4. Open `chrome://inspect` and click **inspect** on the WebView entry.
-5. **Sources -> Page**, quick-open (`Cmd+P` / `Ctrl+P`) a file under `frontend/src/`, set breakpoints.
+3. Open a screen that renders the web content, so the DOM component is mounted. Currently always the case: `app/index.tsx` renders `DomWebViewHost`.
+4. Open `chrome://inspect` in the browser and click **inspect** on the WebView entry. If that fails, use **inspect fallback**.
 
-Ignore the "drop a folder to sync edits" prompt in the **Filesystem** tab. It's not needed for breakpoints.
+   ![chrome://inspect listing the app's WebView](docs/images/debug_inspector.webp)
+
+5. Optional: you can control the app from the screencast on the left and toggle between mouse and touch input in its toolbar.
+
+   ![Mouse/touch toggle in the screencast toolbar](docs/images/debug_touch_controls.webp)
+
+6. Open the **Sources** tab and switch the left sidebar from **Workspace** to **Page**. Sources may take a second to load.
+
+   ![Sources tab with the Page sidebar](docs/images/debug_sources.webp)
+
+7. Quick-open (`Cmd+P` / `Ctrl+P`) a file under `frontend/src/` and set breakpoints.
+
+   ![Paused on a breakpoint in frontend/src](docs/images/debug_breakpoint.webp)
+
+Ignore the "drop a folder to sync edits" prompt in the **Workspace** tab. It's not needed for breakpoints.
 
 ### `frontend/` without a device
 
-Press `w` in Metro. On web the DOM component renders inline, so `frontend/` is debuggable in regular Chrome DevTools. Not the device runtime, though.
+Press `w` in Metro. On web the DOM component renders inline, so `frontend/` is debuggable in the browser's DevTools. Not the device runtime, though.
 
 ## Troubleshooting
 
