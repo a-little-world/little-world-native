@@ -54,7 +54,7 @@ interface DomCommunicationProviderProps {
   children: ReactNode;
 }
 
-const REQUEST_TIMEOUT = 5000;
+const REQUEST_TIMEOUT = 10000;
 
 function waitForWebViewReady(action: string) {
   return new Promise<void>(resolve => {
