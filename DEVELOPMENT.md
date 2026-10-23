@@ -59,6 +59,18 @@ Everything else is done from the Metro terminal:
 
 Native modules (LiveKit, Firebase) need a development build. Rebuild only when native code or dependencies change; JS changes load from Metro.
 
+### Behind a reverse proxy
+
+For serving Metro through a public domain that points to your machine (e.g. via NetBird, Tailscale), such as HTTPS for testing video calls on a phone.
+
+Unless the proxy listens on port 9000 and forwards that port to your machine, set `EXPO_PACKAGER_PROXY_URL`:
+
+```bash
+EXPO_PACKAGER_PROXY_URL=https://<public-domain> pnpm start
+```
+
+Otherwise the app tries to load the bundle from `<public-domain>:9000`.
+
 ## Development builds
 
 Profiles (`eas.json`):
