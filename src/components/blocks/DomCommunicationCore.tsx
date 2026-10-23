@@ -1,14 +1,15 @@
 import {
   createContext,
   ReactNode,
-  Ref,
+  RefObject,
   useCallback,
   useContext,
   useEffect,
   useRef,
 } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
+import * as Sentry from '@sentry/react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { JSONValue } from 'expo/build/dom/dom.types';
@@ -34,7 +35,7 @@ import { LittleWorldDomRef } from './LittleWorldWebLazy';
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
   sendToReactNative: DomCommunicationMessageFn;
-  domRef: Ref<LittleWorldDomRef | null>;
+  domRef: RefObject<LittleWorldDomRef | null>;
 }
 
 const DomCommunicationContext =
@@ -53,7 +54,23 @@ interface DomCommunicationProviderProps {
   children: ReactNode;
 }
 
-const REQUEST_TIMEOUT = 5000;
+const REQUEST_TIMEOUT = 10000;
+
+function waitForWebViewReady(action: string) {
+  return new Promise<void>(resolve => {
+    const reportTimer = setTimeout(() => {
+      const message = `WebView not ready after ${(REQUEST_TIMEOUT * 2) / 1000}s`;
+      console.warn(message, action);
+      Sentry.captureMessage(message, { level: 'warning', tags: { action } });
+    }, REQUEST_TIMEOUT * 2);
+    const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
+      if (!ready) return;
+      clearTimeout(reportTimer);
+      unsubscribe();
+      resolve();
+    });
+  });
+}
 
 export function DomCommunicationProvider({
   children,
@@ -66,38 +83,70 @@ export function DomCommunicationProvider({
       {
         resolve: (value: DomCommunicationResponse) => void;
         reject: (reason: any) => void;
+        message: JSONValue;
       }
     >
   >(new Map());
 
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
+      if (!useWebViewStore.getState().ready) {
+        await waitForWebViewReady(message.action);
+      }
       const handler = domRef.current?.sendMessageToDom;
+      // should never happen: only if the webview unmounted without remounting
+      // or the page sent WEBVIEW_READY before registering its imperative handle
       if (!handler) {
+        console.warn('DOM bridge handler missing', message.action);
+        Sentry.captureMessage('DOM bridge handler missing', {
+          level: 'error',
+          tags: { action: message.action },
+        });
         return { ok: false, error: 'DomCommunicationCore DOM not ready' };
       }
 
       // Create a promise that will be resolved when the response comes via callback
       const requestId = uuid.v4();
+      const messageWithId: JSONValue = { ...message, requestId } as JSONValue;
       const responsePromise = new Promise<DomCommunicationResponse>(
         (resolve, reject) => {
           message.requestId = requestId;
 
           // Store the promise resolvers
-          pendingRequestsRef.current.set(requestId, { resolve, reject });
+          pendingRequestsRef.current.set(requestId, {
+            resolve,
+            reject,
+            message: messageWithId,
+          });
 
-          // Set a timeout to reject the promise if no response comes
-          setTimeout(() => {
-            if (pendingRequestsRef.current.has(requestId)) {
-              console.info('request timeout for requesId', requestId, message);
+          const startTimeout = () => {
+            const startedAt = Date.now();
+            setTimeout(() => {
+              if (!pendingRequestsRef.current.has(requestId)) return;
+              // webview frozen while backgrounded/suspended; don't count that time
+              if (
+                AppState.currentState !== 'active' ||
+                Date.now() - startedAt > REQUEST_TIMEOUT * 2
+              ) {
+                startTimeout();
+                return;
+              }
+              const error = new Error(
+                `DOM bridge response timeout: ${message.action}`,
+              );
+              console.warn(error.message, requestId);
+              // payload omitted: may contain tokens
+              Sentry.captureException(error, {
+                tags: { action: message.action },
+                extra: { requestId },
+              });
               pendingRequestsRef.current.delete(requestId);
-              reject('Response timeout');
-            }
-          }, REQUEST_TIMEOUT);
+              reject(error);
+            }, REQUEST_TIMEOUT);
+          };
+          startTimeout();
         },
       );
-      const messageWithId: JSONValue = { ...message, requestId } as JSONValue;
-
       handler(messageWithId);
 
       // Wait for the response to come via the callback
@@ -148,6 +197,10 @@ export function DomCommunicationProvider({
         }
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
+          // new page (reload, remount, killed renderer): anything still pending never reached it
+          pendingRequestsRef.current.forEach(({ message: pending }) =>
+            domRef.current?.sendMessageToDom(pending),
+          );
           // Sync debug config — also handles WebView reloads where `ready` was already true
           const { debugEnabled, backendUrlOverride } = debugStore.get();
           await sendToDom({
@@ -176,7 +229,11 @@ export function DomCommunicationProvider({
 
             return payload;
           } else {
-            console.error('Received delayed dom response', message);
+            console.warn('Received delayed dom response', requestId);
+            Sentry.captureMessage('DOM bridge delayed response', {
+              level: 'warning',
+              extra: { requestId },
+            });
             return {
               ok: false,
               error: 'Could not find pending request for message',
@@ -249,7 +306,7 @@ export function DomCommunicationProvider({
       await sendToDom({
         action: 'SET_DEBUG_CONFIG',
         payload: { debugEnabled, backendUrlOverride },
-      });
+      }).catch(error => console.warn('SET_DEBUG_CONFIG failed', error));
     };
 
     // Subscribe to future changes
