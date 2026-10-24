@@ -67,7 +67,7 @@
     "expo-system-ui": "~55.0.22",
     "expo-task-manager": "~55.0.20",
     "expo-web-browser": "~55.0.20",
-    "http-proxy-middleware": "^3.0.7",
+    "http-proxy-middleware": "^4.2.0",
     "i18next": "25.10.10",
     "js-cookie": "3.0.8",
     "livekit-client": "2.22.3",
