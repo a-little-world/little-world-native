@@ -273,6 +273,9 @@ importers:
       '@a-little-world/little-world-design-system':
         specifier: ^3.1.2
         version: 3.1.2(@types/react@19.2.8)(date-fns@3.6.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@7.18.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))
+      '@a-little-world/little-world-design-system-core':
+        specifier: ^1.17.1
+        version: 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/core':
         specifier: ^7.29.7
         version: 7.29.7
