@@ -11,7 +11,6 @@ import type {
   LittleWorldWebNativeProps,
 } from '@/frontend/src';
 import { apiFetch, refreshAccessTokens, updateTokens } from '@/src/api/helpers';
-import { applyFontInjectionWithRetry } from '@/src/utils/domFontInjection';
 import {
   injectCalModalSafeAreaFix,
   injectDomStyleOverrides,
@@ -63,15 +62,13 @@ export default function LittleWorldWebLazy(props: {
     [],
   );
 
-  // Inject CSS to override #root display property and fonts
+  // Inject CSS to override #root display property
   useEffect(() => {
     const cleanupRoot = injectDomStyleOverrides();
-    const cleanupFonts = applyFontInjectionWithRetry();
     const cleanupCalModal = injectCalModalSafeAreaFix();
 
     return () => {
       cleanupRoot();
-      cleanupFonts();
       cleanupCalModal();
     };
   }, []);
