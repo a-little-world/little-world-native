@@ -217,6 +217,17 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
+      # Metro can't emit worker chunks -> worker inlined, must match installed livekit-client
+      - name: Verify livekit e2ee worker is up to date
+        run: |
+          set -euo pipefail
+          ( cd frontend && pnpm run generate:e2ee-worker )
+          if [ -n "$(git -C frontend status --porcelain -- 'prebuild/livekit-e2ee-worker-*')" ]; then
+            git -C frontend status --short -- 'prebuild/livekit-e2ee-worker-*'
+            echo "::error::frontend/prebuild/livekit-e2ee-worker-* is stale. Run 'pnpm generate:e2ee-worker' in the frontend repo, update the import in src/helpers/e2eeWorker.ts and commit the result."
+            exit 1
+          fi
+
       - name: Cache Metro transform cache
         # expo export's Metro cache (default FileStore at /tmp/metro-cache) is cold every
         # run otherwise. Metro invalidates entries per-module by content hash, so restoring
