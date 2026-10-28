@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices", "group:allNonMajor"],
+  "extends": [
+    "config:best-practices",
+    "group:allNonMajor",
+    "mergeConfidence:all-badges"
+  ],
   "enabledManagers": ["npm", "github-actions"],
   "cloneSubmodules": true,
   "cloneSubmodulesFilter": ["frontend"],
@@ -16,7 +20,9 @@
   "prHourlyLimit": 10,
   "rangeStrategy": "bump",
   "rebaseWhen": "behind-base-branch",
-  "lockFileMaintenance": { "enabled": false },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
   "vulnerabilityAlerts": {
     "labels": ["security"],
     "schedule": ["at any time"],
@@ -58,6 +64,11 @@
       ],
       "matchUpdateTypes": ["major", "minor"],
       "enabled": false
+    },
+    {
+      "description": "0.2.0 root entry loads the web form engine and crashes on native; hold until the /translations entry is published",
+      "matchPackageNames": ["@a-little-world/little-world-frontend-shared"],
+      "allowedVersions": "0.1.1"
     },
     {
       "matchManagers": ["github-actions"],

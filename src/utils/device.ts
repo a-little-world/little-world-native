@@ -1,5 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
 import uuid from 'react-native-uuid';
+
+import * as SecureStore from '@/src/helpers/secureStore';
 
 const DEVICE_ID_KEY = 'device_id';
 

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { environment } from '@/environment';
-import PlatformSecureStore from '@/src/helpers/secureStore';
+import * as SecureStore from '@/src/helpers/secureStore';
 
 export type FetchError = {
   id: string;
@@ -53,10 +53,9 @@ const newId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 
 const debugPersistStorage = createJSONStorage(() => ({
-  getItem: (key: string) => PlatformSecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) =>
-    PlatformSecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => PlatformSecureStore.deleteItemAsync(key),
+  getItem: (key: string) => SecureStore.getItemAsync(key),
+  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
 }));
 
 export const useDebugStore = create<DebugState & Actions>()(

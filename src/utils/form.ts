@@ -63,7 +63,7 @@ export const registerInput = ({
 };
 
 interface FormatMultiSelectionOptionsParams {
-  data: Array<{ tag: string }>;
+  data: { tag: string }[];
   t: TFunction;
 }
 

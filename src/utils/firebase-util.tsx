@@ -68,7 +68,7 @@ export async function registerFirebaseDeviceToken(): Promise<void> {
         model_name: Device.modelName,
       },
     });
-  } catch (_e) {
+  } catch {
     // ignore
   }
 }

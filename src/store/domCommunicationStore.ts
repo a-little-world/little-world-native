@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { DomCommunicationMessageFn } from '@/frontend/src';
+import type { DomCommunicationMessageFn } from '@/frontend/src';
 
 interface DomCommunicationState {
   sendToDom?: DomCommunicationMessageFn;

@@ -12,7 +12,6 @@ import * as Notifications from 'expo-notifications';
 
 import { useAuthStore } from '@/src/store/authStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
-import { useWebViewStore } from '@/src/store/webViewStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 import {
   ensureNotificationPermission,
@@ -33,22 +32,18 @@ function extractPath(data?: Record<string, unknown>): string | null {
   return typeof path === 'string' && path.startsWith('/') ? path : null;
 }
 
-// store path from notification in case webview is not ready yet
-let pendingPath: string | null = null;
-
 async function openPath(path: string | null) {
   if (!path) {
     return;
   }
-  if (!useWebViewStore.getState().ready) {
-    pendingPath = path;
-    return;
-  }
 
-  domCommunicationStore.get().sendToDom?.({
-    action: 'NAVIGATE',
-    payload: { path },
-  });
+  domCommunicationStore
+    .get()
+    .sendToDom?.({
+      action: 'NAVIGATE',
+      payload: { path },
+    })
+    .catch(error => console.warn('NAVIGATE from notification failed', error));
 }
 
 async function clearNotifications() {
@@ -57,19 +52,9 @@ async function clearNotifications() {
 }
 
 function FireBase() {
-  const webViewReady = useWebViewStore(state => state.ready);
   const accessToken = useAuthStore(state => state.accessToken);
   const [shouldRegisterToken, setShouldRegisterToken] = useState(false);
   const registeringRef = useRef(false);
-
-  useEffect(() => {
-    if (!webViewReady || !pendingPath) {
-      return;
-    }
-    const path = pendingPath;
-    pendingPath = null;
-    openPath(path);
-  }, [webViewReady]);
 
   useEffect(() => {
     if (!accessToken || !shouldRegisterToken || registeringRef.current) {
@@ -103,14 +88,17 @@ function FireBase() {
       if (!remoteMessage.notification) {
         return;
       }
-      domCommunicationStore.get().sendToDom?.({
-        action: 'DISPLAY_NOTIFICATION',
-        payload: {
-          title: remoteMessage.notification.title ?? undefined,
-          body: remoteMessage.notification.body ?? undefined,
-          path: extractPath(remoteMessage.data) ?? undefined,
-        },
-      });
+      domCommunicationStore
+        .get()
+        .sendToDom?.({
+          action: 'DISPLAY_NOTIFICATION',
+          payload: {
+            title: remoteMessage.notification.title ?? undefined,
+            body: remoteMessage.notification.body ?? undefined,
+            path: extractPath(remoteMessage.data) ?? undefined,
+          },
+        })
+        .catch(error => console.warn('DISPLAY_NOTIFICATION failed', error));
     });
 
     const openedUnsubscribe = onNotificationOpenedApp(
@@ -120,11 +108,6 @@ function FireBase() {
     getInitialNotification(messaging).then(remoteMessage =>
       openPath(extractPath(remoteMessage?.data)),
     );
-
-    const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener(response =>
-        openPath(extractPath(response.notification.request.content.data)),
-      );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
       setShouldRegisterToken(true),
@@ -141,7 +124,6 @@ function FireBase() {
     return () => {
       messageUnsubscribe();
       openedUnsubscribe();
-      responseSubscription.remove();
       tokenRefreshUnsubscribe();
       appStateSubscription.remove();
     };

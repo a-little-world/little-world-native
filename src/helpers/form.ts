@@ -1,9 +1,9 @@
+import { TFunction } from 'i18next';
 import {
   FieldValues,
   MultipleFieldErrors,
   UseFormRegister,
 } from 'react-hook-form';
-import { TFunction } from 'react-i18next';
 
 export const ROOT_SERVER_ERROR = 'root.serverError';
 const TRY_AGAIN_ERROR = 'validation.generic_try_again';
@@ -62,7 +62,7 @@ export const registerInput = ({
 };
 
 interface FormatMultiSelectionOptionsParams {
-  data: Array<{ tag: string }>;
+  data: { tag: string }[];
   t: TFunction;
 }
 

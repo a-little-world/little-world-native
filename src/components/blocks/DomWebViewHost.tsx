@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,14 +10,25 @@ import {
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
+import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
 
 import { useDomCommunicationContext } from './DomCommunicationCore';
-import LittleWorldWebLazy from './LittleWorldWebLazy';
+import LittleWorldWebLazy, { LittleWorldDomRef } from './LittleWorldWebLazy';
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
   const insets = useSafeAreaInsets();
+
+  // expo only creates the ref proxy while ref.current is null; a shared ref would keep
+  // pointing at an unmounted webview after a remount
+  const webViewRef = useRef<LittleWorldDomRef | null>(null);
+  useLayoutEffect(() => {
+    domRef.current = webViewRef.current;
+    return () => {
+      domRef.current = null;
+    };
+  }, [domRef]);
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -31,6 +42,8 @@ export default function DomWebViewHost() {
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     const onBack = () => {
+      // sendToDom would wait for the webview, back press must not
+      if (!useWebViewStore.getState().ready) return false;
       // Consume the event synchronously so react-navigation doesn't exit the
       // app, then decide asynchronously whether the WebView actually went back.
       sendToDom({ action: 'NAVIGATE_BACK', payload: {} })
@@ -64,7 +77,7 @@ export default function DomWebViewHost() {
   return (
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
-        ref={domRef}
+        ref={webViewRef}
         dom={{
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,

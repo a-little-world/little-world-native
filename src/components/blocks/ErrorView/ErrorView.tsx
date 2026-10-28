@@ -1,8 +1,6 @@
 import React from 'react';
 
-import styled, { css } from 'styled-components/native';
-
-import { getAppRoute } from '@/src/routes';
+import { css, styled } from 'styled-components/native';
 
 //import MessageCard from '@/components/blocks/Cards/MessageCard';
 //import AppLayout from '@/components/blocks/Layout/AppLayout';
