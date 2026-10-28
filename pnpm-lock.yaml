@@ -238,10 +238,10 @@ importers:
         specifier: 24.14.0
         version: 24.14.0(@types/node@24.19.2)(typescript@5.9.3)
       eslint:
-        specifier: ^9.39.5
+        specifier: 9.39.5
         version: 9.39.5
       eslint-config-expo:
-        specifier: ~55.0.1
+        specifier: 55.0.1
         version: 55.0.1(eslint@9.39.5)(typescript@5.9.3)
       metro-minify-terser:
         specifier: 0.83.3
@@ -4500,9 +4500,6 @@ packages:
 
   '@types/dom-mediacapture-record@1.0.22':
     resolution: {integrity: sha512-mUMZLK3NvwRLcAAT9qmcK+9p7tpU2FHdDsntR3YI4+GY88XrgG4XiE7u1Q2LAN2/FZOz/tdMDC3GQCR4T8nFuw==}
-
-  '@types/estree@1.0.8':
-    resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
@@ -11453,7 +11450,7 @@ snapshots:
   '@changesets/parse@0.4.3':
     dependencies:
       '@changesets/types': 6.1.0
-      js-yaml: 4.1.1
+      js-yaml: 4.3.2
 
   '@changesets/pre@2.0.2':
     dependencies:
@@ -12343,7 +12340,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.29.7
       chalk: 4.1.2
-      js-yaml: 4.1.1
+      js-yaml: 4.3.2
 
   '@firebase/ai@2.9.0(@firebase/app-types@0.9.3)(@firebase/app@0.14.9)':
     dependencies:
@@ -14960,7 +14957,7 @@ snapshots:
 
   '@rollup/pluginutils@5.4.0(rollup@4.63.1)':
     dependencies:
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.9
       estree-walker: 2.0.2
       picomatch: 4.0.3
     optionalDependencies:
@@ -15533,8 +15530,6 @@ snapshots:
       '@types/node': 24.19.2
 
   '@types/dom-mediacapture-record@1.0.22': {}
-
-  '@types/estree@1.0.8': {}
 
   '@types/estree@1.0.9': {}
 
