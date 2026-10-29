@@ -32,6 +32,16 @@ import {
 
 import { LittleWorldDomRef } from './LittleWorldWebLazy';
 
+// light icons over dark backgrounds; calls are always dark
+const systemBars = { darkTheme: false, inCall: false };
+const applySystemBarStyle = () => {
+  const style = systemBars.darkTheme || systemBars.inCall ? 'light' : 'dark';
+  setStatusBarStyle(style);
+  if (Platform.OS === 'android') {
+    NavigationBar.setStyle(style);
+  }
+};
+
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
   sendToReactNative: DomCommunicationMessageFn;
@@ -184,6 +194,8 @@ export function DomCommunicationProvider({
           };
         }
         case 'CALL_STATE_CHANGED': {
+          systemBars.inCall = payload.inCall;
+          applySystemBarStyle();
           if (payload.inCall) {
             await CallAudio.start();
           } else {
@@ -242,12 +254,8 @@ export function DomCommunicationProvider({
           }
         }
         case 'SET_THEME': {
-          const dark = message.payload.mode === 'dark';
-          // keep status and navigation bar readable
-          setStatusBarStyle(dark ? 'light' : 'dark');
-          if (Platform.OS === 'android') {
-            NavigationBar.setStyle(dark ? 'light' : 'dark');
-          }
+          systemBars.darkTheme = message.payload.mode === 'dark';
+          applySystemBarStyle();
           return { ok: true };
         }
         case 'CONSOLE_LOG': {
