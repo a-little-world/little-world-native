@@ -56,16 +56,37 @@ interface DomCommunicationProviderProps {
 
 const REQUEST_TIMEOUT = 10000;
 
-function waitForWebViewReady(action: string) {
+let activeSince = Date.now();
+AppState.addEventListener('change', state => {
+  if (state === 'active') activeSince = Date.now();
+});
+
+// timers and webview freeze while backgrounded (incl. android system dialogs): only count foreground time
+export function setForegroundTimeout(callback: () => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout>;
+  const start = () => {
+    const startedAt = Date.now();
+    timer = setTimeout(() => {
+      const now = Date.now();
+      if (
+        AppState.currentState !== 'active' ||
+        now - activeSince < ms ||
+        now - startedAt > ms * 2
+      ) {
+        start();
+        return;
+      }
+      callback();
+    }, ms);
+  };
+  start();
+  return () => clearTimeout(timer);
+}
+
+function waitForWebViewReady() {
   return new Promise<void>(resolve => {
-    const reportTimer = setTimeout(() => {
-      const message = `WebView not ready after ${(REQUEST_TIMEOUT * 2) / 1000}s`;
-      console.warn(message, action);
-      Sentry.captureMessage(message, { level: 'warning', tags: { action } });
-    }, REQUEST_TIMEOUT * 2);
     const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
       if (!ready) return;
-      clearTimeout(reportTimer);
       unsubscribe();
       resolve();
     });
@@ -91,7 +112,7 @@ export function DomCommunicationProvider({
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       if (!useWebViewStore.getState().ready) {
-        await waitForWebViewReady(message.action);
+        await waitForWebViewReady();
       }
       const handler = domRef.current?.sendMessageToDom;
       // should never happen: only if the webview unmounted without remounting
@@ -119,32 +140,20 @@ export function DomCommunicationProvider({
             message: messageWithId,
           });
 
-          const startTimeout = () => {
-            const startedAt = Date.now();
-            setTimeout(() => {
-              if (!pendingRequestsRef.current.has(requestId)) return;
-              // webview frozen while backgrounded/suspended; don't count that time
-              if (
-                AppState.currentState !== 'active' ||
-                Date.now() - startedAt > REQUEST_TIMEOUT * 2
-              ) {
-                startTimeout();
-                return;
-              }
-              const error = new Error(
-                `DOM bridge response timeout: ${message.action}`,
-              );
-              console.warn(error.message, requestId);
-              // payload omitted: may contain tokens
-              Sentry.captureException(error, {
-                tags: { action: message.action },
-                extra: { requestId },
-              });
-              pendingRequestsRef.current.delete(requestId);
-              reject(error);
-            }, REQUEST_TIMEOUT);
-          };
-          startTimeout();
+          setForegroundTimeout(() => {
+            if (!pendingRequestsRef.current.has(requestId)) return;
+            const error = new Error(
+              `DOM bridge response timeout: ${message.action}`,
+            );
+            console.warn(error.message, requestId);
+            // payload omitted: may contain tokens
+            Sentry.captureException(error, {
+              tags: { action: message.action },
+              extra: { requestId },
+            });
+            pendingRequestsRef.current.delete(requestId);
+            reject(error);
+          }, REQUEST_TIMEOUT);
         },
       );
       handler(messageWithId);

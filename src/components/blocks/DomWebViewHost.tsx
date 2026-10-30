@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
+import * as Sentry from '@sentry/react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -13,8 +14,13 @@ import { useAuthStore } from '@/src/store/authStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
 
-import { useDomCommunicationContext } from './DomCommunicationCore';
+import {
+  setForegroundTimeout,
+  useDomCommunicationContext,
+} from './DomCommunicationCore';
 import LittleWorldWebLazy, { LittleWorldDomRef } from './LittleWorldWebLazy';
+
+const READY_TIMEOUT = 20000;
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
@@ -29,6 +35,27 @@ export default function DomWebViewHost() {
       domRef.current = null;
     };
   }, [domRef]);
+
+  // measured from mount: native token refresh before mount must not count
+  const pageLoadedRef = useRef(false);
+  useEffect(() => {
+    if (useWebViewStore.getState().ready) return;
+    const cancel = setForegroundTimeout(() => {
+      const message = `WebView not ready after ${READY_TIMEOUT / 1000}s`;
+      console.warn(message);
+      Sentry.captureMessage(message, {
+        level: 'warning',
+        tags: { pageLoaded: pageLoadedRef.current },
+      });
+    }, READY_TIMEOUT);
+    const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
+      if (ready) cancel();
+    });
+    return () => {
+      cancel();
+      unsubscribe();
+    };
+  }, []);
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -84,6 +111,9 @@ export default function DomWebViewHost() {
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
+          onLoad: () => {
+            pageLoadedRef.current = true;
+          },
         }}
         sendToReactNative={sendToReactNative}
         apiFetchNative={fetcher}
