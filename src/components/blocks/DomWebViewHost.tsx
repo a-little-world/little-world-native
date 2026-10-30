@@ -36,7 +36,6 @@ export default function DomWebViewHost() {
     };
   }, [domRef]);
 
-  // measured from mount: native token refresh before mount must not count
   const pageLoadedRef = useRef(false);
   useEffect(() => {
     if (useWebViewStore.getState().ready) return;
