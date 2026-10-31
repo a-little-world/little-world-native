@@ -28,13 +28,13 @@ importers:
         version: 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@a-little-world/little-world-design-system-native':
         specifier: ^0.11.4
-        version: 0.11.4(b2d93cd6fb98514fcba473127f49cd7e)
+        version: 0.11.4(d51dcd57d8d80ea04f0a7d8708caafd9)
       '@a-little-world/little-world-frontend-shared':
         specifier: ^0.1.1
         version: 0.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/runtime':
-        specifier: ^7.29.10
-        version: 7.29.10
+        specifier: ^8.0.8
+        version: 8.0.10
       '@expo/app-integrity':
         specifier: ^0.1.10
         version: 0.1.10(expo@55.0.31)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))
@@ -233,7 +233,7 @@ importers:
         version: 19.3.0
       babel-preset-expo:
         specifier: 55.0.25
-        version: 55.0.25(@babel/core@7.29.7)(@babel/runtime@7.29.10)(expo@55.0.31)(react-refresh@0.14.2)
+        version: 55.0.25(@babel/core@7.29.7)(@babel/runtime@8.0.10)(expo@55.0.31)(react-refresh@0.14.2)
       eas-cli:
         specifier: 24.14.0
         version: 24.14.0(@types/node@24.19.2)(typescript@5.9.3)
@@ -1395,6 +1395,9 @@ packages:
     resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/runtime@8.0.10':
+    resolution: {integrity: sha512-0QyWQOIhl2onOgg96BuOYV+oCgLINVDPC8RkVPCiQhLILVqpefDUmcY+aAsW6vp7fcuTZL6SXXlFrSDCTFIu1w==}
+
   '@babel/template@7.29.7':
     resolution: {integrity: sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==}
     engines: {node: '>=6.9.0'}
@@ -1758,7 +1761,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@55.0.36':
     resolution: {integrity: sha512-jVMEXmxeUKXAzJdRWQer7fyogjPMYiTbrGOrlioJlwMuFqKfao3FeFInmATMNGLhNN01aBs/s6pnJKqiAdlUQg==}
@@ -7003,6 +7006,7 @@ packages:
   http-call@5.3.0:
     resolution: {integrity: sha512-ahwimsC23ICE4kPl9xTBjKB4inbRaeLyZeRunC/1Jy/Z6X8tv22MEAjK+KBOMSVLaqXPTTmd8638waVIKLGx2w==}
     engines: {node: '>=8.0.0'}
+    deprecated: Renamed to @heroku/http-call — please install @heroku/http-call instead.
 
   http-deceiver@1.2.7:
     resolution: {integrity: sha512-LmpOGxTfbpgtGVxJrj5k7asXHCgNZp5nLfp+hWc8QQRqtb7fUy6kRY3BO1h9ddF6yIPYUARgxGOwB42DnxIaNw==}
@@ -10144,10 +10148,10 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
       svgson: 5.3.1
 
-  '@a-little-world/little-world-design-system-native@0.11.4(b2d93cd6fb98514fcba473127f49cd7e)':
+  '@a-little-world/little-world-design-system-native@0.11.4(d51dcd57d8d80ea04f0a7d8708caafd9)':
     dependencies:
       '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 8.0.10
       '@react-navigation/native': 7.5.1(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
       '@rn-primitives/accordion': 1.2.0(@types/react@19.1.17)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
       '@rn-primitives/checkbox': 1.2.0(@types/react@19.1.17)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)
@@ -11252,6 +11256,8 @@ snapshots:
       - supports-color
 
   '@babel/runtime@7.29.10': {}
+
+  '@babel/runtime@8.0.10': {}
 
   '@babel/template@7.29.7':
     dependencies:
@@ -16334,6 +16340,39 @@ snapshots:
       - '@babel/core'
       - supports-color
 
+  babel-preset-expo@55.0.25(@babel/core@7.29.7)(@babel/runtime@8.0.10)(expo@55.0.31)(react-refresh@0.14.2):
+    dependencies:
+      '@babel/generator': 7.29.8
+      '@babel/helper-module-imports': 7.29.7
+      '@babel/plugin-proposal-decorators': 7.28.6(@babel/core@7.29.7)
+      '@babel/plugin-proposal-export-default-from': 7.27.1(@babel/core@7.29.7)
+      '@babel/plugin-syntax-export-default-from': 7.28.6(@babel/core@7.29.7)
+      '@babel/plugin-transform-class-static-block': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-export-namespace-from': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-flow-strip-types': 7.27.1(@babel/core@7.29.7)
+      '@babel/plugin-transform-modules-commonjs': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-object-rest-spread': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-parameters': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-private-methods': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-private-property-in-object': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-transform-runtime': 7.29.7(@babel/core@7.29.7)
+      '@babel/preset-react': 7.29.7(@babel/core@7.29.7)
+      '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
+      '@react-native/babel-preset': 0.83.10(@babel/core@7.29.7)
+      babel-plugin-react-compiler: 1.0.0
+      babel-plugin-react-native-web: 0.21.2
+      babel-plugin-syntax-hermes-parser: 0.32.1
+      babel-plugin-transform-flow-enums: 0.0.2(@babel/core@7.29.7)
+      debug: 4.4.3(supports-color@8.1.1)
+      react-refresh: 0.14.2
+      resolve-from: 5.0.0
+    optionalDependencies:
+      '@babel/runtime': 8.0.10
+      expo: 55.0.31(@babel/core@7.29.7)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.12)(expo-router@55.0.18)(react-dom@19.2.8(react@19.2.8))(react-native-webview@13.16.0(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(react-native-worklets@0.7.2(@babel/core@7.29.7)(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8))(react-native@0.83.4(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - supports-color
+
   babel-preset-jest@29.6.3(@babel/core@7.29.7):
     dependencies:
       '@babel/core': 7.29.7
@@ -20997,7 +21036,7 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.20.0)
       ajv-keywords: 5.1.0(ajv@8.20.0)
     optionalDependencies:
-      webpack: 5.112.2(postcss@8.4.49)(webpack-cli@5.1.4)
+      webpack: 5.112.2
 
   sdp-transform@2.15.0: {}
 
