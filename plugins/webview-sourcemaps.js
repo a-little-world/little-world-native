@@ -25,12 +25,6 @@ if (process.env.SENTRY_DISABLE_AUTO_UPLOAD !== 'true') {
     },
   });
   if (status !== 0) process.exit(status ?? 1);
-} else {
-  for (const file of fs.readdirSync(wwwDir, { recursive: true })) {
-    if (!file.endsWith('.map')) continue;
-    const { debugId } = JSON.parse(fs.readFileSync(path.join(wwwDir, file)));
-    console.log(`Skipping upload: ${file} (debug id ${debugId})`);
-  }
 }
 
 for (const file of fs.readdirSync(wwwDir, { recursive: true })) {
