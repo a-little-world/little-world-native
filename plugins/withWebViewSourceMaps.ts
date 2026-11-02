@@ -33,7 +33,9 @@ tasks.matching { it.name.startsWith("createBundle") && it.name.endsWith("JsAndAs
     def script = new File(rootDir.parentFile, "${SCRIPT}")
     task.doLast {
         def wwwDir = new File(bundleDir.get().asFile, "www.bundle")
-        def process = new ProcessBuilder("node", script.path, wwwDir.path, "${organization}", "${project}").inheritIO().start()
+        def process = new ProcessBuilder("node", script.path, wwwDir.path, "${organization}", "${project}").redirectErrorStream(true).start()
+        // inheritIO writes to the daemon's stdout, not the build log
+        process.inputStream.eachLine { logger.lifecycle(it) }
         if (process.waitFor() != 0) {
             throw new GradleException("Uploading webview source maps failed")
         }
