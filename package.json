@@ -136,15 +136,7 @@
         "react": "19.x",
         "react-dom": "19.x"
       }
-    },
-    "onlyBuiltDependencies": [
-      "@firebase/util",
-      "core-js",
-      "protobufjs",
-      "react-native-libsodium",
-      "@sentry/cli",
-      "@sentry/react-native"
-    ]
+    }
   },
   "expo": {
     "doctor": {
