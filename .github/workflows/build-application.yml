@@ -93,6 +93,13 @@ jobs:
           env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Set up JDK
+        if: env.BUILD_LOCALLY == 'true'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Build Android
         id: build
         shell: bash
