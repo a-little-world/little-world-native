@@ -111,7 +111,6 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     ['expo-navigation-bar', { barStyle: 'dark' }],
     'expo-font',
-    'expo-web-browser',
     [
       'expo-secure-store',
       {
