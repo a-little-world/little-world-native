@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -22,9 +23,23 @@ import {
   setForegroundTimeout,
   useDomCommunicationContext,
 } from './DomCommunicationCore';
-import LittleWorldWebLazy, { LittleWorldDomRef } from './LittleWorldWebLazy';
+import LittleWorldWebLazy, {
+  LittleWorldDomRef,
+  WebViewSentryConfig,
+} from './LittleWorldWebLazy';
 
 const READY_TIMEOUT = 20000;
+
+// same release/dist as the native sdk derives from the app binary
+const { version, ios, android } = Constants.expoConfig ?? {};
+const appId = Platform.OS === 'ios' ? ios?.bundleIdentifier : android?.package;
+const build = String(
+  Platform.OS === 'ios' ? ios?.buildNumber : android?.versionCode,
+);
+const sentryConfig: WebViewSentryConfig = {
+  release: `${appId}@${version}+${build}`,
+  dist: build,
+};
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
@@ -132,6 +147,7 @@ export default function DomWebViewHost() {
         safeBottom={insets.bottom}
         safeLeft={insets.left}
         safeRight={insets.right}
+        sentry={sentryConfig}
       />
     </View>
   );

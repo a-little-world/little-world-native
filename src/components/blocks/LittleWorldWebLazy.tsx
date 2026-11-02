@@ -2,9 +2,11 @@
 
 import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 
+import * as Sentry from '@sentry/react';
 import { JSONValue } from 'expo/build/dom/dom.types';
 import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
 
+import environmentNative from '@/environments/env';
 import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
@@ -18,6 +20,28 @@ import {
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
+}
+
+export interface WebViewSentryConfig {
+  release: string;
+  dist: string;
+}
+
+function initSentry(config: WebViewSentryConfig) {
+  if (!environmentNative.sentryUrl || Sentry.getClient()) return;
+  Sentry.init({
+    dsn: environmentNative.sentryUrl,
+    ...config,
+    sendDefaultPii: false,
+    // sessions are tracked by the native sdk
+    integrations: defaults =>
+      defaults.filter(({ name }) => name !== 'BrowserSession'),
+    initialScope: { tags: { source: 'webview' } },
+  });
+  // pre-boot forwarding (webViewErrors.ts) would report everything twice
+  (
+    window as { __lwStopErrorForwarding?: () => void }
+  ).__lwStopErrorForwarding?.();
 }
 
 const LittleWorldWebNative = lazy(() => {
@@ -50,8 +74,12 @@ export default function LittleWorldWebLazy(props: {
   safeBottom: number;
   safeLeft: number;
   safeRight: number;
+  sentry: WebViewSentryConfig;
   dom?: import('expo/dom').DOMProps;
 }) {
+  // during render: children's effects run before ours
+  initSentry(props.sentry);
+
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
   // Allow inner component to override how actions are handled
