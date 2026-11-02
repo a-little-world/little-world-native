@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
 } from 'react';
 import { AppState, Platform } from 'react-native';
 
@@ -83,6 +82,17 @@ export function setForegroundTimeout(callback: () => void, ms: number) {
   return () => clearTimeout(timer);
 }
 
+// module-level: waiters can outlive their provider (android activity recreated in same js runtime)
+const domRef: RefObject<LittleWorldDomRef | null> = { current: null };
+const pendingRequests = new Map<
+  string,
+  {
+    resolve: (value: DomCommunicationResponse) => void;
+    reject: (reason: any) => void;
+    message: JSONValue;
+  }
+>();
+
 function waitForWebViewReady() {
   return new Promise<void>(resolve => {
     const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
@@ -96,19 +106,6 @@ function waitForWebViewReady() {
 export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
-  const domRef = useRef<LittleWorldDomRef | null>(null);
-
-  const pendingRequestsRef = useRef<
-    Map<
-      string,
-      {
-        resolve: (value: DomCommunicationResponse) => void;
-        reject: (reason: any) => void;
-        message: JSONValue;
-      }
-    >
-  >(new Map());
-
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       if (!useWebViewStore.getState().ready) {
@@ -134,14 +131,14 @@ export function DomCommunicationProvider({
           message.requestId = requestId;
 
           // Store the promise resolvers
-          pendingRequestsRef.current.set(requestId, {
+          pendingRequests.set(requestId, {
             resolve,
             reject,
             message: messageWithId,
           });
 
           setForegroundTimeout(() => {
-            if (!pendingRequestsRef.current.has(requestId)) return;
+            if (!pendingRequests.has(requestId)) return;
             const error = new Error(
               `DOM bridge response timeout: ${message.action}`,
             );
@@ -151,7 +148,7 @@ export function DomCommunicationProvider({
               tags: { action: message.action },
               extra: { requestId },
             });
-            pendingRequestsRef.current.delete(requestId);
+            pendingRequests.delete(requestId);
             reject(error);
           }, REQUEST_TIMEOUT);
         },
@@ -207,7 +204,7 @@ export function DomCommunicationProvider({
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
           // new page (reload, remount, killed renderer): anything still pending never reached it
-          pendingRequestsRef.current.forEach(({ message: pending }) =>
+          pendingRequests.forEach(({ message: pending }) =>
             domRef.current?.sendMessageToDom(pending),
           );
           // Sync debug config — also handles WebView reloads where `ready` was already true
@@ -230,11 +227,11 @@ export function DomCommunicationProvider({
         case 'RESPONSE': {
           const requestId = message.requestId;
 
-          const pendingRequest = pendingRequestsRef.current.get(requestId);
+          const pendingRequest = pendingRequests.get(requestId);
 
           if (pendingRequest) {
             pendingRequest.resolve(payload);
-            pendingRequestsRef.current.delete(requestId);
+            pendingRequests.delete(requestId);
 
             return payload;
           } else {

@@ -33,6 +33,7 @@ export default function DomWebViewHost() {
     domRef.current = webViewRef.current;
     return () => {
       domRef.current = null;
+      useWebViewStore.setState({ ready: false });
     };
   }, [domRef]);
 
