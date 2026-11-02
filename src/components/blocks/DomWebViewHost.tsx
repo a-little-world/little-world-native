@@ -13,6 +13,10 @@ import {
 import { useAuthStore } from '@/src/store/authStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
+import {
+  handleWebViewErrorMessage,
+  webViewErrorScript,
+} from '@/src/utils/webViewErrors';
 
 import {
   setForegroundTimeout,
@@ -111,6 +115,8 @@ export default function DomWebViewHost() {
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
+          injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
+          onMessage: handleWebViewErrorMessage,
           onLoad: () => {
             pageLoadedRef.current = true;
           },
