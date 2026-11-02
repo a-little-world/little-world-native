@@ -147,7 +147,7 @@ jobs:
           mkdir -p release-artifacts
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "eas-build.${EXT}" "$URL"
 
-      - name: Sign universal APK from AAB
+      - name: Sign APKs from AAB
         if: steps.build.outputs.ext == 'aab'
         uses: ./.github/actions/build-signed-apk
         with:

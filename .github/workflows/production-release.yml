@@ -196,7 +196,7 @@ jobs:
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "$IOS_OUT" "$IOS_URL"
           ls -lh artifacts
 
-      - name: Build signed universal APK from the AAB
+      - name: Build signed APKs from the AAB
         uses: ./.github/actions/build-signed-apk
         with:
           aab-path: artifacts/little-world_${{ needs.build-ios.outputs.version }}-android.aab
