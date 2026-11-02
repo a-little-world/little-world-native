@@ -28,6 +28,7 @@ import LittleWorldWebLazy, {
   LittleWorldDomRef,
   WebViewSentryConfig,
 } from './LittleWorldWebLazy';
+import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
 
@@ -46,6 +47,7 @@ export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
   const insets = useSafeAreaInsets();
   const sentryUserId = useAppStore(s => s.user?.id ?? null);
+  const [crashed, setCrashed] = useState(false);
 
   // expo only creates the ref proxy while ref.current is null; a shared ref would keep
   // pointing at an unmounted webview after a remount
@@ -151,7 +153,17 @@ export default function DomWebViewHost() {
         safeRight={insets.right}
         sentry={sentryConfig}
         sentryUserId={sentryUserId}
+        onCrash={async () => setCrashed(true)}
       />
+      {crashed && (
+        <WebViewCrashScreen
+          onReload={() => {
+            setCrashed(false);
+            // the ref proxy forwards to the underlying WebView
+            (domRef.current as unknown as { reload(): void } | null)?.reload();
+          }}
+        />
+      )}
     </View>
   );
 }

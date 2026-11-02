@@ -85,6 +85,7 @@ export default function LittleWorldWebLazy(props: {
   safeRight: number;
   sentry: WebViewSentryConfig;
   sentryUserId: string | null;
+  onCrash: () => Promise<void>;
   dom?: import('expo/dom').DOMProps;
 }) {
   // during render: children's effects run before ours
@@ -150,14 +151,17 @@ export default function LittleWorldWebLazy(props: {
   >;
 
   return (
-    <LW
-      sendMessageToReactNative={props.sendToReactNative}
-      registerReceiveHandler={registerReceiveHandler}
-      apiFetchNative={props.apiFetchNative}
-      getAccessToken={props.getAccessToken}
-      setAccessTokens={props.setAccessTokens}
-      getInstallId={props.getInstallId}
-      hasStoredToken={props.hasStoredToken}
-    />
+    // native shows the crash screen
+    <Sentry.ErrorBoundary onError={() => props.onCrash()}>
+      <LW
+        sendMessageToReactNative={props.sendToReactNative}
+        registerReceiveHandler={registerReceiveHandler}
+        apiFetchNative={props.apiFetchNative}
+        getAccessToken={props.getAccessToken}
+        setAccessTokens={props.setAccessTokens}
+        getInstallId={props.getInstallId}
+        hasStoredToken={props.hasStoredToken}
+      />
+    </Sentry.ErrorBoundary>
   );
 }
