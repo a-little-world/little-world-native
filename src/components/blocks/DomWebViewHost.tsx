@@ -48,6 +48,7 @@ export default function DomWebViewHost() {
   const insets = useSafeAreaInsets();
   const sentryUserId = useAppStore(s => s.user?.id ?? null);
   const [crashed, setCrashed] = useState(false);
+  const [reloadCount, setReloadCount] = useState(0);
 
   // expo only creates the ref proxy while ref.current is null; a shared ref would keep
   // pointing at an unmounted webview after a remount
@@ -70,15 +71,18 @@ export default function DomWebViewHost() {
         level: 'warning',
         tags: { pageLoaded: pageLoadedRef.current },
       });
+      setCrashed(true);
     }, READY_TIMEOUT);
     const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
-      if (ready) cancel();
+      if (!ready) return;
+      cancel();
+      setCrashed(false);
     });
     return () => {
       cancel();
       unsubscribe();
     };
-  }, []);
+  }, [reloadCount]);
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -159,6 +163,7 @@ export default function DomWebViewHost() {
         <WebViewCrashScreen
           onReload={() => {
             setCrashed(false);
+            setReloadCount(count => count + 1);
             // the ref proxy forwards to the underlying WebView
             (domRef.current as unknown as { reload(): void } | null)?.reload();
           }}
