@@ -100,12 +100,17 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
         },
+        android: {
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+          // no R8 mapping upload to sentry, keep java stack traces readable
+          extraProguardRules: '-dontobfuscate',
+        },
       },
     ],
     'expo-router',
     ['expo-navigation-bar', { barStyle: 'dark' }],
     'expo-font',
-    'expo-web-browser',
     [
       'expo-secure-store',
       {
