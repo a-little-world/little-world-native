@@ -31,6 +31,8 @@ if (environmentNative.sentryUrl) {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1,
     enableTombstone: true,
+    enableMetricKit: true,
+    tracesSampleRate: 0.1,
     integrations: [Sentry.mobileReplayIntegration()],
   });
   // shared with the webview sdk to link its reports to this device
