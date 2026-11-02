@@ -292,8 +292,8 @@ importers:
         specifier: ^0.12.26
         version: 0.12.26(@firebase/app@0.14.13)
       '@livekit/components-react':
-        specifier: file:prebuild/livekit-components-react-2.9.22.tgz
-        version: file:frontend/prebuild/livekit-components-react-2.9.22.tgz(livekit-client@2.22.3(@types/dom-mediacapture-record@1.0.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)
+        specifier: file:prebuild/livekit-components-react-2.9.23.tgz
+        version: file:frontend/prebuild/livekit-components-react-2.9.23.tgz(livekit-client@2.22.3(@types/dom-mediacapture-record@1.0.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)
       '@livekit/components-styles':
         specifier: file:prebuild/livekit-components-styles-1.2.2.tgz
         version: file:frontend/prebuild/livekit-components-styles-1.2.2.tgz
@@ -2617,9 +2617,9 @@ packages:
       livekit-client: 2.22.3
       tslib: ^2.6.2
 
-  '@livekit/components-react@file:frontend/prebuild/livekit-components-react-2.9.22.tgz':
-    resolution: {integrity: sha512-giRUfzXZ6p3VFrJa4EZ6U3RJDUt91gdnCnc5nKW7GmPn9ZUncXkbRStD+s0SYOzbmgvKnZP7vOVbNHCXs40beg==, tarball: file:frontend/prebuild/livekit-components-react-2.9.22.tgz}
-    version: 2.9.22
+  '@livekit/components-react@file:frontend/prebuild/livekit-components-react-2.9.23.tgz':
+    resolution: {integrity: sha512-sXo4ej3M+aJ0uFOnQJbfe/t0MRuuIN8EM+zPLi5Jjkp60IsmQxnZnnGRp4I41cx7B9Ekf5NVoyxxGlDOziHK1A==, tarball: file:frontend/prebuild/livekit-components-react-2.9.23.tgz}
+    version: 2.9.23
     engines: {node: '>=18'}
     peerDependencies:
       '@livekit/krisp-noise-filter': ^0.2.12 || ^0.3.0 || ^0.4.0
@@ -12985,7 +12985,7 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.8.1
 
-  '@livekit/components-react@file:frontend/prebuild/livekit-components-react-2.9.22.tgz(livekit-client@2.22.3(@types/dom-mediacapture-record@1.0.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)':
+  '@livekit/components-react@file:frontend/prebuild/livekit-components-react-2.9.23.tgz(livekit-client@2.22.3(@types/dom-mediacapture-record@1.0.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)':
     dependencies:
       '@livekit/components-core': 0.12.15(livekit-client@2.22.3(@types/dom-mediacapture-record@1.0.22))(tslib@2.8.1)
       clsx: 2.1.1
