@@ -23,6 +23,7 @@ import { CallAudio } from '@/modules/call-audio';
 import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { appStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import {
   registerFirebaseDeviceToken,
@@ -246,6 +247,12 @@ export function DomCommunicationProvider({
               message,
             };
           }
+        }
+        case 'SET_USER': {
+          const user = payload.id ? { id: payload.id } : null;
+          Sentry.setUser(user);
+          appStore.set({ user });
+          return { ok: true };
         }
         case 'SET_THEME': {
           const dark = message.payload.mode === 'dark';

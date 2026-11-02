@@ -12,6 +12,7 @@ import {
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
+import { useAppStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
 import {
@@ -44,6 +45,7 @@ const sentryConfig: WebViewSentryConfig = {
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
   const insets = useSafeAreaInsets();
+  const sentryUserId = useAppStore(s => s.user?.id ?? null);
 
   // expo only creates the ref proxy while ref.current is null; a shared ref would keep
   // pointing at an unmounted webview after a remount
@@ -148,6 +150,7 @@ export default function DomWebViewHost() {
         safeLeft={insets.left}
         safeRight={insets.right}
         sentry={sentryConfig}
+        sentryUserId={sentryUserId}
       />
     </View>
   );

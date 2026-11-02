@@ -27,7 +27,10 @@ export interface WebViewSentryConfig {
   dist: string;
 }
 
-function initSentry(config: WebViewSentryConfig) {
+function initSentry(
+  config: WebViewSentryConfig,
+  getInstallId: () => Promise<string>,
+) {
   if (!environmentNative.sentryUrl || Sentry.getClient()) return;
   Sentry.init({
     dsn: environmentNative.sentryUrl,
@@ -43,6 +46,7 @@ function initSentry(config: WebViewSentryConfig) {
     ],
     initialScope: { tags: { source: 'webview' } },
   });
+  getInstallId().then(id => Sentry.setTag('install_id', id));
   // pre-boot forwarding (webViewErrors.ts) would report everything twice
   (
     window as { __lwStopErrorForwarding?: () => void }
@@ -80,10 +84,15 @@ export default function LittleWorldWebLazy(props: {
   safeLeft: number;
   safeRight: number;
   sentry: WebViewSentryConfig;
+  sentryUserId: string | null;
   dom?: import('expo/dom').DOMProps;
 }) {
   // during render: children's effects run before ours
-  initSentry(props.sentry);
+  initSentry(props.sentry, props.getInstallId);
+
+  useEffect(() => {
+    Sentry.setUser(props.sentryUserId ? { id: props.sentryUserId } : null);
+  }, [props.sentryUserId]);
 
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
