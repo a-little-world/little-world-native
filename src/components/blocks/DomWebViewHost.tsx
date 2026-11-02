@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -11,20 +12,43 @@ import {
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
+import { useAppStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
+import {
+  handleWebViewErrorMessage,
+  webViewErrorScript,
+} from '@/src/utils/webViewErrors';
 
 import {
   setForegroundTimeout,
   useDomCommunicationContext,
 } from './DomCommunicationCore';
-import LittleWorldWebLazy, { LittleWorldDomRef } from './LittleWorldWebLazy';
+import LittleWorldWebLazy, {
+  LittleWorldDomRef,
+  WebViewSentryConfig,
+} from './LittleWorldWebLazy';
+import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
+
+// same release/dist as the native sdk derives from the app binary
+const { version, ios, android } = Constants.expoConfig ?? {};
+const appId = Platform.OS === 'ios' ? ios?.bundleIdentifier : android?.package;
+const build = String(
+  Platform.OS === 'ios' ? ios?.buildNumber : android?.versionCode,
+);
+const sentryConfig: WebViewSentryConfig = {
+  release: `${appId}@${version}+${build}`,
+  dist: build,
+};
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
   const insets = useSafeAreaInsets();
+  const sentryUserId = useAppStore(s => s.user?.id ?? null);
+  const [crashed, setCrashed] = useState(false);
+  const [reloadCount, setReloadCount] = useState(0);
 
   // expo only creates the ref proxy while ref.current is null; a shared ref would keep
   // pointing at an unmounted webview after a remount
@@ -47,15 +71,18 @@ export default function DomWebViewHost() {
         level: 'warning',
         tags: { pageLoaded: pageLoadedRef.current },
       });
+      setCrashed(true);
     }, READY_TIMEOUT);
     const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
-      if (ready) cancel();
+      if (!ready) return;
+      cancel();
+      setCrashed(false);
     });
     return () => {
       cancel();
       unsubscribe();
     };
-  }, []);
+  }, [reloadCount]);
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -111,6 +138,8 @@ export default function DomWebViewHost() {
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
+          injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
+          onMessage: handleWebViewErrorMessage,
           onLoad: () => {
             pageLoadedRef.current = true;
           },
@@ -126,7 +155,20 @@ export default function DomWebViewHost() {
         safeBottom={insets.bottom}
         safeLeft={insets.left}
         safeRight={insets.right}
+        sentry={sentryConfig}
+        sentryUserId={sentryUserId}
+        onCrash={async () => setCrashed(true)}
       />
+      {crashed && (
+        <WebViewCrashScreen
+          onReload={() => {
+            setCrashed(false);
+            setReloadCount(count => count + 1);
+            // the ref proxy forwards to the underlying WebView
+            (domRef.current as unknown as { reload(): void } | null)?.reload();
+          }}
+        />
+      )}
     </View>
   );
 }
