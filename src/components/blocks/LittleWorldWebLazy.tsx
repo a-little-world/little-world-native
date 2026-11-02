@@ -33,9 +33,14 @@ function initSentry(config: WebViewSentryConfig) {
     dsn: environmentNative.sentryUrl,
     ...config,
     sendDefaultPii: false,
-    // sessions are tracked by the native sdk
-    integrations: defaults =>
-      defaults.filter(({ name }) => name !== 'BrowserSession'),
+    // native replays mask the webview
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1,
+    // release health sessions are tracked by the native sdk
+    integrations: defaults => [
+      ...defaults.filter(({ name }) => name !== 'BrowserSession'),
+      Sentry.replayIntegration(),
+    ],
     initialScope: { tags: { source: 'webview' } },
   });
   // pre-boot forwarding (webViewErrors.ts) would report everything twice
