@@ -14,4 +14,6 @@ const environmentNative: EnvironmentNative = {
   sentryUrl: undefined,
 };
 
+export const SENTRY_ORG = 'a-little-world-gug';
+
 export default environmentNative;
