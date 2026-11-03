@@ -10,7 +10,7 @@
         "EAS_USE_CACHE": "1"
       },
       "android": {
-        "image": "latest"
+        "image": "ubuntu-24.04-jdk-17-ndk-r27b-sdk-55"
       },
       "ios": {
         "image": "macos-tahoe-26.5-xcode-26.6"

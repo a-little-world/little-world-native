@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/a-little-world/little-world-native/compare/v1.3.0...v1.4.0) (2026-11-02)
+
+
+### Features
+
+* catch webview errors and add sentry to native webview ([#235](https://github.com/a-little-world/little-world-native/issues/235)) ([56d1404](https://github.com/a-little-world/little-world-native/commit/56d140431d0290f0fe65e1847dcd1738cdeedc67))
+
+
+### Bug Fixes
+
+* dom communication issues ([#231](https://github.com/a-little-world/little-world-native/issues/231)) ([4eac044](https://github.com/a-little-world/little-world-native/commit/4eac044695abc82793de9e7b4c4176c857cb591c))
+
 ## [1.3.0](https://github.com/a-little-world/little-world-native/compare/v1.2.3...v1.3.0) (2026-10-28)
 
 
