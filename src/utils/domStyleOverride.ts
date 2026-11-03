@@ -4,6 +4,11 @@ export const DOM_OVERRIDE_CSS = `
     height: 100% !important;
     width: 100% !important;
   }
+  /* fixed scroller breaks modal backdrop-filter in Android WebView */
+  #root > #router-outlet-wrapper {
+    position: static;
+    height: 100%;
+  }
 `;
 
 // Cal renders its booking modal as a <cal-modal-box> web component; the close

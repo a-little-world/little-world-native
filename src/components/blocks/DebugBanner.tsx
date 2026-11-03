@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f59e0b',
-    zIndex: 10000,
+    zIndex: 1,
   },
   text: { fontSize: 12, fontWeight: '600', color: '#000' },
 });
