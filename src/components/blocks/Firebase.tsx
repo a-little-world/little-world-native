@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
 import {
@@ -10,14 +10,9 @@ import {
 } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 
-import { useAuthStore } from '@/src/store/authStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
 import { useWebViewStore } from '@/src/store/webViewStore';
-import { registerInstallation } from '@/src/utils/firebase-util';
-import {
-  ensureNotificationPermission,
-  setUpNotificationChannels,
-} from '@/src/utils/notifications';
+import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -58,9 +53,6 @@ async function clearNotifications() {
 
 function FireBase() {
   const webViewReady = useWebViewStore(state => state.ready);
-  const accessToken = useAuthStore(state => state.accessToken);
-  const [shouldRegister, setShouldRegister] = useState(false);
-  const registeringRef = useRef(false);
 
   useEffect(() => {
     if (!webViewReady || !pendingPath) {
@@ -72,30 +64,7 @@ function FireBase() {
   }, [webViewReady]);
 
   useEffect(() => {
-    if (!accessToken || !shouldRegister || registeringRef.current) {
-      return;
-    }
-    registeringRef.current = true;
-    registerInstallation().finally(() => {
-      registeringRef.current = false;
-      setShouldRegister(false);
-    });
-  }, [accessToken, shouldRegister]);
-
-  useEffect(() => {
     const messaging = getMessaging();
-
-    (async () => {
-      try {
-        await setUpNotificationChannels();
-        if (!(await ensureNotificationPermission())) {
-          console.warn('[push] notification permission not granted');
-        }
-      } catch (error) {
-        console.error('[push] setup failed', error);
-      }
-      setShouldRegister(true);
-    })();
 
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
       if (!remoteMessage.notification) {
@@ -125,7 +94,7 @@ function FireBase() {
       );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
-      setShouldRegister(true),
+      registerFirebaseDeviceToken(),
     );
 
     // clear notificaitons upon app open
