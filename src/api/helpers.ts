@@ -410,7 +410,6 @@ export function getIntegrityCheckRequestData(
 
 const ACCESS_TOKEN_KEY = 'dom_auth_access_token';
 const REFRESH_TOKEN_KEY = 'dom_auth_refresh_token';
-const INTEGRITY_BYPASS_TOKEN_KEY = 'dom_auth_integrity_bypass_token';
 
 export async function getAccessJwtToken() {
   return SecureStore.getItemAsync(ACCESS_TOKEN_KEY).catch(() => null);
@@ -442,21 +441,11 @@ export async function clearJwtTokens() {
   await saveJwtTokens(null, null);
 }
 
-export async function getIntegrityBypassToken() {
-  return SecureStore.getItemAsync(INTEGRITY_BYPASS_TOKEN_KEY).catch(() => null);
-}
-
-export async function saveIntegrityBypassToken(token: string | null) {
-  await setOrDelete(INTEGRITY_BYPASS_TOKEN_KEY, token);
-}
-
 export async function loadStoredTokensIntoStore() {
   const accessToken = (await getAccessJwtToken()) ?? undefined;
   const refreshToken = (await getRefreshJwtToken()) ?? undefined;
-  const integrityBypassToken = await getIntegrityBypassToken();
 
   useAuthStore.setState({ accessToken, refreshToken });
-  useDebugStore.setState({ integrityBypassToken });
 
   scheduleTokenRefresh();
 
