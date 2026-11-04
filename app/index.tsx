@@ -25,8 +25,9 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       await loadStoredTokensIntoStore();
-      await refreshAccessTokens(); // also sets authStore tokenState
+      // webview loads in parallel; frontend waits on tokenState
       setTokensLoaded(true);
+      await refreshAccessTokens(); // also sets authStore tokenState
       mutate(IS_AUTHENTICATED_ENDPOINT);
     })();
   }, [setTokensLoaded]);

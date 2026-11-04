@@ -1,5 +1,5 @@
-name: Build signed universal APK
-description: Generate a universal APK from an AAB with bundletool and sign it with the provided keystore.
+name: Build signed APKs
+description: Generate a signed universal APK plus one per CPU architecture from an AAB with bundletool.
 
 inputs:
   aab-path:
@@ -7,7 +7,7 @@ inputs:
     description: Path to the input .aab
   apk-path:
     required: true
-    description: Path to write the signed universal .apk
+    description: Path of the signed universal .apk; per-ABI ones are written next to it as <name>-<abi>.apk
   keystore-base64:
     required: true
     description: Base64-encoded signing keystore
@@ -26,12 +26,12 @@ runs:
   using: composite
   steps:
     - name: Set up JDK (for bundletool)
-      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
       with:
         distribution: temurin
         java-version: '25'
 
-    - name: Build signed universal APK
+    - name: Build signed APKs
       shell: bash
       env:
         AAB_PATH: ${{ inputs.aab-path }}
@@ -62,7 +62,24 @@ runs:
           --ks-key-alias="$KEY_ALIAS" \
           --ks-pass="pass:${KEYSTORE_PASSWORD}" \
           --key-pass="pass:${KEYSTORE_PASSWORD}"
-        unzip -p app.apks universal.apk > "$APK_PATH"
-        rm -f release.keystore app.apks bundletool.jar
-        echo "SHA-256 fingerprint of the signing cert:"
-        keytool -printcert -jarfile "$APK_PATH" | grep -i "SHA256:" || true
+        unzip -p app.apks universal.apk > universal.apk
+        BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n1)"
+        ABIS=$(unzip -Z1 universal.apk 'lib/*' | cut -d/ -f2 | sort -u)
+        for abi in $ABIS; do
+          OUT="${APK_PATH%.apk}-${abi}.apk"
+          cp universal.apk stripped.apk
+          for other in $ABIS; do
+            [ "$other" = "$abi" ] || zip -qd stripped.apk "lib/$other/*"
+          done
+          "$BUILD_TOOLS/zipalign" -f -P 16 4 stripped.apk "$OUT"
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks release.keystore \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass "pass:${KEYSTORE_PASSWORD}" \
+            --key-pass "pass:${KEYSTORE_PASSWORD}" \
+            "$OUT"
+        done
+        mv universal.apk "$APK_PATH"
+        rm -f release.keystore app.apks bundletool.jar stripped.apk
+        ls -lh "$(dirname "$APK_PATH")"
+        "$BUILD_TOOLS/apksigner" verify --print-certs "$OUT" | grep -i "SHA-256" || true

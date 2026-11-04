@@ -1,14 +1,14 @@
 import {
   createContext,
   ReactNode,
-  Ref,
+  RefObject,
   useCallback,
   useContext,
   useEffect,
-  useRef,
 } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
+import * as Sentry from '@sentry/react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { JSONValue } from 'expo/build/dom/dom.types';
@@ -23,6 +23,7 @@ import { CallAudio } from '@/modules/call-audio';
 import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { appStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import {
   registerFirebaseDeviceToken,
@@ -34,7 +35,7 @@ import { LittleWorldDomRef } from './LittleWorldWebLazy';
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
   sendToReactNative: DomCommunicationMessageFn;
-  domRef: Ref<LittleWorldDomRef | null>;
+  domRef: RefObject<LittleWorldDomRef | null>;
 }
 
 const DomCommunicationContext =
@@ -53,51 +54,106 @@ interface DomCommunicationProviderProps {
   children: ReactNode;
 }
 
-const REQUEST_TIMEOUT = 5000;
+const REQUEST_TIMEOUT = 10000;
+
+let activeSince = Date.now();
+AppState.addEventListener('change', state => {
+  if (state === 'active') activeSince = Date.now();
+});
+
+// timers and webview freeze while backgrounded (incl. android system dialogs): only count foreground time
+export function setForegroundTimeout(callback: () => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout>;
+  const start = () => {
+    const startedAt = Date.now();
+    timer = setTimeout(() => {
+      const now = Date.now();
+      if (
+        AppState.currentState !== 'active' ||
+        now - activeSince < ms ||
+        now - startedAt > ms * 2
+      ) {
+        start();
+        return;
+      }
+      callback();
+    }, ms);
+  };
+  start();
+  return () => clearTimeout(timer);
+}
+
+// module-level: waiters can outlive their provider (android activity recreated in same js runtime)
+const domRef: RefObject<LittleWorldDomRef | null> = { current: null };
+const pendingRequests = new Map<
+  string,
+  {
+    resolve: (value: DomCommunicationResponse) => void;
+    reject: (reason: any) => void;
+    message: JSONValue;
+  }
+>();
+
+function waitForWebViewReady() {
+  return new Promise<void>(resolve => {
+    const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
+      if (!ready) return;
+      unsubscribe();
+      resolve();
+    });
+  });
+}
 
 export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
-  const domRef = useRef<LittleWorldDomRef | null>(null);
-
-  const pendingRequestsRef = useRef<
-    Map<
-      string,
-      {
-        resolve: (value: DomCommunicationResponse) => void;
-        reject: (reason: any) => void;
-      }
-    >
-  >(new Map());
-
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
+      if (!useWebViewStore.getState().ready) {
+        await waitForWebViewReady();
+      }
       const handler = domRef.current?.sendMessageToDom;
+      // should never happen: only if the webview unmounted without remounting
+      // or the page sent WEBVIEW_READY before registering its imperative handle
       if (!handler) {
+        console.warn('DOM bridge handler missing', message.action);
+        Sentry.captureMessage('DOM bridge handler missing', {
+          level: 'error',
+          tags: { action: message.action },
+        });
         return { ok: false, error: 'DomCommunicationCore DOM not ready' };
       }
 
       // Create a promise that will be resolved when the response comes via callback
       const requestId = uuid.v4();
+      const messageWithId: JSONValue = { ...message, requestId } as JSONValue;
       const responsePromise = new Promise<DomCommunicationResponse>(
         (resolve, reject) => {
           message.requestId = requestId;
 
           // Store the promise resolvers
-          pendingRequestsRef.current.set(requestId, { resolve, reject });
+          pendingRequests.set(requestId, {
+            resolve,
+            reject,
+            message: messageWithId,
+          });
 
-          // Set a timeout to reject the promise if no response comes
-          setTimeout(() => {
-            if (pendingRequestsRef.current.has(requestId)) {
-              console.info('request timeout for requesId', requestId, message);
-              pendingRequestsRef.current.delete(requestId);
-              reject('Response timeout');
-            }
+          setForegroundTimeout(() => {
+            if (!pendingRequests.has(requestId)) return;
+            const error = new Error(
+              `DOM bridge response timeout: ${message.action}`,
+            );
+            console.warn(error.message, requestId);
+            // payload omitted: may contain tokens
+            Sentry.captureException(error, {
+              tags: { action: message.action },
+              extra: { requestId },
+            });
+            pendingRequests.delete(requestId);
+            reject(error);
           }, REQUEST_TIMEOUT);
         },
       );
-      const messageWithId: JSONValue = { ...message, requestId } as JSONValue;
-
       handler(messageWithId);
 
       // Wait for the response to come via the callback
@@ -148,6 +204,10 @@ export function DomCommunicationProvider({
         }
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
+          // new page (reload, remount, killed renderer): anything still pending never reached it
+          pendingRequests.forEach(({ message: pending }) =>
+            domRef.current?.sendMessageToDom(pending),
+          );
           // Sync debug config — also handles WebView reloads where `ready` was already true
           const { debugEnabled, backendUrlOverride } = debugStore.get();
           await sendToDom({
@@ -168,21 +228,31 @@ export function DomCommunicationProvider({
         case 'RESPONSE': {
           const requestId = message.requestId;
 
-          const pendingRequest = pendingRequestsRef.current.get(requestId);
+          const pendingRequest = pendingRequests.get(requestId);
 
           if (pendingRequest) {
             pendingRequest.resolve(payload);
-            pendingRequestsRef.current.delete(requestId);
+            pendingRequests.delete(requestId);
 
             return payload;
           } else {
-            console.error('Received delayed dom response', message);
+            console.warn('Received delayed dom response', requestId);
+            Sentry.captureMessage('DOM bridge delayed response', {
+              level: 'warning',
+              extra: { requestId },
+            });
             return {
               ok: false,
               error: 'Could not find pending request for message',
               message,
             };
           }
+        }
+        case 'SET_USER': {
+          const user = payload.id ? { id: payload.id } : null;
+          Sentry.setUser(user);
+          appStore.set({ user });
+          return { ok: true };
         }
         case 'SET_THEME': {
           const dark = message.payload.mode === 'dark';
@@ -249,7 +319,7 @@ export function DomCommunicationProvider({
       await sendToDom({
         action: 'SET_DEBUG_CONFIG',
         payload: { debugEnabled, backendUrlOverride },
-      });
+      }).catch(error => console.warn('SET_DEBUG_CONFIG failed', error));
     };
 
     // Subscribe to future changes

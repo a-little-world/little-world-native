@@ -1,6 +1,9 @@
 // app/_layout.tsx
 // import * as SplashScreen from "expo-splash-screen";
 import environmentNative from '@/environments/env';
+import DebugBanner, {
+  InsetsProvider,
+} from '@/src/components/blocks/DebugBanner';
 import DebugPanel from '@/src/components/blocks/DebugPanel';
 import { DomCommunicationProvider } from '@/src/components/blocks/DomCommunicationCore';
 
@@ -13,6 +16,7 @@ import { CustomThemeProvider as NativeThemeProvider } from '@a-little-world/litt
 import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 
+import { getDeviceId } from '@/src/utils/device';
 import { loadFonts } from '@/src/utils/loadFonts';
 
 import 'react-native-reanimated';
@@ -26,8 +30,13 @@ if (environmentNative.sentryUrl) {
     enableLogs: true,
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1,
+    enableTombstone: true,
+    enableMetricKit: true,
+    tracesSampleRate: 0.1,
     integrations: [Sentry.mobileReplayIntegration()],
   });
+  // shared with the webview sdk to link its reports to this device
+  getDeviceId().then(id => Sentry.setTag('install_id', id));
 }
 
 // // 1) Prevent auto hide *before* rendering anything.
@@ -60,16 +69,19 @@ export default Sentry.wrap(function RootLayout() {
         <NativeThemeProvider>
           <DomCommunicationProvider>
             <DebugPanel />
-            {fontsLoaded && ( // start rendering as early as possible
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  // Back navigation gestures are handled inside the WebView
-                  // -> disable here so they are not consumed prematurely
-                  gestureEnabled: false,
-                }}
-              />
-            )}
+            <DebugBanner />
+            <InsetsProvider>
+              {fontsLoaded && ( // start rendering as early as possible
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    // Back navigation gestures are handled inside the WebView
+                    // -> disable here so they are not consumed prematurely
+                    gestureEnabled: false,
+                  }}
+                />
+              )}
+            </InsetsProvider>
           </DomCommunicationProvider>
         </NativeThemeProvider>
       </View>

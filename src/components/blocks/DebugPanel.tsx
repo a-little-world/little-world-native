@@ -16,17 +16,11 @@ import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
 
 import { environment } from '@/environment';
 import { CallAudio, type CallAudioDebugState } from '@/modules/call-audio';
-import {
-  apiFetch,
-  clearJwtTokens,
-  saveIntegrityBypassToken,
-  saveJwtTokens,
-} from '@/src/api/helpers';
+import { apiFetch, clearJwtTokens, saveJwtTokens } from '@/src/api/helpers';
 import {
   secureStoreIsAvailable,
   supportsAppIntegrity,
 } from '@/src/helpers/appInfos';
-import { decryptBypassToken } from '@/src/helpers/bypassToken';
 import { useAuthStore } from '@/src/store/authStore';
 import {
   debugStore,
@@ -288,8 +282,8 @@ const ROUTES = [
   { label: 'Sign Up', value: '/sign-up' },
   { label: 'Login', value: '/login' },
   { label: 'Profile', value: '/app/profile' },
-  { label: 'Settings', value: '/settings' },
-  { label: 'Help', value: '/help' },
+  { label: 'Settings', value: '/app/settings' },
+  { label: 'Help', value: '/app/help' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -377,11 +371,15 @@ export default function DebugPanel() {
 
   // Backend URL input
   const [urlInput, setUrlInput] = useState(() => getEffectiveBackendUrl());
+  const [bypassTokenInput, setBypassTokenInput] = useState(
+    () => debugStore.get().integrityBypassToken ?? '',
+  );
 
-  // Sync urlInput once the store finishes rehydrating from SecureStore
+  // Sync inputs once the store finishes rehydrating from SecureStore
   useEffect(() => {
     return useDebugStore.persist.onFinishHydration(state => {
       setUrlInput(state.backendUrlOverride ?? environment.backendUrl);
+      setBypassTokenInput(state.integrityBypassToken ?? '');
     });
   }, []);
 
@@ -438,6 +436,13 @@ export default function DebugPanel() {
     debugStore.set({ backendUrlOverride: null });
     setUrlInput(environment.backendUrl);
     result(`Backend URL reset to default`);
+  };
+
+  // ── Integrity bypass token ────────────────────────────────────────────────
+  const applyBypassToken = (token: string | null) => {
+    debugStore.set({ integrityBypassToken: token });
+    setBypassTokenInput(token ?? '');
+    result(token ? 'Bypass token set' : 'Bypass token cleared');
   };
 
   // ── Auth Tokens ───────────────────────────────────────────────────────────
@@ -554,18 +559,6 @@ export default function DebugPanel() {
       secretInput,
     );
     if (digest === DEVELOPER_SECRET_DIGEST) {
-      try {
-        const bypassToken = await decryptBypassToken(secretInput);
-        debugStore.get().setIntegrityBypassToken(bypassToken);
-        await saveIntegrityBypassToken(bypassToken);
-      } catch (e) {
-        debugStore.get().addReactError({
-          source: 'native',
-          message: 'Error during bypass token decryption',
-          stack: String(e),
-        });
-        console.error(e);
-      }
       debugStore.get().setDebugEnabled(true);
       setSecretDialogVisible(false);
       setVisible(true);
@@ -806,9 +799,32 @@ export default function DebugPanel() {
                     .setBypassIntegrityChecks(!bypassIntegrityChecks)
                 }
               />
-              <Text style={[styles.subLabel, { marginTop: 8 }]}>
-                Bypass token: {integrityBypassToken}
-              </Text>
+              <Row
+                label="Bypass token"
+                value={truncate(integrityBypassToken)}
+              />
+              <TextInput
+                style={styles.input}
+                value={bypassTokenInput}
+                onChangeText={setBypassTokenInput}
+                placeholder="Bypass token"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={styles.btnRow}>
+                <Btn
+                  label="Apply"
+                  onPress={() =>
+                    applyBypassToken(bypassTokenInput.trim() || null)
+                  }
+                  color="#007AFF"
+                />
+                <Btn
+                  label="Clear"
+                  onPress={() => applyBypassToken(null)}
+                  color="#6c757d"
+                />
+              </View>
             </Section>
 
             {/* ── DOM Communication ── */}

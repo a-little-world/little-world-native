@@ -23,27 +23,26 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// store path from notification in case webview is not ready yet
+let pendingPath: string | null = null;
+
 function extractPath(data?: Record<string, unknown>): string | null {
   const path = data?.path;
   return typeof path === 'string' && path.startsWith('/') ? path : null;
 }
 
-// store path from notification in case webview is not ready yet
-let pendingPath: string | null = null;
-
 async function openPath(path: string | null) {
   if (!path) {
     return;
   }
-  if (!useWebViewStore.getState().ready) {
-    pendingPath = path;
-    return;
-  }
 
-  domCommunicationStore.get().sendToDom?.({
-    action: 'NAVIGATE',
-    payload: { path },
-  });
+  domCommunicationStore
+    .get()
+    .sendToDom?.({
+      action: 'NAVIGATE',
+      payload: { path },
+    })
+    .catch(error => console.warn('NAVIGATE from notification failed', error));
 }
 
 async function clearNotifications() {
@@ -70,14 +69,17 @@ function FireBase() {
       if (!remoteMessage.notification) {
         return;
       }
-      domCommunicationStore.get().sendToDom?.({
-        action: 'DISPLAY_NOTIFICATION',
-        payload: {
-          title: remoteMessage.notification.title ?? undefined,
-          body: remoteMessage.notification.body ?? undefined,
-          path: extractPath(remoteMessage.data) ?? undefined,
-        },
-      });
+      domCommunicationStore
+        .get()
+        .sendToDom?.({
+          action: 'DISPLAY_NOTIFICATION',
+          payload: {
+            title: remoteMessage.notification.title ?? undefined,
+            body: remoteMessage.notification.body ?? undefined,
+            path: extractPath(remoteMessage.data) ?? undefined,
+          },
+        })
+        .catch(error => console.warn('DISPLAY_NOTIFICATION failed', error));
     });
 
     const openedUnsubscribe = onNotificationOpenedApp(
@@ -87,11 +89,6 @@ function FireBase() {
     getInitialNotification(messaging).then(remoteMessage =>
       openPath(extractPath(remoteMessage?.data)),
     );
-
-    const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener(response =>
-        openPath(extractPath(response.notification.request.content.data)),
-      );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
       registerFirebaseDeviceToken(),
@@ -108,7 +105,6 @@ function FireBase() {
     return () => {
       messageUnsubscribe();
       openedUnsubscribe();
-      responseSubscription.remove();
       tokenRefreshUnsubscribe();
       appStateSubscription.remove();
     };
