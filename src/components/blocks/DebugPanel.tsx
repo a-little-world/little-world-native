@@ -314,7 +314,9 @@ export default function DebugPanel() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const panResponder = useRef(
+  // refs only read in gesture callbacks
+  // eslint-disable-next-line react-hooks/refs
+  const [panResponder] = useState(() =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_evt, g) =>
@@ -331,7 +333,7 @@ export default function DebugPanel() {
         setDragOffset(next);
       },
     }),
-  ).current;
+  );
 
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>(() => ({
     appinfo: true,
