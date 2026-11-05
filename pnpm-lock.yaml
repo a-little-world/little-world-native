@@ -20,6 +20,9 @@ overrides:
   typescript: 5.9.3
 
 patchedDependencies:
+  '@expo/cli@57.0.33':
+    hash: 9db0fd5735a73cb7ba39bbfb2dcfd10aa71e2cf7152dc4ea3441cad0d6bcd7fa
+    path: patches/@expo__cli@57.0.33.patch
   react-native-webview@13.16.1:
     hash: d9cddf8371c495e268c9f4f43a908fc6f9eae13b6fdb982af16e93830be4b905
     path: patches/react-native-webview@13.16.1.patch
@@ -11437,7 +11440,7 @@ snapshots:
     dependencies:
       uuid: 8.3.2
 
-  '@expo/cli@57.0.33(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.18)(expo-constants@57.0.23)(expo-font@57.0.4)(expo-router@57.0.30)(expo@57.0.32)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
+  '@expo/cli@57.0.33(patch_hash=9db0fd5735a73cb7ba39bbfb2dcfd10aa71e2cf7152dc4ea3441cad0d6bcd7fa)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.18)(expo-constants@57.0.23)(expo-font@57.0.4)(expo-router@57.0.30)(expo@57.0.32)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
       '@expo/code-signing-certificates': 0.0.6
       '@expo/config': 57.0.11(typescript@5.9.3)
@@ -17252,7 +17255,7 @@ snapshots:
   expo@57.0.32(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.18)(expo-router@57.0.30)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native-webview@13.16.1(patch_hash=d9cddf8371c495e268c9f4f43a908fc6f9eae13b6fdb982af16e93830be4b905)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)(typescript@5.9.3):
     dependencies:
       '@babel/runtime': 7.29.10
-      '@expo/cli': 57.0.33(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.18)(expo-constants@57.0.23)(expo-font@57.0.4)(expo-router@57.0.30)(expo@57.0.32)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@expo/cli': 57.0.33(patch_hash=9db0fd5735a73cb7ba39bbfb2dcfd10aa71e2cf7152dc4ea3441cad0d6bcd7fa)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.18)(expo-constants@57.0.23)(expo-font@57.0.4)(expo-router@57.0.30)(expo@57.0.32)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@expo/config': 57.0.11(typescript@5.9.3)
       '@expo/config-plugins': 57.0.12(typescript@5.9.3)
       '@expo/devtools': 57.0.1(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)
