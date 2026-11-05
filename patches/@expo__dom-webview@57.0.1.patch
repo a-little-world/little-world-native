@@ -1,0 +1,14 @@
+diff --git a/android/src/main/java/expo/modules/webview/DomWebView.kt b/android/src/main/java/expo/modules/webview/DomWebView.kt
+index 125ad1db8dc4e099b689ac45b651f142b07c728c..9465e886a9c78d2000b06f17c072d9693197923a 100644
+--- a/android/src/main/java/expo/modules/webview/DomWebView.kt
++++ b/android/src/main/java/expo/modules/webview/DomWebView.kt
+@@ -212,7 +212,8 @@ internal class DomWebView(context: Context, appContext: AppContext) : ExpoView(c
+         view?.evaluateJavascript(INSTALL_GLOBALS_SCRIPT.replace("\"%%WEBVIEW_ID%%\"", webViewId.toString()), null)
+       }
+       this@DomWebView.injectedJSBeforeContentLoaded?.let { script ->
+-        view?.evaluateJavascript(script, null)
++        // LW-REPRO: simulate losing the onPageStarted injection race
++        view?.let { v -> v.postDelayed({ v.evaluateJavascript(script, null) }, 10000) }
+       }
+     }
+ 

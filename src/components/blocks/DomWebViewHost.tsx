@@ -133,8 +133,6 @@ export default function DomWebViewHost() {
       <LittleWorldWebLazy
         ref={webViewRef}
         dom={{
-          // expo's webview lacks onLoad, back gestures and media permission prompts
-          useExpoDOMWebView: false,
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,
           mediaPlaybackRequiresUserAction: false,
