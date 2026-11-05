@@ -37,13 +37,6 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     appleTeamId: '3Z662F5MW8',
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: './assets/images/icons/app.icon',
-    splash: {
-      image: './src/assets/images/splash-icon.png',
-      imageWidth: 200,
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
-      tabletImage: './src/assets/images/splash-icon.png',
-    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
@@ -85,13 +78,6 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './src/assets/images/favicon.png',
   },
-  splash: {
-    image: './src/assets/images/splash-icon.png',
-    imageWidth: 200,
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-    tabletImage: './src/assets/images/logo-image.png',
-  },
   plugins: [
     [
       'expo-build-properties',
@@ -109,7 +95,7 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-router',
-    ['expo-navigation-bar', { barStyle: 'dark' }],
+    ['expo-navigation-bar', { style: 'dark' }],
     'expo-font',
     [
       'expo-secure-store',
