@@ -10,9 +10,14 @@ const environmentNative: EnvironmentNative = {
   googleServiceInfoFileAndroid:
     './certs/google/google-services-development.json',
   appleEnvironment: 'development',
-  sentryProject: 'lw-development-native',
-  sentryUrl:
-    'https://4448ffc34284db3a044459b1ce4fcba8@o4506032071507968.ingest.us.sentry.io/4512380585115648',
+  // set in eas.json; locally opt in with EXPO_PUBLIC_SENTRY_ENABLED=true
+  ...(process.env.EXPO_PUBLIC_SENTRY_ENABLED === 'true'
+    ? {
+        sentryProject: 'lw-development-native',
+        sentryUrl:
+          'https://4448ffc34284db3a044459b1ce4fcba8@o4506032071507968.ingest.us.sentry.io/4512380585115648',
+      }
+    : {}),
 };
 
 export const SENTRY_ORG = 'a-little-world-gug';
