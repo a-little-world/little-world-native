@@ -11,8 +11,8 @@ const environmentNative: EnvironmentNative = {
     './certs/google/google-services-production.json',
   appleEnvironment: 'production',
   sentryProject: 'lw-prod-native',
-  sentryUrl:
-    'https://471ed1aed9372af87fa86d3eb7ee95c7@o4506032071507968.ingest.us.sentry.io/4511607774117888',
+  // LW-REPRO: sentry disabled
+  sentryUrl: undefined,
 };
 
 export default environmentNative;

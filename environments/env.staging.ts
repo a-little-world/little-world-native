@@ -9,8 +9,8 @@ const environmentNative: EnvironmentNative = {
   googleServiceInfoFileAndroid: './certs/google/google-services-staging.json',
   appleEnvironment: 'production',
   sentryProject: 'lw-staging-native',
-  sentryUrl:
-    'https://7e10fe05f019ff371532eacc968a552c@o4506032071507968.ingest.us.sentry.io/4511608020860928',
+  // LW-REPRO: sentry disabled
+  sentryUrl: undefined,
 };
 
 export default environmentNative;

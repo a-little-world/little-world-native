@@ -1,0 +1,16 @@
+diff --git a/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java b/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+index 80c68034b193a47bedb56ca527352de9548e8ac6..4b87fb69584e9cf9e623cc81f02c5abe2629331b 100644
+--- a/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
++++ b/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+@@ -309,6 +309,11 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+     }
+ 
+     public void callInjectedJavaScriptBeforeContentLoaded() {
++        // LW-REPRO: simulate losing the onPageStarted injection race
++        postDelayed(this::callInjectedJavaScriptBeforeContentLoadedNow, 10000);
++    }
++
++    private void callInjectedJavaScriptBeforeContentLoadedNow() {
+         if (getSettings().getJavaScriptEnabled() &&
+                 injectedJSBeforeContentLoaded != null &&
+                 !TextUtils.isEmpty(injectedJSBeforeContentLoaded)) {

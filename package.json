@@ -131,6 +131,9 @@
         "react": "19.x",
         "react-dom": "19.x"
       }
+    },
+    "patchedDependencies": {
+      "react-native-webview@13.16.0": "patches/react-native-webview@13.16.0.patch"
     }
   },
   "expo": {

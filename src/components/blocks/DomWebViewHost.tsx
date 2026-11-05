@@ -137,7 +137,8 @@ export default function DomWebViewHost() {
           allowsInlineMediaPlayback: true,
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
-          webviewDebuggingEnabled: __DEV__,
+          // LW-REPRO: inspectable in release builds
+          webviewDebuggingEnabled: true,
           injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
           onMessage: handleWebViewErrorMessage,
           onLoad: () => {

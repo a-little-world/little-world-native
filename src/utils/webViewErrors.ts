@@ -2,10 +2,19 @@ import * as Sentry from '@sentry/react-native';
 import type { WebViewMessageEvent } from 'react-native-webview';
 
 const WEBVIEW_ERROR = 'lw_webview_error';
+const WEBVIEW_INJECT = 'lw_webview_inject';
 
 // runs before the bundle so parse/boot errors are caught too;
 // an in-page error reporter can take over via window.__lwStopErrorForwarding()
 export const webViewErrorScript = `(function () {
+  // android injects asynchronously: metro's __r means the bundle already ran without this script
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: '${WEBVIEW_INJECT}',
+    data: {
+      late: typeof window.__r === 'function',
+      mounted: !!(document.getElementById('root') || {}).childElementCount,
+    },
+  }));
   var remaining = 20; // render loops would flood sentry
   function send(error, fallbackMessage, location) {
     if (remaining-- <= 0) return;
@@ -44,6 +53,16 @@ export function handleWebViewErrorMessage(event: WebViewMessageEvent) {
   try {
     message = JSON.parse(event.nativeEvent.data);
   } catch {
+    return;
+  }
+  if (message.type === WEBVIEW_INJECT) {
+    const { late = false, mounted = false } =
+      (message.data as { late?: boolean; mounted?: boolean } | undefined) ?? {};
+    (late ? console.warn : console.log)(
+      `WebView injected script late: ${late}, react mounted: ${mounted}`,
+    );
+    Sentry.setTag('webview.injectLate', late);
+    Sentry.setTag('webview.mountedAtInject', mounted);
     return;
   }
   if (message.type !== WEBVIEW_ERROR || !message.data) return;
