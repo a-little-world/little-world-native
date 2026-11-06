@@ -32,6 +32,7 @@ import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
 const MAX_INJECT_RETRIES = 5;
+const INJECT_TIMEOUT = 5000;
 
 // same release/dist as the native sdk derives from the app binary
 const { version, ios, android } = Constants.expoConfig ?? {};
@@ -66,15 +67,18 @@ export default function DomWebViewHost() {
   const remountWebView = () => setReloadCount(count => count + 1);
 
   const injectRetriesRef = useRef(0);
-  const onInjectLost = () => {
-    if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
-    injectRetriesRef.current += 1;
-    console.warn(
-      `WebView remount ${injectRetriesRef.current} after late inject`,
-    );
-    Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
-    remountWebView();
-  };
+  // expo reads its globals through the native bridge, so a late script alone doesn't break the page
+  const onInjectLost = () =>
+    setTimeout(() => {
+      if (useWebViewStore.getState().ready) return;
+      if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
+      injectRetriesRef.current += 1;
+      console.warn(
+        `WebView remount ${injectRetriesRef.current} after late inject`,
+      );
+      Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
+      remountWebView();
+    }, INJECT_TIMEOUT);
 
   const pageLoadedRef = useRef(false);
   useEffect(() => {

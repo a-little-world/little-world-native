@@ -77,7 +77,7 @@ export function handleWebViewErrorMessage(
     Sentry.setTag('webview.mountedAtInject', mounted);
     Sentry.setTag('webview.chrome', chromeVersion(userAgent));
     Sentry.setContext('webview', { userAgent });
-    // page booted without the host globals, it can't recover on its own
+    // page may have booted without its scripts
     if (late && !mounted) onInjectLost?.();
     return;
   }
