@@ -52,7 +52,10 @@ true;`;
 const chromeVersion = (userAgent?: string) =>
   userAgent?.match(/Chrome\/(\d+)/)?.[1];
 
-export function handleWebViewErrorMessage(event: WebViewMessageEvent) {
+export function handleWebViewErrorMessage(
+  event: WebViewMessageEvent,
+  onInjectLost?: () => void,
+) {
   let message: { type?: string; data?: Record<string, string | undefined> };
   try {
     message = JSON.parse(event.nativeEvent.data);
@@ -74,6 +77,8 @@ export function handleWebViewErrorMessage(event: WebViewMessageEvent) {
     Sentry.setTag('webview.mountedAtInject', mounted);
     Sentry.setTag('webview.chrome', chromeVersion(userAgent));
     Sentry.setContext('webview', { userAgent });
+    // page booted without the host globals, it can't recover on its own
+    if (late && !mounted) onInjectLost?.();
     return;
   }
   if (message.type !== WEBVIEW_ERROR || !message.data) return;

@@ -31,6 +31,7 @@ import LittleWorldWebLazy, {
 import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
+const MAX_INJECT_RETRIES = 2;
 
 // same release/dist as the native sdk derives from the app binary
 const { version, ios, android } = Constants.expoConfig ?? {};
@@ -60,6 +61,21 @@ export default function DomWebViewHost() {
       useWebViewStore.setState({ ready: false });
     };
   }, [domRef]);
+
+  const reloadWebView = () =>
+    // the ref proxy forwards to the underlying WebView
+    (domRef.current as unknown as { reload(): void } | null)?.reload();
+
+  const injectRetriesRef = useRef(0);
+  const onInjectLost = () => {
+    if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
+    injectRetriesRef.current += 1;
+    console.warn(
+      `WebView reload ${injectRetriesRef.current} after late inject`,
+    );
+    Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
+    reloadWebView();
+  };
 
   const pageLoadedRef = useRef(false);
   useEffect(() => {
@@ -139,7 +155,7 @@ export default function DomWebViewHost() {
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
           injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
-          onMessage: handleWebViewErrorMessage,
+          onMessage: event => handleWebViewErrorMessage(event, onInjectLost),
           onLoad: () => {
             pageLoadedRef.current = true;
           },
@@ -164,8 +180,8 @@ export default function DomWebViewHost() {
           onReload={() => {
             setCrashed(false);
             setReloadCount(count => count + 1);
-            // the ref proxy forwards to the underlying WebView
-            (domRef.current as unknown as { reload(): void } | null)?.reload();
+            injectRetriesRef.current = 0;
+            reloadWebView();
           }}
         />
       )}
