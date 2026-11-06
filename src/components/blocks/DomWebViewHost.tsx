@@ -31,6 +31,8 @@ import LittleWorldWebLazy, {
 import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
+const MAX_INJECT_RETRIES = 5;
+const INJECT_TIMEOUT = 5000;
 
 // same release/dist as the native sdk derives from the app binary
 const { version, ios, android } = Constants.expoConfig ?? {};
@@ -59,7 +61,24 @@ export default function DomWebViewHost() {
       domRef.current = null;
       useWebViewStore.setState({ ready: false });
     };
-  }, [domRef]);
+  }, [domRef, reloadCount]);
+
+  // remount instead of reload(): android's fallback injection lands in the outgoing page
+  const remountWebView = () => setReloadCount(count => count + 1);
+
+  const injectRetriesRef = useRef(0);
+  // expo reads its globals through the native bridge, so a late script alone doesn't break the page
+  const onInjectLost = () =>
+    setTimeout(() => {
+      if (useWebViewStore.getState().ready) return;
+      if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
+      injectRetriesRef.current += 1;
+      console.warn(
+        `WebView remount ${injectRetriesRef.current} after late inject`,
+      );
+      Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
+      remountWebView();
+    }, INJECT_TIMEOUT);
 
   const pageLoadedRef = useRef(false);
   useEffect(() => {
@@ -131,15 +150,18 @@ export default function DomWebViewHost() {
   return (
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
+        key={reloadCount}
         ref={webViewRef}
         dom={{
+          // expo's webview lacks onLoad, back gestures and media permission prompts
+          useExpoDOMWebView: false,
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
           injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
-          onMessage: handleWebViewErrorMessage,
+          onMessage: event => handleWebViewErrorMessage(event, onInjectLost),
           onLoad: () => {
             pageLoadedRef.current = true;
           },
@@ -163,9 +185,8 @@ export default function DomWebViewHost() {
         <WebViewCrashScreen
           onReload={() => {
             setCrashed(false);
-            setReloadCount(count => count + 1);
-            // the ref proxy forwards to the underlying WebView
-            (domRef.current as unknown as { reload(): void } | null)?.reload();
+            injectRetriesRef.current = 0;
+            remountWebView();
           }}
         />
       )}
