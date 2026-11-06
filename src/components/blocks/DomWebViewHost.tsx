@@ -31,7 +31,7 @@ import LittleWorldWebLazy, {
 import WebViewCrashScreen from './WebViewCrashScreen';
 
 const READY_TIMEOUT = 20000;
-const MAX_INJECT_RETRIES = 2;
+const MAX_INJECT_RETRIES = 5;
 
 // same release/dist as the native sdk derives from the app binary
 const { version, ios, android } = Constants.expoConfig ?? {};
