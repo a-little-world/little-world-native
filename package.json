@@ -1,7 +1,7 @@
 {
   "name": "little-world-app",
   "main": "expo-router/entry",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "scripts": {
     "start": "pnpm run frontend:setup && expo start --port 9000",
     "start:tunnel": "expo start --port 9000 --tunnel",
@@ -131,6 +131,9 @@
         "react": "19.x",
         "react-dom": "19.x"
       }
+    },
+    "patchedDependencies": {
+      "react-native-webview@13.16.0": "patches/react-native-webview@13.16.0.patch"
     }
   },
   "expo": {

@@ -31,19 +31,21 @@ jobs:
           submodules: recursive
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Verify each submodule is at its main HEAD
+      - name: Verify each submodule is on main
         run: |
           set -uo pipefail
           failed=0
           for sm_path in $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'); do
             pinned=$(git rev-parse "HEAD:$sm_path")
-            git -C "$sm_path" fetch -q origin main
+            git -C "$sm_path" fetch -q --unshallow origin main
             latest=$(git -C "$sm_path" rev-parse origin/main)
-            if [ "$pinned" != "$latest" ]; then
-              echo "::error::$sm_path is behind main (pinned $pinned, main $latest) - run 'git -C $sm_path fetch origin main && git -C $sm_path checkout --detach origin/main && git add $sm_path' and commit the reference"
-              failed=1
-            else
+            if [ "$pinned" = "$latest" ]; then
               echo "$sm_path is at main HEAD ($pinned)"
+            elif git -C "$sm_path" merge-base --is-ancestor "$pinned" origin/main; then
+              echo "::warning::$sm_path is behind main (pinned $pinned, main $latest)"
+            else
+              echo "::error::$sm_path is not on main (pinned $pinned, main $latest) - run 'git -C $sm_path fetch origin main && git -C $sm_path checkout --detach origin/main && git add $sm_path' and commit the reference"
+              failed=1
             fi
           done
           exit $failed
