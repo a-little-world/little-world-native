@@ -1,5 +1,8 @@
 'use dom';
 
+// must run before livekit and the frontend load
+import '@/src/utils/webViewPolyfills';
+
 import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 
 import * as Sentry from '@sentry/react';
