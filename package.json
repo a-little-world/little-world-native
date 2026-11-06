@@ -136,8 +136,7 @@
     },
     "patchedDependencies": {
       "react-native-webview@13.16.1": "patches/react-native-webview@13.16.1.patch",
-      "@expo/cli@57.0.33": "patches/@expo__cli@57.0.33.patch",
-      "@expo/dom-webview@57.0.1": "patches/@expo__dom-webview@57.0.1.patch"
+      "@expo/cli@57.0.33": "patches/@expo__cli@57.0.33.patch"
     }
   },
   "expo": {
