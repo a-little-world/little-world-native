@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/a-little-world/little-world-native/compare/v1.4.0...v1.4.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* webview timeout hotfix ([#251](https://github.com/a-little-world/little-world-native/issues/251)) ([da5c921](https://github.com/a-little-world/little-world-native/commit/da5c9218cb55853e31686c82fd1e39f1b3c247ad))
+
 ## [1.4.0](https://github.com/a-little-world/little-world-native/compare/v1.3.0...v1.4.0) (2026-11-02)
 
 
