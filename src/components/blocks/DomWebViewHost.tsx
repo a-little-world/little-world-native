@@ -60,21 +60,20 @@ export default function DomWebViewHost() {
       domRef.current = null;
       useWebViewStore.setState({ ready: false });
     };
-  }, [domRef]);
+  }, [domRef, reloadCount]);
 
-  const reloadWebView = () =>
-    // the ref proxy forwards to the underlying WebView
-    (domRef.current as unknown as { reload(): void } | null)?.reload();
+  // remount instead of reload(): android's fallback injection lands in the outgoing page
+  const remountWebView = () => setReloadCount(count => count + 1);
 
   const injectRetriesRef = useRef(0);
   const onInjectLost = () => {
     if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
     injectRetriesRef.current += 1;
     console.warn(
-      `WebView reload ${injectRetriesRef.current} after late inject`,
+      `WebView remount ${injectRetriesRef.current} after late inject`,
     );
     Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
-    reloadWebView();
+    remountWebView();
   };
 
   const pageLoadedRef = useRef(false);
@@ -147,6 +146,7 @@ export default function DomWebViewHost() {
   return (
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
+        key={reloadCount}
         ref={webViewRef}
         dom={{
           allowsBackForwardNavigationGestures: true,
@@ -179,9 +179,8 @@ export default function DomWebViewHost() {
         <WebViewCrashScreen
           onReload={() => {
             setCrashed(false);
-            setReloadCount(count => count + 1);
             injectRetriesRef.current = 0;
-            reloadWebView();
+            remountWebView();
           }}
         />
       )}
