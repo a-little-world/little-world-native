@@ -6,7 +6,7 @@ import 'tsx';
 import environmentNative, { SENTRY_ORG } from './environments/env';
 import withWebViewSourceMaps from './plugins/withWebViewSourceMaps';
 
-const APP_VERSION = '1.4.1'; // x-release-please-version
+const APP_VERSION = '1.5.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
