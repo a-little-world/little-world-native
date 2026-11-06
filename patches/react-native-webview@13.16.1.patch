@@ -1,11 +1,57 @@
 diff --git a/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java b/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
-index 80c68034b193a47bedb56ca527352de9548e8ac6..4b87fb69584e9cf9e623cc81f02c5abe2629331b 100644
+index 80c68034b193a47bedb56ca527352de9548e8ac6..5acb16159e49e30bfa3383074733014d5c40e85d 100644
 --- a/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
 +++ b/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
-@@ -309,6 +309,11 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+@@ -18,6 +18,7 @@ import android.webkit.WebViewClient;
+ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+ import androidx.webkit.JavaScriptReplyProxy;
++import androidx.webkit.ScriptHandler;
+ import androidx.webkit.WebMessageCompat;
+ import androidx.webkit.WebViewCompat;
+ import androidx.webkit.WebViewFeature;
+@@ -44,6 +45,7 @@ import com.reactnativecommunity.webview.events.TopMessageEvent;
+ import org.json.JSONException;
+ import org.json.JSONObject;
+ 
++import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+@@ -308,7 +310,41 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+         }
      }
  
++    private @Nullable ScriptHandler documentStartScriptHandler;
++    private @Nullable String documentStartScript;
++
++    // evaluateJavascript in onPageStarted races the page's own scripts; document start scripts don't
++    public void updateDocumentStartScript() {
++        if (!getSettings().getJavaScriptEnabled() ||
++                !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
++            return;
++        }
++        String script = "(function() {\n" +
++            (injectedJavaScriptBeforeContentLoadedForMainFrameOnly ? "if (window !== window.top) return;\n" : "") +
++            "window." + JAVASCRIPT_INTERFACE + " = window." + JAVASCRIPT_INTERFACE + " || {};\n" +
++            "window." + JAVASCRIPT_INTERFACE + ".injectedObjectJson = function () { return " +
++            (injectedJavaScriptObject == null ? "null" : JSONObject.quote(injectedJavaScriptObject)) + "; };\n" +
++            (TextUtils.isEmpty(injectedJSBeforeContentLoaded) ? "" : "(function() {\n" + injectedJSBeforeContentLoaded + ";\n})();\n") +
++            "})();";
++        if (script.equals(documentStartScript)) {
++            return;
++        }
++        if (documentStartScriptHandler != null) {
++            documentStartScriptHandler.remove();
++        }
++        documentStartScriptHandler = WebViewCompat.addDocumentStartJavaScript(this, script, Collections.singleton("*"));
++        documentStartScript = script;
++    }
++
      public void callInjectedJavaScriptBeforeContentLoaded() {
++        if (documentStartScriptHandler != null) {
++            return;
++        }
 +        // LW-REPRO: simulate losing the onPageStarted injection race
 +        postDelayed(this::callInjectedJavaScriptBeforeContentLoadedNow, 10000);
 +    }
@@ -14,3 +60,16 @@ index 80c68034b193a47bedb56ca527352de9548e8ac6..4b87fb69584e9cf9e623cc81f02c5abe
          if (getSettings().getJavaScriptEnabled() &&
                  injectedJSBeforeContentLoaded != null &&
                  !TextUtils.isEmpty(injectedJSBeforeContentLoaded)) {
+diff --git a/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+index f83033b3597a425da159555233bacce250ccfce0..ba2334236b749b647bf97d56a600b6d533ed50db 100644
+--- a/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
++++ b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+@@ -269,6 +269,8 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
+     }
+ 
+     fun onAfterUpdateTransaction(viewWrapper: RNCWebViewWrapper) {
++        // before loading the source so the first document gets it
++        viewWrapper.webView.updateDocumentStartScript()
+         mPendingSource?.let { source ->
+             loadSource(viewWrapper, source)
+         }
