@@ -37,7 +37,7 @@ jobs:
           failed=0
           for sm_path in $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'); do
             pinned=$(git rev-parse "HEAD:$sm_path")
-            git -C "$sm_path" fetch -q origin main
+            git -C "$sm_path" fetch -q --unshallow origin main
             latest=$(git -C "$sm_path" rev-parse origin/main)
             if [ "$pinned" = "$latest" ]; then
               echo "$sm_path is at main HEAD ($pinned)"
