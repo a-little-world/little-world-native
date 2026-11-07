@@ -100,7 +100,7 @@
     "babel-preset-expo": "57.0.17",
     "eas-cli": "24.14.0",
     "eslint": "9.39.5",
-    "eslint-config-expo": "57.0.2",
+    "eslint-config-expo": "58.0.4",
     "metro-minify-terser": "0.84.5",
     "prettier": "3.8.4",
     "react-dom": "19.2.8",
