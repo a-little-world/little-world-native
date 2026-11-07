@@ -64,7 +64,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",
-    "http-proxy-middleware": "^3.0.7",
+    "http-proxy-middleware": "^4.2.1",
     "i18next": "25.10.10",
     "js-cookie": "3.0.8",
     "livekit-client": "2.22.3",
