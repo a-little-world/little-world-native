@@ -5,6 +5,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -177,6 +178,28 @@ function Checkbox({
   );
 }
 
+const parseJson = (v: unknown) => {
+  if (typeof v !== 'string') return v;
+  try {
+    return JSON.parse(v);
+  } catch {
+    return v;
+  }
+};
+
+const shareRequest = (r: NetworkRequest) =>
+  Share.share({
+    message: JSON.stringify(
+      {
+        ...r,
+        requestBody: parseJson(r.requestBody),
+        responseBody: parseJson(r.responseBody),
+      },
+      null,
+      2,
+    ),
+  });
+
 function NetworkRequestItem({
   request,
   expanded,
@@ -200,6 +223,7 @@ function NetworkRequestItem({
     <TouchableOpacity
       style={[styles.errorItem, !failed && styles.requestItemOk]}
       onPress={onToggle}
+      onLongPress={() => shareRequest(request)}
     >
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
