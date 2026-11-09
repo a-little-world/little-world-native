@@ -364,7 +364,10 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     );
     return { platform: 'ios', keyId, challengeId, attestationObject };
   } catch (error) {
-    if (error !== 'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE') {
+    if (
+      (error as { code?: string })?.code !==
+      'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE'
+    ) {
       await SecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
     }
     throw new Error('Integrity check failed', { cause: error });
