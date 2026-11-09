@@ -7,9 +7,8 @@ import {
 // The sentry build plugin only uploads the main bundle's source maps, while expo also
 // embeds the DOM component (webview) bundles with their maps in the app. This hooks
 // webview-sourcemaps.js in right after bundling, before the app is packaged.
-// @expo/cli 57 no longer emits these maps, making this a no-op. On upgrade, replace
-// it with a CI step: maps from `expo export --source-maps`, the frontend chunk map's debugId
-// set to the shipped bundle's (only asset URLs differ), failing if IDs don't match the app.
+// @expo/cli 57 stopped emitting these maps; patches/@expo__cli@*.patch turns them back on.
+// `expo export --source-maps` is no substitute: its bundles get different debug IDs.
 
 type Props = { organization: string; project: string };
 

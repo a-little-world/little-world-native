@@ -1,5 +1,8 @@
 'use dom';
 
+// must run before livekit and the frontend load
+import '@/src/utils/webViewPolyfills';
+
 import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 
 import * as Sentry from '@sentry/react';
@@ -70,7 +73,10 @@ const LittleWorldWebNative = lazy(() => {
   - functions created inside this component are bundled and isolated from the rest of the native app:
       const fetcher = () => apiFetch will use an isolated version of apiFetch that has its own context, tokens, etc.
 */
-export default function LittleWorldWebLazy(props: {
+export default function LittleWorldWebLazy({
+  ref,
+  ...props
+}: {
   ref: Ref<LittleWorldDomRef>;
   sendToReactNative: DomCommunicationMessageFn;
   apiFetchNative: typeof apiFetch;
@@ -124,7 +130,7 @@ export default function LittleWorldWebLazy(props: {
     root.setProperty('--safe-right', `${props.safeRight}px`);
   }, [props.safeTop, props.safeBottom, props.safeLeft, props.safeRight]);
 
-  useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
+  useDOMImperativeHandle<LittleWorldDomRef>(ref, () => ({
     sendMessageToDom: (...args: JSONValue[]) => {
       if (
         args.length !== 1 ||

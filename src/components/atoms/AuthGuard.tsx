@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useRef } from 'react';
+import { ReactNode, useState } from 'react';
 
 import useSWR from 'swr';
 
@@ -21,18 +21,14 @@ function AuthGuard({ children }: { children: ReactNode }) {
   const { tokenState } = useAuthStore();
 
   // Store previous authenticated state to prevent flickering during loading/token refresh
-  const prevAuthenticatedRef = useRef<boolean>(false);
+  const [prevAuthenticated, setPrevAuthenticated] = useState(false);
+  const loading = isValidating || tokenState?.isRefreshing;
+  const current = Boolean(authenticated);
+  if (!loading && current !== prevAuthenticated) {
+    setPrevAuthenticated(current);
+  }
 
-  const isAuthenticated = useMemo(() => {
-    // During loading, maintain previous state
-    if (isValidating || tokenState?.isRefreshing) {
-      return prevAuthenticatedRef.current;
-    }
-
-    prevAuthenticatedRef.current = Boolean(authenticated);
-
-    return Boolean(authenticated);
-  }, [authenticated, isValidating, tokenState]);
+  const isAuthenticated = loading ? prevAuthenticated : current;
 
   return isAuthenticated ? children : null;
 }

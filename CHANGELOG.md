@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/a-little-world/little-world-native/compare/v1.4.1...v1.5.0) (2026-11-06)
+
+
+### Features
+
+* update expo sdk to 57 ([#256](https://github.com/a-little-world/little-world-native/issues/256)) ([810ea2e](https://github.com/a-little-world/little-world-native/commit/810ea2e48454e8e1c7f3ae60a2277012f04f20ba))
+
+
+### Bug Fixes
+
+* polyfill es2022 apis for old android webviews ([#257](https://github.com/a-little-world/little-world-native/issues/257)) ([28a5e2c](https://github.com/a-little-world/little-world-native/commit/28a5e2c201fc6e2fc0014a27c6e1b1436c6f6031))
+
 ## [1.4.1](https://github.com/a-little-world/little-world-native/compare/v1.4.0...v1.4.1) (2026-11-06)
 
 
