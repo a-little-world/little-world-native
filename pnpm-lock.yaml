@@ -18734,7 +18734,7 @@ snapshots:
 
   metro-runtime@0.84.5:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       flow-enums-runtime: 0.0.6
 
   metro-runtime@0.84.6:

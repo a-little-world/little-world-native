@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { environment } from '@/environment';
 import * as SecureStore from '@/src/helpers/secureStore';
 
-export type FetchError = {
+export type NetworkRequest = {
   id: string;
   timestamp: string;
   source: 'frontend' | 'native';
@@ -14,8 +14,15 @@ export type FetchError = {
   headers: Record<string, string>;
   requestBody: unknown;
   status?: number;
-  error: unknown;
+  durationMs?: number;
+  responseBody?: string;
+  error?: unknown;
 };
+
+const MAX_NETWORK_REQUESTS = 200;
+
+export const isFailedRequest = (r: NetworkRequest) =>
+  r.error != null || r.status == null || r.status >= 400;
 
 export type ReactError = {
   id: string;
@@ -32,7 +39,9 @@ type DebugState = {
   debugRefreshToken: string | null;
   bypassIntegrityChecks: boolean;
   integrityBypassToken: string | null;
-  fetchErrors: FetchError[];
+  logNetworkErrors: boolean;
+  logNetworkSuccesses: boolean;
+  networkRequests: NetworkRequest[];
   reactErrors: ReactError[];
 };
 
@@ -43,8 +52,8 @@ type Actions = {
   clearDebugTokens(): void;
   setBypassIntegrityChecks(enabled: boolean): void;
   setIntegrityBypassToken(token: string | null): void;
-  addFetchError(e: Omit<FetchError, 'id' | 'timestamp'>): void;
-  clearFetchErrors(): void;
+  addNetworkRequest(e: Omit<NetworkRequest, 'id' | 'timestamp'>): void;
+  clearNetworkRequests(failed: boolean): void;
   addReactError(e: Omit<ReactError, 'id' | 'timestamp'>): void;
   clearReactErrors(): void;
 };
@@ -67,7 +76,9 @@ export const useDebugStore = create<DebugState & Actions>()(
       debugRefreshToken: null,
       bypassIntegrityChecks: false,
       integrityBypassToken: null,
-      fetchErrors: [],
+      logNetworkErrors: true,
+      logNetworkSuccesses: false,
+      networkRequests: [],
       reactErrors: [],
       setDebugEnabled: enabled => set({ debugEnabled: enabled }),
       setBackendUrlOverride: url => set({ backendUrlOverride: url }),
@@ -78,14 +89,19 @@ export const useDebugStore = create<DebugState & Actions>()(
       setBypassIntegrityChecks: enabled =>
         set({ bypassIntegrityChecks: enabled }),
       setIntegrityBypassToken: token => set({ integrityBypassToken: token }),
-      addFetchError: e =>
+      addNetworkRequest: e =>
         set(s => ({
-          fetchErrors: [
+          networkRequests: [
             { ...e, id: newId(), timestamp: now() },
-            ...s.fetchErrors,
-          ],
+            ...s.networkRequests,
+          ].slice(0, MAX_NETWORK_REQUESTS),
         })),
-      clearFetchErrors: () => set({ fetchErrors: [] }),
+      clearNetworkRequests: failed =>
+        set(s => ({
+          networkRequests: s.networkRequests.filter(
+            r => isFailedRequest(r) !== failed,
+          ),
+        })),
       addReactError: e =>
         set(s => ({
           reactErrors: [
@@ -105,6 +121,8 @@ export const useDebugStore = create<DebugState & Actions>()(
         debugRefreshToken,
         bypassIntegrityChecks,
         integrityBypassToken,
+        logNetworkErrors,
+        logNetworkSuccesses,
       }) => ({
         debugEnabled,
         backendUrlOverride,
@@ -112,6 +130,8 @@ export const useDebugStore = create<DebugState & Actions>()(
         debugRefreshToken,
         bypassIntegrityChecks,
         integrityBypassToken,
+        logNetworkErrors,
+        logNetworkSuccesses,
       }),
     },
   ),
