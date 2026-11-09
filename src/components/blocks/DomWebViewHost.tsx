@@ -157,6 +157,8 @@ export default function DomWebViewHost() {
           useExpoDOMWebView: false,
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,
+          // insets come from the --safe-* vars; expo's 'automatic' would add them twice
+          contentInsetAdjustmentBehavior: 'never',
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,

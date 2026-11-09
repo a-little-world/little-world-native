@@ -83,6 +83,8 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
       'expo-build-properties',
       {
         ios: {
+          // webview css :has()
+          deploymentTarget: '16.4',
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
         },
