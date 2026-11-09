@@ -24,8 +24,9 @@ import {
 import { useAuthStore } from '@/src/store/authStore';
 import {
   debugStore,
-  FetchError,
   getEffectiveBackendUrl,
+  isFailedRequest,
+  NetworkRequest,
   ReactError,
   useDebugStore,
 } from '@/src/store/debugStore';
@@ -79,7 +80,7 @@ type SectionKey =
   | 'dom'
   | 'appinfo'
   | 'audio'
-  | 'fetchErrors'
+  | 'network'
   | 'reactErrors';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -176,17 +177,19 @@ function Checkbox({
   );
 }
 
-function FetchErrorItem({
-  error,
+function NetworkRequestItem({
+  request,
   expanded,
   onToggle,
 }: {
-  error: FetchError;
+  request: NetworkRequest;
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const time = error.timestamp.slice(11, 19); // HH:MM:SS from ISO
+  const time = request.timestamp.slice(11, 19); // HH:MM:SS from ISO
+  const failed = isFailedRequest(request);
   const fmt = (v: unknown) => {
+    if (typeof v === 'string') return v;
     try {
       return JSON.stringify(v, null, 2);
     } catch {
@@ -194,40 +197,61 @@ function FetchErrorItem({
     }
   };
   return (
-    <TouchableOpacity style={styles.errorItem} onPress={onToggle}>
+    <TouchableOpacity
+      style={[styles.errorItem, !failed && styles.requestItemOk]}
+      onPress={onToggle}
+    >
       <View style={styles.errorItemHeader}>
         <Text style={styles.errorTimestamp}>{time}</Text>
         <Text style={styles.errorSource}>
-          {error.source === 'native' ? 'N:' : 'F:'}
+          {request.source === 'native' ? 'N:' : 'F:'}
         </Text>
-        <Text style={styles.errorSummary} numberOfLines={1}>
-          {error.method} {error.endpoint}
-          {error.status != null ? ` → ${error.status}` : ''}
+        <Text
+          style={[styles.errorSummary, !failed && styles.requestSummaryOk]}
+          numberOfLines={1}
+        >
+          {request.method} {request.endpoint}
+          {request.status != null ? ` → ${request.status}` : ''}
+          {request.durationMs != null ? ` (${request.durationMs}ms)` : ''}
         </Text>
-        <Text style={styles.errorChevron}>{expanded ? '▾' : '▸'}</Text>
+        <Text style={[styles.errorChevron, !failed && styles.requestSummaryOk]}>
+          {expanded ? '▾' : '▸'}
+        </Text>
       </View>
       {expanded && (
-        <View style={styles.errorDetails}>
+        <View style={[styles.errorDetails, !failed && styles.requestDetailsOk]}>
           <Text style={styles.errorDetailLabel}>URL</Text>
-          <Text style={styles.errorDetailValue}>{error.url}</Text>
-          {error.status != null && (
+          <Text style={styles.errorDetailValue}>{request.url}</Text>
+          {request.status != null && (
             <>
               <Text style={styles.errorDetailLabel}>Status</Text>
-              <Text style={styles.errorDetailValue}>{error.status}</Text>
+              <Text style={styles.errorDetailValue}>{request.status}</Text>
             </>
           )}
           <Text style={styles.errorDetailLabel}>Headers</Text>
-          <Text style={styles.errorDetailValue}>{fmt(error.headers)}</Text>
-          {error.requestBody != null && (
+          <Text style={styles.errorDetailValue}>{fmt(request.headers)}</Text>
+          {request.requestBody != null && (
             <>
               <Text style={styles.errorDetailLabel}>Request Body</Text>
               <Text style={styles.errorDetailValue}>
-                {fmt(error.requestBody)}
+                {fmt(request.requestBody)}
               </Text>
             </>
           )}
-          <Text style={styles.errorDetailLabel}>Error</Text>
-          <Text style={styles.errorDetailValue}>{fmt(error.error)}</Text>
+          {request.responseBody != null && (
+            <>
+              <Text style={styles.errorDetailLabel}>Response Body</Text>
+              <Text style={styles.errorDetailValue}>
+                {request.responseBody}
+              </Text>
+            </>
+          )}
+          {request.error != null && (
+            <>
+              <Text style={styles.errorDetailLabel}>Error</Text>
+              <Text style={styles.errorDetailValue}>{fmt(request.error)}</Text>
+            </>
+          )}
         </View>
       )}
     </TouchableOpacity>
@@ -297,7 +321,9 @@ export default function DebugPanel() {
     debugRefreshToken,
     bypassIntegrityChecks,
     integrityBypassToken,
-    fetchErrors,
+    logNetworkErrors,
+    logNetworkSuccesses,
+    networkRequests,
     reactErrors,
   } = useDebugStore();
 
@@ -341,7 +367,7 @@ export default function DebugPanel() {
     tokens: false,
     dom: false,
     audio: false,
-    fetchErrors: false,
+    network: false,
     reactErrors: false,
   }));
 
@@ -890,30 +916,56 @@ export default function DebugPanel() {
               )}
             </Section>
 
-            {/* ── Fetch Errors ── */}
+            {/* ── Network ── */}
             <Section
-              title="Fetch Errors"
-              badge={fetchErrors.length}
-              expanded={expanded.fetchErrors}
-              onToggle={() => toggle('fetchErrors')}
+              title={`Network (${networkRequests.length})`}
+              badge={networkRequests.filter(isFailedRequest).length}
+              expanded={expanded.network}
+              onToggle={() => toggle('network')}
             >
-              {fetchErrors.length > 0 && (
-                <Btn
-                  label="Clear all"
-                  onPress={() => debugStore.get().clearFetchErrors()}
-                  color="#dc3545"
-                  small
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <Checkbox
+                  label="Log errors"
+                  checked={logNetworkErrors}
+                  onToggle={() =>
+                    debugStore.set({ logNetworkErrors: !logNetworkErrors })
+                  }
                 />
+                <Checkbox
+                  label="Log successes"
+                  checked={logNetworkSuccesses}
+                  onToggle={() =>
+                    debugStore.set({
+                      logNetworkSuccesses: !logNetworkSuccesses,
+                    })
+                  }
+                />
+              </View>
+              {networkRequests.length > 0 && (
+                <View style={styles.btnRow}>
+                  <Btn
+                    label="Clear errors"
+                    onPress={() => debugStore.get().clearNetworkRequests(true)}
+                    color="#dc3545"
+                    small
+                  />
+                  <Btn
+                    label="Clear successes"
+                    onPress={() => debugStore.get().clearNetworkRequests(false)}
+                    color="#28a745"
+                    small
+                  />
+                </View>
               )}
-              {fetchErrors.length === 0 ? (
-                <Text style={styles.emptyText}>No fetch errors</Text>
+              {networkRequests.length === 0 ? (
+                <Text style={styles.emptyText}>No network requests</Text>
               ) : (
-                fetchErrors.map(e => (
-                  <FetchErrorItem
-                    key={e.id}
-                    error={e}
-                    expanded={!!expandedErrors[e.id]}
-                    onToggle={() => toggleError(e.id)}
+                networkRequests.map(r => (
+                  <NetworkRequestItem
+                    key={r.id}
+                    request={r}
+                    expanded={!!expandedErrors[r.id]}
+                    onToggle={() => toggleError(r.id)}
                   />
                 ))
               )}
@@ -1068,7 +1120,7 @@ const styles = StyleSheet.create({
   rowValue: { fontSize: 11, color: '#333', fontFamily: 'monospace', flex: 1 },
   checkboxRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   checkboxBox: { fontSize: 16, marginRight: 6, color: '#333' },
-  checkboxLabel: { fontSize: 12, color: '#333', flex: 1 },
+  checkboxLabel: { fontSize: 12, color: '#333' },
 
   input: {
     borderWidth: 1,
@@ -1166,6 +1218,9 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   errorChevron: { fontSize: 11, color: '#c0392b', flexShrink: 0 },
+  requestItemOk: { borderColor: '#d0e8d0', backgroundColor: '#f8fff8' },
+  requestSummaryOk: { color: '#2e7d32' },
+  requestDetailsOk: { borderTopColor: '#d0e8d0' },
   errorDetails: {
     borderTopWidth: 1,
     borderTopColor: '#ffd0d0',

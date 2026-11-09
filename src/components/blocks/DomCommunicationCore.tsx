@@ -273,25 +273,11 @@ export function DomCommunicationProvider({
         }
         case 'LOG_ERROR': {
           if (debugStore.get().debugEnabled) {
-            const { payload } = message;
-            if (payload.type === 'react') {
-              debugStore.get().addReactError({
-                source: 'frontend',
-                message: payload.message,
-                stack: payload.stack,
-              });
-            } else {
-              debugStore.get().addFetchError({
-                source: 'frontend',
-                method: payload.method,
-                endpoint: payload.endpoint,
-                url: payload.url,
-                headers: payload.headers,
-                requestBody: payload.requestBody,
-                status: payload.status,
-                error: payload.error,
-              });
-            }
+            debugStore.get().addReactError({
+              source: 'frontend',
+              message: message.payload.message,
+              stack: message.payload.stack,
+            });
           }
           return { ok: true };
         }
