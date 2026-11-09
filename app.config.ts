@@ -84,7 +84,7 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
       {
         ios: {
           // webview css :has()
-          deploymentTarget: '15.4',
+          deploymentTarget: '16.4',
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
         },
