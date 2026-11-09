@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { environment } from '@/environment';
 import { CallAudio, type CallAudioDebugState } from '@/modules/call-audio';
@@ -337,6 +338,7 @@ const ROUTES = [
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function DebugPanel() {
+  const insets = useSafeAreaInsets();
   const { sendToDom } = useDomCommunicationContext();
   const { accessToken, refreshToken } = useAuthStore();
   const {
@@ -657,7 +659,10 @@ export default function DebugPanel() {
   return (
     <>
       <Pressable
-        style={styles.secretZone}
+        style={[
+          styles.secretZone,
+          { bottom: insets.bottom, right: insets.right },
+        ]}
         onPress={handleSecretTap}
         android_ripple={null}
       />
@@ -1055,8 +1060,6 @@ export default function DebugPanel() {
 const styles = StyleSheet.create({
   secretZone: {
     position: Platform.select({ web: 'fixed', default: 'absolute' }),
-    bottom: 0,
-    right: 0,
     width: 40,
     height: 40,
     zIndex: 1000,
