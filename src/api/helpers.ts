@@ -13,6 +13,7 @@ import type {
   IntegrityCheckRequestDataAndroid,
   IntegrityCheckRequestDataIOS,
   IntegrityCheckRequestDataWeb,
+  SerializedFormDataEntry,
 } from '@/frontend/src';
 
 import { IS_AUTHENTICATED_ENDPOINT } from '.';
@@ -47,6 +48,7 @@ export interface ApiFetchOptions {
   headers?: Record<string, string>;
   credentials?: RequestCredentials;
   useTagsOnly?: boolean;
+  formData?: SerializedFormDataEntry[];
 }
 
 interface ApiError extends Error {
@@ -140,6 +142,24 @@ async function debugFetch(
   }
 }
 
+function toFormData(entries: SerializedFormDataEntry[]): FormData {
+  const formData = new FormData();
+  entries.forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      formData.append(key, value);
+      return;
+    }
+    const { base64, name, type } = value;
+    // expo fetch encodes object parts via bytes()
+    formData.append(key, {
+      name,
+      type,
+      bytes: async () => Uint8Array.from(atob(base64), c => c.charCodeAt(0)),
+    } as any);
+  });
+  return formData;
+}
+
 async function apiFetchOnce<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
@@ -151,10 +171,10 @@ async function apiFetchOnce<T = any>(
 
   const {
     method = 'GET',
-    body,
     headers = {},
     credentials = 'same-origin',
     useTagsOnly = true,
+    formData,
   } = options;
 
   const defaultHeaders: Record<string, string> = {
@@ -184,6 +204,7 @@ async function apiFetchOnce<T = any>(
     credentials,
   };
 
+  const body = formData ? toFormData(formData) : options.body;
   if (body) {
     if (body instanceof FormData) {
       fetchOptions.body = body;
