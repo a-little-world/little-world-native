@@ -3,16 +3,19 @@ import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import { mutate } from 'swr';
+import useSWR, { mutate } from 'swr';
 
 import { IS_AUTHENTICATED_ENDPOINT } from '@/src/api';
 import {
+  apiFetch,
   loadStoredTokensIntoStore,
   refreshAccessTokens,
 } from '@/src/api/helpers';
 import DomWebViewHost from '@/src/components/blocks/DomWebViewHost';
 import FireBase from '@/src/components/blocks/Firebase';
 import { setupReactErrorTracking } from '@/src/store/debugStore';
+import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
+import { registerInstallation } from '@/src/utils/installation';
 
 setupReactErrorTracking();
 
@@ -28,6 +31,20 @@ export default function Page() {
       mutate(IS_AUTHENTICATED_ENDPOINT);
     })();
   }, [setTokensLoaded]);
+
+  const { data: isAuthenticated } = useSWR<boolean>(
+    tokensLoaded ? IS_AUTHENTICATED_ENDPOINT : null,
+    apiFetch,
+  );
+
+  useEffect(() => {
+    if (Platform.OS === 'web' || !isAuthenticated) {
+      return;
+    }
+    registerInstallation()
+      .then(registerFirebaseDeviceToken)
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
