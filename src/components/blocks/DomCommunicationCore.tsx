@@ -32,6 +32,16 @@ import {
 
 import { LittleWorldDomRef } from './LittleWorldWebLazy';
 
+// light icons over dark backgrounds; calls are always dark
+const systemBars = { darkTheme: false, inCall: false };
+const applySystemBarStyle = () => {
+  const style = systemBars.darkTheme || systemBars.inCall ? 'light' : 'dark';
+  setStatusBarStyle(style);
+  if (Platform.OS === 'android') {
+    NavigationBar.setStyle(style);
+  }
+};
+
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
   sendToReactNative: DomCommunicationMessageFn;
@@ -191,6 +201,8 @@ export function DomCommunicationProvider({
           };
         }
         case 'CALL_STATE_CHANGED': {
+          systemBars.inCall = payload.inCall;
+          applySystemBarStyle();
           if (payload.inCall) {
             await CallAudio.start();
           } else {
@@ -255,12 +267,8 @@ export function DomCommunicationProvider({
           return { ok: true };
         }
         case 'SET_THEME': {
-          const dark = message.payload.mode === 'dark';
-          // keep status and navigation bar readable
-          setStatusBarStyle(dark ? 'light' : 'dark');
-          if (Platform.OS === 'android') {
-            NavigationBar.setStyle(dark ? 'light' : 'dark');
-          }
+          systemBars.darkTheme = message.payload.mode === 'dark';
+          applySystemBarStyle();
           return { ok: true };
         }
         case 'CONSOLE_LOG': {
@@ -273,25 +281,11 @@ export function DomCommunicationProvider({
         }
         case 'LOG_ERROR': {
           if (debugStore.get().debugEnabled) {
-            const { payload } = message;
-            if (payload.type === 'react') {
-              debugStore.get().addReactError({
-                source: 'frontend',
-                message: payload.message,
-                stack: payload.stack,
-              });
-            } else {
-              debugStore.get().addFetchError({
-                source: 'frontend',
-                method: payload.method,
-                endpoint: payload.endpoint,
-                url: payload.url,
-                headers: payload.headers,
-                requestBody: payload.requestBody,
-                status: payload.status,
-                error: payload.error,
-              });
-            }
+            debugStore.get().addReactError({
+              source: 'frontend',
+              message: message.payload.message,
+              stack: message.payload.stack,
+            });
           }
           return { ok: true };
         }

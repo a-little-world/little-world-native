@@ -7,10 +7,11 @@
     "base": {
       "credentialsSource": "remote",
       "env": {
-        "EAS_USE_CACHE": "1"
+        "EAS_USE_CACHE": "1",
+        "EXPO_PUBLIC_SENTRY_ENABLED": "true"
       },
       "android": {
-        "image": "ubuntu-24.04-jdk-17-ndk-r27b-sdk-55"
+        "image": "ubuntu-26.04-jdk-17-ndk-r27b-sdk-57"
       },
       "ios": {
         "image": "macos-tahoe-26.5-xcode-26.6"

@@ -2,10 +2,20 @@ import * as Sentry from '@sentry/react-native';
 import type { WebViewMessageEvent } from 'react-native-webview';
 
 const WEBVIEW_ERROR = 'lw_webview_error';
+const WEBVIEW_INJECT = 'lw_webview_inject';
 
 // runs before the bundle so parse/boot errors are caught too;
 // an in-page error reporter can take over via window.__lwStopErrorForwarding()
 export const webViewErrorScript = `(function () {
+  // android injects asynchronously: metro's __r means the bundle already ran without this script
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: '${WEBVIEW_INJECT}',
+    data: {
+      late: typeof window.__r === 'function',
+      mounted: !!(document.getElementById('root') || {}).childElementCount,
+      userAgent: navigator.userAgent,
+    },
+  }));
   var remaining = 20; // render loops would flood sentry
   function send(error, fallbackMessage, location) {
     if (remaining-- <= 0) return;
@@ -39,11 +49,36 @@ export const webViewErrorScript = `(function () {
 })();
 true;`;
 
-export function handleWebViewErrorMessage(event: WebViewMessageEvent) {
+const chromeVersion = (userAgent?: string) =>
+  userAgent?.match(/Chrome\/(\d+)/)?.[1];
+
+export function handleWebViewErrorMessage(
+  event: WebViewMessageEvent,
+  onInjectLost?: () => void,
+) {
   let message: { type?: string; data?: Record<string, string | undefined> };
   try {
     message = JSON.parse(event.nativeEvent.data);
   } catch {
+    return;
+  }
+  if (message.type === WEBVIEW_INJECT) {
+    const {
+      late = false,
+      mounted = false,
+      userAgent,
+    } = (message.data as
+      | { late?: boolean; mounted?: boolean; userAgent?: string }
+      | undefined) ?? {};
+    (late ? console.warn : console.log)(
+      `WebView injected script late: ${late}, react mounted: ${mounted}`,
+    );
+    Sentry.setTag('webview.injectLate', late);
+    Sentry.setTag('webview.mountedAtInject', mounted);
+    Sentry.setTag('webview.chrome', chromeVersion(userAgent));
+    Sentry.setContext('webview', { userAgent });
+    // page may have booted without its scripts
+    if (late && !mounted) onInjectLost?.();
     return;
   }
   if (message.type !== WEBVIEW_ERROR || !message.data) return;
@@ -63,7 +98,7 @@ export function handleWebViewErrorMessage(event: WebViewMessageEvent) {
   Sentry.captureException(error, {
     tags: {
       source: 'webview',
-      'webview.chrome': userAgent?.match(/Chrome\/(\d+)/)?.[1],
+      'webview.chrome': chromeVersion(userAgent),
     },
     contexts: { webview: { userAgent } },
   });

@@ -1,0 +1,15 @@
+diff --git a/build/src/export/embed/exportEmbedAsync.js b/build/src/export/embed/exportEmbedAsync.js
+index 4f7938de971e5dc79c4de69b56a876e570737e37..fa56e3c6690ff6f05b776845f36661b839354030 100644
+--- a/build/src/export/embed/exportEmbedAsync.js
++++ b/build/src/export/embed/exportEmbedAsync.js
+@@ -340,8 +340,8 @@ async function exportEmbedBundleAndAssetsAsync(projectRoot, options) {
+                     dev: options.dev,
+                     devServer,
+                     isHermes,
+-                    // don't ship sourcemap in the www.bundle
+-                    includeSourceMaps: false,
++                    // emitted for upload, deleted before packaging (plugins/withWebViewSourceMaps.ts)
++                    includeSourceMaps: true,
+                     exp,
+                     files
+                 });

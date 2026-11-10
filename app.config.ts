@@ -6,7 +6,7 @@ import 'tsx';
 import environmentNative, { SENTRY_ORG } from './environments/env';
 import withWebViewSourceMaps from './plugins/withWebViewSourceMaps';
 
-const APP_VERSION = '1.4.0'; // x-release-please-version
+const APP_VERSION = '1.5.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
@@ -37,13 +37,6 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     appleTeamId: '3Z662F5MW8',
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: './assets/images/icons/app.icon',
-    splash: {
-      image: './src/assets/images/splash-icon.png',
-      imageWidth: 200,
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
-      tabletImage: './src/assets/images/splash-icon.png',
-    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
@@ -85,18 +78,13 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './src/assets/images/favicon.png',
   },
-  splash: {
-    image: './src/assets/images/splash-icon.png',
-    imageWidth: 200,
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-    tabletImage: './src/assets/images/logo-image.png',
-  },
   plugins: [
     [
       'expo-build-properties',
       {
         ios: {
+          // webview css :has()
+          deploymentTarget: '16.4',
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
         },
@@ -109,7 +97,7 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-router',
-    ['expo-navigation-bar', { barStyle: 'dark' }],
+    ['expo-navigation-bar', { style: 'dark' }],
     'expo-font',
     [
       'expo-secure-store',

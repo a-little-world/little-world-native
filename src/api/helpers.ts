@@ -22,8 +22,8 @@ import * as SecureStore from '../helpers/secureStore';
 import { authStore, useAuthStore } from '../store/authStore';
 import {
   debugStore,
-  FetchError,
   getEffectiveBackendUrl,
+  NetworkRequest,
   useDebugStore,
 } from '../store/debugStore';
 import { domCommunicationStore } from '../store/domCommunicationStore';
@@ -86,10 +86,64 @@ export const formatApiError = (responseBody: any, response: any) => {
   return apiError;
 };
 
+async function debugFetch(
+  endpoint: string,
+  init: RequestInit,
+  source: NetworkRequest['source'] = 'native',
+): Promise<Response> {
+  const url = `${getEffectiveBackendUrl()}${endpoint}`;
+  const { debugEnabled, logNetworkErrors, logNetworkSuccesses } =
+    debugStore.get();
+  if (!debugEnabled || (!logNetworkErrors && !logNetworkSuccesses)) {
+    return fetch(url, init);
+  }
+
+  const request = {
+    source,
+    method: init.method ?? 'GET',
+    endpoint,
+    url,
+    headers: (init.headers ?? {}) as Record<string, string>,
+    requestBody: init.body,
+  };
+  const start = Date.now();
+  try {
+    const response = await fetch(url, init);
+    if (response.status >= 400 ? logNetworkErrors : logNetworkSuccesses) {
+      debugStore.get().addNetworkRequest({
+        ...request,
+        status: response.status,
+        durationMs: Date.now() - start,
+        responseBody: await response
+          .clone()
+          .text()
+          .catch(() => undefined),
+      });
+    }
+    return response;
+  } catch (error: any) {
+    if (!logNetworkErrors) throw error;
+    debugStore.get().addNetworkRequest({
+      ...request,
+      durationMs: Date.now() - start,
+      error:
+        error instanceof TypeError
+          ? {
+              type: 'TypeError',
+              message: error.message,
+              details:
+                'Possible causes: Internet connection issues or CORS error',
+            }
+          : error,
+    });
+    throw error;
+  }
+}
+
 async function apiFetchOnce<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
-  source: FetchError['source'] = 'native',
+  source: NetworkRequest['source'] = 'native',
 ): Promise<T> {
   if (accessTokenRefresh) {
     await accessTokenRefresh;
@@ -141,10 +195,7 @@ async function apiFetchOnce<T = any>(
   }
 
   try {
-    const response = await fetch(
-      `${getEffectiveBackendUrl()}${endpoint}`,
-      fetchOptions,
-    );
+    const response = await debugFetch(endpoint, fetchOptions, source);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -164,37 +215,6 @@ async function apiFetchOnce<T = any>(
       return null as T;
     }
   } catch (error: any) {
-    if (debugStore.get().debugEnabled) {
-      if (error instanceof TypeError) {
-        debugStore.get().addFetchError({
-          source,
-          method,
-          endpoint,
-          url: `${getEffectiveBackendUrl()}${endpoint}`,
-          headers: fetchOptions.headers as Record<string, string>,
-          requestBody: body,
-          status: (error as any)?.status ?? 999,
-          error: {
-            type: 'TypeError',
-            message: error.message,
-            details:
-              'Possible causes: Internect connection issues or CORS error',
-          },
-        });
-      } else {
-        debugStore.get().addFetchError({
-          source,
-          method,
-          endpoint,
-          url: `${getEffectiveBackendUrl()}${endpoint}`,
-          headers: fetchOptions.headers as Record<string, string>,
-          requestBody: body,
-          status: (error as any)?.status,
-          error,
-        });
-      }
-    }
-
     throw error instanceof Error
       ? {
           message: error.message,
@@ -230,7 +250,7 @@ function isTokenError(error: TokenError | undefined | null): boolean {
 export async function apiFetch<T = any>(
   endpoint: string,
   options: ApiFetchOptions = {},
-  source: FetchError['source'] = 'native',
+  source: NetworkRequest['source'] = 'native',
 ): Promise<T> {
   try {
     const result = await apiFetchOnce<T>(endpoint, options, source);
@@ -344,7 +364,10 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     );
     return { platform: 'ios', keyId, challengeId, attestationObject };
   } catch (error) {
-    if (error !== 'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE') {
+    if (
+      (error as { code?: string })?.code !==
+      'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE'
+    ) {
       await SecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
     }
     throw new Error('Integrity check failed', { cause: error });
@@ -366,10 +389,10 @@ async function fetchIntegrityChallenge(): Promise<IntegrityChallenge> {
     headers['ngrok-skip-browser-warning'] = '69420';
   }
 
-  const response = await fetch(
-    `${getEffectiveBackendUrl()}/api/integrity/challenge`,
-    { method: 'POST', headers },
-  );
+  const response = await debugFetch('/api/integrity/challenge', {
+    method: 'POST',
+    headers,
+  });
 
   const responseBody = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -574,10 +597,8 @@ export async function refreshAccessTokens(force = false): Promise<TokenStatus> {
         }),
       };
 
-      const response = await fetch(
-        `${getEffectiveBackendUrl()}/api/token/refresh/${
-          integrityData.platform
-        }`,
+      const response = await debugFetch(
+        `/api/token/refresh/${integrityData.platform}`,
         fetchOptions,
       );
 
