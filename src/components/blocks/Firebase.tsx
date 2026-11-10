@@ -91,7 +91,7 @@ function FireBase() {
     );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
-      registerFirebaseDeviceToken(),
+      registerFirebaseDeviceToken().catch(() => {}),
     );
 
     // clear notificaitons upon app open
