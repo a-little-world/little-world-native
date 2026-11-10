@@ -138,7 +138,12 @@ export default function DomWebViewHost() {
   const fetcher = (endpoint: string, options: ApiFetchOptions = {}) =>
     apiFetch(endpoint, options, 'frontend');
 
-  const getAccessToken = async () => useAuthStore.getState().accessToken;
+  const getAccessToken = async () => {
+    // perform refresh in before returning stale tokens
+    // in case the app was suspended for a while
+    await refreshAccessTokens();
+    return useAuthStore.getState().accessToken;
+  };
 
   const setAccessTokens = async (
     accessToken: string | undefined | null,

@@ -133,7 +133,7 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
           ] satisfies NonNullable<ExpoConfig['plugins']>[number],
         ]
       : []),
-    '@react-native-firebase/app',
+    ['@react-native-firebase/app', { ios: { disableSPM: true } }],
     '@react-native-firebase/messaging',
   ],
   experiments: {

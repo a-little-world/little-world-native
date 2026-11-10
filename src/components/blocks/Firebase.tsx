@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
 import {
@@ -10,13 +10,9 @@ import {
 } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 
-import { useAuthStore } from '@/src/store/authStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { useWebViewStore } from '@/src/store/webViewStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
-import {
-  ensureNotificationPermission,
-  setUpNotificationChannels,
-} from '@/src/utils/notifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,6 +22,9 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+// store path from notification in case webview is not ready yet
+let pendingPath: string | null = null;
 
 function extractPath(data?: Record<string, unknown>): string | null {
   const path = data?.path;
@@ -52,37 +51,19 @@ async function clearNotifications() {
 }
 
 function FireBase() {
-  const accessToken = useAuthStore(state => state.accessToken);
-  const [shouldRegisterToken, setShouldRegisterToken] = useState(false);
-  const registeringRef = useRef(false);
+  const webViewReady = useWebViewStore(state => state.ready);
 
   useEffect(() => {
-    if (!accessToken || !shouldRegisterToken || registeringRef.current) {
+    if (!webViewReady || !pendingPath) {
       return;
     }
-    registeringRef.current = true;
-    registerFirebaseDeviceToken().finally(() => {
-      registeringRef.current = false;
-      setShouldRegisterToken(false);
-    });
-  }, [accessToken, shouldRegisterToken, setShouldRegisterToken]);
+    const path = pendingPath;
+    pendingPath = null;
+    openPath(path);
+  }, [webViewReady]);
 
   useEffect(() => {
     const messaging = getMessaging();
-
-    (async () => {
-      try {
-        await setUpNotificationChannels();
-        const granted = await ensureNotificationPermission();
-        if (!granted) {
-          console.warn('[push] notification permission not granted');
-          return;
-        }
-        setShouldRegisterToken(true);
-      } catch (error) {
-        console.error('[push] setup failed', error);
-      }
-    })();
 
     const messageUnsubscribe = onMessage(messaging, async remoteMessage => {
       if (!remoteMessage.notification) {
@@ -110,7 +91,7 @@ function FireBase() {
     );
 
     const tokenRefreshUnsubscribe = onTokenRefresh(messaging, () =>
-      setShouldRegisterToken(true),
+      registerFirebaseDeviceToken().catch(() => {}),
     );
 
     // clear notificaitons upon app open
