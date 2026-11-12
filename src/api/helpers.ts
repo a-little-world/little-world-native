@@ -285,8 +285,11 @@ const APP_INTEGRITY_KEY_ID_KEY = 'APP_INTEGRITY_KEY_ID';
 export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
   const { bypassIntegrityChecks, integrityBypassToken } =
     useDebugStore.getState();
-  if (bypassIntegrityChecks && integrityBypassToken) {
-    return bypassIntegrityCheck(integrityBypassToken);
+  const bypassToken =
+    environmentNative.integrityBypassToken ||
+    (bypassIntegrityChecks ? integrityBypassToken : null);
+  if (bypassToken) {
+    return bypassIntegrityCheck(bypassToken);
   }
 
   switch (Platform.OS) {
