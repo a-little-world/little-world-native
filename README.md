@@ -86,12 +86,12 @@ Beta and prod are independent tracks. A beta release does not touch `main` or bu
 
 1. Merge PRs with conventional titles. release-please keeps a **Release PR** open that bumps `APP_VERSION` in [`app.config.ts`](app.config.ts) and updates [`CHANGELOG.md`](CHANGELOG.md).
 2. Merge the Release PR. release-please tags the commit and publishes GitHub release `vX.Y.Z`.
-3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches a [signed APK](#verifying-the-android-apk) to the release and notifies Sentry.
+3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches the `.ipa`, `.aab` and a [signed APK](#verifying-the-android-apk) to the release and notifies Sentry.
 
 ### Beta
 
 1. **Actions -> Staging (Beta) Release -> Run workflow** on `main` ([`staging-release.yml`](.github/workflows/staging-release.yml)).
-2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches a signed APK to pre-release `vX.Y.Z-beta.<run>`.
+2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches the `.ipa`, `.aab` and a signed APK to pre-release `vX.Y.Z-beta.<run>`.
 
 Can be run any number of times between production releases.
 
@@ -109,6 +109,8 @@ Production and beta releases include a universal APK, built from the store AAB a
 ```bash
 apksigner verify --print-certs little-world_<version>-android.apk
 ```
+
+Beta APKs are named `little-world_<version>-beta-android.apk`.
 
 `Signer #1 certificate SHA-256 digest` must be:
 
