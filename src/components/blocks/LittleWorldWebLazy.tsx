@@ -1,17 +1,21 @@
 'use dom';
 
+// must run before livekit and the frontend load
+import '@/src/utils/webViewPolyfills';
+
 import React, { lazy, Ref, useCallback, useEffect, useRef } from 'react';
 
+import * as Sentry from '@sentry/react';
 import { JSONValue } from 'expo/build/dom/dom.types';
 import { DOMImperativeFactory, useDOMImperativeHandle } from 'expo/dom';
 
+import environmentNative from '@/environments/env';
 import type {
   DomCommunicationMessage,
   DomCommunicationMessageFn,
   LittleWorldWebNativeProps,
 } from '@/frontend/src';
 import { apiFetch, refreshAccessTokens, updateTokens } from '@/src/api/helpers';
-import { applyFontInjectionWithRetry } from '@/src/utils/domFontInjection';
 import {
   injectCalModalSafeAreaFix,
   injectDomStyleOverrides,
@@ -19,6 +23,37 @@ import {
 
 export interface LittleWorldDomRef extends DOMImperativeFactory {
   sendMessageToDom: (...args: JSONValue[]) => void;
+}
+
+export interface WebViewSentryConfig {
+  release: string;
+  dist: string;
+}
+
+function initSentry(
+  config: WebViewSentryConfig,
+  getInstallId: () => Promise<string>,
+) {
+  if (!environmentNative.sentryUrl || Sentry.getClient()) return;
+  Sentry.init({
+    dsn: environmentNative.sentryUrl,
+    ...config,
+    sendDefaultPii: false,
+    // native replays mask the webview
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1,
+    // release health sessions are tracked by the native sdk
+    integrations: defaults => [
+      ...defaults.filter(({ name }) => name !== 'BrowserSession'),
+      Sentry.replayIntegration(),
+    ],
+    initialScope: { tags: { source: 'webview' } },
+  });
+  getInstallId().then(id => Sentry.setTag('install_id', id));
+  // pre-boot forwarding (webViewErrors.ts) would report everything twice
+  (
+    window as { __lwStopErrorForwarding?: () => void }
+  ).__lwStopErrorForwarding?.();
 }
 
 const LittleWorldWebNative = lazy(() => {
@@ -38,7 +73,10 @@ const LittleWorldWebNative = lazy(() => {
   - functions created inside this component are bundled and isolated from the rest of the native app:
       const fetcher = () => apiFetch will use an isolated version of apiFetch that has its own context, tokens, etc.
 */
-export default function LittleWorldWebLazy(props: {
+export default function LittleWorldWebLazy({
+  ref,
+  ...props
+}: {
   ref: Ref<LittleWorldDomRef>;
   sendToReactNative: DomCommunicationMessageFn;
   apiFetchNative: typeof apiFetch;
@@ -51,8 +89,18 @@ export default function LittleWorldWebLazy(props: {
   safeBottom: number;
   safeLeft: number;
   safeRight: number;
+  sentry: WebViewSentryConfig;
+  sentryUserId: string | null;
+  onCrash: () => Promise<void>;
   dom?: import('expo/dom').DOMProps;
 }) {
+  // during render: children's effects run before ours
+  initSentry(props.sentry, props.getInstallId);
+
+  useEffect(() => {
+    Sentry.setUser(props.sentryUserId ? { id: props.sentryUserId } : null);
+  }, [props.sentryUserId]);
+
   const domReceiveHandlerRef = useRef<DomCommunicationMessageFn | null>(null);
 
   // Allow inner component to override how actions are handled
@@ -63,15 +111,13 @@ export default function LittleWorldWebLazy(props: {
     [],
   );
 
-  // Inject CSS to override #root display property and fonts
+  // Inject CSS to override #root display property
   useEffect(() => {
     const cleanupRoot = injectDomStyleOverrides();
-    const cleanupFonts = applyFontInjectionWithRetry();
     const cleanupCalModal = injectCalModalSafeAreaFix();
 
     return () => {
       cleanupRoot();
-      cleanupFonts();
       cleanupCalModal();
     };
   }, []);
@@ -84,7 +130,7 @@ export default function LittleWorldWebLazy(props: {
     root.setProperty('--safe-right', `${props.safeRight}px`);
   }, [props.safeTop, props.safeBottom, props.safeLeft, props.safeRight]);
 
-  useDOMImperativeHandle<LittleWorldDomRef>(props.ref, () => ({
+  useDOMImperativeHandle<LittleWorldDomRef>(ref, () => ({
     sendMessageToDom: (...args: JSONValue[]) => {
       if (
         args.length !== 1 ||
@@ -111,14 +157,17 @@ export default function LittleWorldWebLazy(props: {
   >;
 
   return (
-    <LW
-      sendMessageToReactNative={props.sendToReactNative}
-      registerReceiveHandler={registerReceiveHandler}
-      apiFetchNative={props.apiFetchNative}
-      getAccessToken={props.getAccessToken}
-      setAccessTokens={props.setAccessTokens}
-      getInstallId={props.getInstallId}
-      hasStoredToken={props.hasStoredToken}
-    />
+    // native shows the crash screen
+    <Sentry.ErrorBoundary onError={() => props.onCrash()}>
+      <LW
+        sendMessageToReactNative={props.sendToReactNative}
+        registerReceiveHandler={registerReceiveHandler}
+        apiFetchNative={props.apiFetchNative}
+        getAccessToken={props.getAccessToken}
+        setAccessTokens={props.setAccessTokens}
+        getInstallId={props.getInstallId}
+        hasStoredToken={props.hasStoredToken}
+      />
+    </Sentry.ErrorBoundary>
   );
 }

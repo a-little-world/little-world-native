@@ -93,6 +93,17 @@ jobs:
           env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Set up JDK
+        if: env.BUILD_LOCALLY == 'true'
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Disable Sentry source map upload
+        if: github.event_name == 'workflow_dispatch'
+        run: jq --arg p "$PROFILE" '.build[$p].env.SENTRY_DISABLE_AUTO_UPLOAD = "true"' eas.json > eas.tmp && mv eas.tmp eas.json
+
       - name: Build Android
         id: build
         shell: bash
@@ -136,7 +147,7 @@ jobs:
           mkdir -p release-artifacts
           curl -fL --retry 5 --retry-all-errors --retry-delay 15 --connect-timeout 30 --max-time 1800 -o "eas-build.${EXT}" "$URL"
 
-      - name: Sign universal APK from AAB
+      - name: Sign APKs from AAB
         if: steps.build.outputs.ext == 'aab'
         uses: ./.github/actions/build-signed-apk
         with:
@@ -209,7 +220,7 @@ jobs:
       (github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
         contains(github.event.pull_request.labels.*.name, 'build-ios')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.buildIos == 'true')
-    runs-on: ${{ github.event.inputs.buildLocally == 'true' && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ github.event.inputs.buildLocally == 'true' && 'macos-26' || 'ubuntu-latest' }}
     concurrency:
       group: staging-build-ios-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
@@ -254,6 +265,15 @@ jobs:
           env-file: ${{ steps.envfile.outputs.name }}
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
+      # keep in sync with ios.image in eas.json
+      - name: Select Xcode
+        if: env.BUILD_LOCALLY == 'true'
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+
+      - name: Disable Sentry source map upload
+        if: github.event_name == 'workflow_dispatch'
+        run: jq --arg p "$PROFILE" '.build[$p].env.SENTRY_DISABLE_AUTO_UPLOAD = "true"' eas.json > eas.tmp && mv eas.tmp eas.json
+
       - name: Build iOS
         id: build
         shell: bash
@@ -262,18 +282,21 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-ios.ipa"
+          # simulator builds are .tar.gz
+          ext() { case "$1" in *.tar.gz) echo tar.gz ;; *) echo "${1##*.}" ;; esac; }
+          OUT="$GITHUB_WORKSPACE/release-artifacts/little-world_${VERSION}-${PROFILE}-ios"
           if [ "${BUILD_LOCALLY}" = "true" ]; then
             mkdir -p "$GITHUB_WORKSPACE/local-artifacts"
             EAS_LOCAL_BUILD_ARTIFACTS_DIR="$GITHUB_WORKSPACE/local-artifacts" \
               eas build --platform ios --profile "$PROFILE" --local --non-interactive
-            IPA=$(find "$GITHUB_WORKSPACE/local-artifacts" -maxdepth 1 -type f -name '*.ipa' | head -n1)
-            if [ -z "$IPA" ]; then
-              echo "Local build produced no .ipa artifact" >&2
+            ART=$(find "$GITHUB_WORKSPACE/local-artifacts" -maxdepth 1 -type f \( -name '*.ipa' -o -name '*.tar.gz' \) | head -n1)
+            if [ -z "$ART" ]; then
+              echo "Local build produced no .ipa/.tar.gz artifact" >&2
               ls -la "$GITHUB_WORKSPACE/local-artifacts" >&2
               exit 1
             fi
-            mv "$IPA" "$OUT"
+            OUT="${OUT}.$(ext "$ART")"
+            mv "$ART" "$OUT"
             echo "url=" >> "$GITHUB_OUTPUT"
           else
             eas build --platform ios --profile "$PROFILE" --non-interactive --json > build_output.json
@@ -283,6 +306,7 @@ jobs:
               cat build_output.json >&2
               exit 1
             fi
+            OUT="${OUT}.$(ext "$URL")"
             curl -fL -o "$OUT" "$URL"
             echo "url=$URL" >> "$GITHUB_OUTPUT"
           fi

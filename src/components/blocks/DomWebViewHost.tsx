@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, View } from 'react-native';
 
+import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -10,15 +12,45 @@ import {
   updateTokens,
 } from '@/src/api/helpers';
 import { useAuthStore } from '@/src/store/authStore';
+import { useAppStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import { getDeviceId } from '@/src/utils/device';
+import {
+  handleWebViewErrorMessage,
+  webViewErrorScript,
+} from '@/src/utils/webViewErrors';
 
-import { useDomCommunicationContext } from './DomCommunicationCore';
-import LittleWorldWebLazy, { LittleWorldDomRef } from './LittleWorldWebLazy';
+import {
+  setForegroundTimeout,
+  useDomCommunicationContext,
+} from './DomCommunicationCore';
+import LittleWorldWebLazy, {
+  LittleWorldDomRef,
+  WebViewSentryConfig,
+} from './LittleWorldWebLazy';
+import WebViewCrashScreen from './WebViewCrashScreen';
+
+const READY_TIMEOUT = 20000;
+const MAX_INJECT_RETRIES = 5;
+const INJECT_TIMEOUT = 5000;
+
+// same release/dist as the native sdk derives from the app binary
+const { version, ios, android } = Constants.expoConfig ?? {};
+const appId = Platform.OS === 'ios' ? ios?.bundleIdentifier : android?.package;
+const build = String(
+  Platform.OS === 'ios' ? ios?.buildNumber : android?.versionCode,
+);
+const sentryConfig: WebViewSentryConfig = {
+  release: `${appId}@${version}+${build}`,
+  dist: build,
+};
 
 export default function DomWebViewHost() {
   const { domRef, sendToReactNative, sendToDom } = useDomCommunicationContext();
   const insets = useSafeAreaInsets();
+  const sentryUserId = useAppStore(s => s.user?.id ?? null);
+  const [crashed, setCrashed] = useState(false);
+  const [reloadCount, setReloadCount] = useState(0);
 
   // expo only creates the ref proxy while ref.current is null; a shared ref would keep
   // pointing at an unmounted webview after a remount
@@ -27,8 +59,49 @@ export default function DomWebViewHost() {
     domRef.current = webViewRef.current;
     return () => {
       domRef.current = null;
+      useWebViewStore.setState({ ready: false });
     };
-  }, [domRef]);
+  }, [domRef, reloadCount]);
+
+  // remount instead of reload(): android's fallback injection lands in the outgoing page
+  const remountWebView = () => setReloadCount(count => count + 1);
+
+  const injectRetriesRef = useRef(0);
+  // expo reads its globals through the native bridge, so a late script alone doesn't break the page
+  const onInjectLost = () =>
+    setTimeout(() => {
+      if (useWebViewStore.getState().ready) return;
+      if (injectRetriesRef.current >= MAX_INJECT_RETRIES) return;
+      injectRetriesRef.current += 1;
+      console.warn(
+        `WebView remount ${injectRetriesRef.current} after late inject`,
+      );
+      Sentry.setTag('webview.injectRetries', injectRetriesRef.current);
+      remountWebView();
+    }, INJECT_TIMEOUT);
+
+  const pageLoadedRef = useRef(false);
+  useEffect(() => {
+    if (useWebViewStore.getState().ready) return;
+    const cancel = setForegroundTimeout(() => {
+      const message = `WebView not ready after ${READY_TIMEOUT / 1000}s`;
+      console.warn(message);
+      Sentry.captureMessage(message, {
+        level: 'warning',
+        tags: { pageLoaded: pageLoadedRef.current },
+      });
+      setCrashed(true);
+    }, READY_TIMEOUT);
+    const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
+      if (!ready) return;
+      cancel();
+      setCrashed(false);
+    });
+    return () => {
+      cancel();
+      unsubscribe();
+    };
+  }, [reloadCount]);
 
   // Frozen at mount: native already loaded stored tokens before this renders, so this
   // is the startup auth guess. Freezing avoids a later logout retroactively changing it.
@@ -77,13 +150,23 @@ export default function DomWebViewHost() {
   return (
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
+        key={reloadCount}
         ref={webViewRef}
         dom={{
+          // expo's webview lacks onLoad, back gestures and media permission prompts
+          useExpoDOMWebView: false,
           allowsBackForwardNavigationGestures: true,
           allowsInlineMediaPlayback: true,
+          // insets come from the --safe-* vars; expo's 'automatic' would add them twice
+          contentInsetAdjustmentBehavior: 'never',
           mediaPlaybackRequiresUserAction: false,
           // Expose the WebView to chrome://inspect (Android) / Safari Develop (iOS) in dev.
           webviewDebuggingEnabled: __DEV__,
+          injectedJavaScriptBeforeContentLoaded: webViewErrorScript,
+          onMessage: event => handleWebViewErrorMessage(event, onInjectLost),
+          onLoad: () => {
+            pageLoadedRef.current = true;
+          },
         }}
         sendToReactNative={sendToReactNative}
         apiFetchNative={fetcher}
@@ -96,7 +179,19 @@ export default function DomWebViewHost() {
         safeBottom={insets.bottom}
         safeLeft={insets.left}
         safeRight={insets.right}
+        sentry={sentryConfig}
+        sentryUserId={sentryUserId}
+        onCrash={async () => setCrashed(true)}
       />
+      {crashed && (
+        <WebViewCrashScreen
+          onReload={() => {
+            setCrashed(false);
+            injectRetriesRef.current = 0;
+            remountWebView();
+          }}
+        />
+      )}
     </View>
   );
 }

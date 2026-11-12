@@ -3,9 +3,10 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 import 'tsx';
 
 // Enable import of TypeScript files
-import environmentNative from './environments/env';
+import environmentNative, { SENTRY_ORG } from './environments/env';
+import withWebViewSourceMaps from './plugins/withWebViewSourceMaps';
 
-const APP_VERSION = '1.2.3'; // x-release-please-version
+const APP_VERSION = '1.5.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
@@ -17,7 +18,7 @@ const ANDROID_VERSION_CODE = process.env.EAS_BUILD_NUMBER
   ? Number(process.env.EAS_BUILD_NUMBER)
   : APP_MAJOR * 10000 + APP_MINOR * 100 + APP_PATCH;
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
+const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: environmentNative.displayName,
   slug: 'little-world-app',
@@ -36,13 +37,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     appleTeamId: '3Z662F5MW8',
     googleServicesFile: environmentNative.googleServiceInfoFileIOS,
     icon: './assets/images/icons/app.icon',
-    splash: {
-      image: './src/assets/images/splash-icon.png',
-      imageWidth: 200,
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
-      tabletImage: './src/assets/images/splash-icon.png',
-    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription:
@@ -84,27 +78,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './src/assets/images/favicon.png',
   },
-  splash: {
-    image: './src/assets/images/splash-icon.png',
-    imageWidth: 200,
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-    tabletImage: './src/assets/images/logo-image.png',
-  },
   plugins: [
     [
       'expo-build-properties',
       {
         ios: {
+          // webview css :has()
+          deploymentTarget: '16.4',
           useFrameworks: 'static',
           forceStaticLinking: ['RNFBApp', 'RNFBMessaging'],
+        },
+        android: {
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+          // no R8 mapping upload to sentry, keep java stack traces readable
+          extraProguardRules: '-dontobfuscate',
         },
       },
     ],
     'expo-router',
-    ['expo-navigation-bar', { barStyle: 'dark' }],
+    ['expo-navigation-bar', { style: 'dark' }],
     'expo-font',
-    'expo-web-browser',
     [
       'expo-secure-store',
       {
@@ -134,7 +128,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             '@sentry/react-native/expo',
             {
               project: environmentNative.sentryProject,
-              organization: 'a-little-world-gug',
+              organization: SENTRY_ORG,
             },
           ] satisfies NonNullable<ExpoConfig['plugins']>[number],
         ]
@@ -154,3 +148,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
 });
+
+// function plugins don't fit ExpoConfig's `plugins` typing
+export default (context: ConfigContext): ExpoConfig => {
+  const config = appConfig(context);
+  return environmentNative.sentryProject
+    ? withWebViewSourceMaps(config, {
+        project: environmentNative.sentryProject,
+        organization: SENTRY_ORG,
+      })
+    : config;
+};

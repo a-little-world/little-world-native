@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 
 export type AppState = {
-  user?: { id: string; name: string } | null;
+  user?: { id: string } | null;
   locale: string;
   unreadCount: number;
   notificationsEnabled: boolean;

@@ -1,5 +1,58 @@
 # Changelog
 
+## [1.5.0](https://github.com/a-little-world/little-world-native/compare/v1.4.1...v1.5.0) (2026-11-06)
+
+
+### Features
+
+* update expo sdk to 57 ([#256](https://github.com/a-little-world/little-world-native/issues/256)) ([810ea2e](https://github.com/a-little-world/little-world-native/commit/810ea2e48454e8e1c7f3ae60a2277012f04f20ba))
+
+
+### Bug Fixes
+
+* polyfill es2022 apis for old android webviews ([#257](https://github.com/a-little-world/little-world-native/issues/257)) ([28a5e2c](https://github.com/a-little-world/little-world-native/commit/28a5e2c201fc6e2fc0014a27c6e1b1436c6f6031))
+
+## [1.4.1](https://github.com/a-little-world/little-world-native/compare/v1.4.0...v1.4.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* webview timeout hotfix ([#251](https://github.com/a-little-world/little-world-native/issues/251)) ([da5c921](https://github.com/a-little-world/little-world-native/commit/da5c9218cb55853e31686c82fd1e39f1b3c247ad))
+
+## [1.4.0](https://github.com/a-little-world/little-world-native/compare/v1.3.0...v1.4.0) (2026-11-02)
+
+
+### Features
+
+* catch webview errors and add sentry to native webview ([#235](https://github.com/a-little-world/little-world-native/issues/235)) ([56d1404](https://github.com/a-little-world/little-world-native/commit/56d140431d0290f0fe65e1847dcd1738cdeedc67))
+
+
+### Bug Fixes
+
+* dom communication issues ([#231](https://github.com/a-little-world/little-world-native/issues/231)) ([4eac044](https://github.com/a-little-world/little-world-native/commit/4eac044695abc82793de9e7b4c4176c857cb591c))
+
+## [1.3.0](https://github.com/a-little-world/little-world-native/compare/v1.2.3...v1.3.0) (2026-10-28)
+
+
+### Features
+
+* Enable E2E-encryption in video calls ([#216](https://github.com/a-little-world/little-world-native/issues/216)) ([f23988e](https://github.com/a-little-world/little-world-native/commit/f23988e7942105db8952d7e781d06ab5172c3c82)), closes [#26](https://github.com/a-little-world/little-world-native/issues/26)
+* **Notifications:** Add missed call notification ([#203](https://github.com/a-little-world/little-world-native/issues/203)) ([1cd8bf7](https://github.com/a-little-world/little-world-native/commit/1cd8bf7fb1d4cdb7d0d26e6920a7964a0d237d9f))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([48680d1](https://github.com/a-little-world/little-world-native/commit/48680d1be527808245206d28cde742b68585d6a7))
+* **deps:** update all non-major dependencies ([284ee11](https://github.com/a-little-world/little-world-native/commit/284ee115cda128c6c0390f1c25e3f41b18661437))
+* **deps:** update dependency http-proxy-middleware to ^3.0.7 [security] ([f4d102d](https://github.com/a-little-world/little-world-native/commit/f4d102d5b9f0ad4c92586c2c3052864fc2c0dc61))
+* dialog background blur + close button safe area overlap ([#222](https://github.com/a-little-world/little-world-native/issues/222)) ([e05f9de](https://github.com/a-little-world/little-world-native/commit/e05f9ded13c066c9862a72bab7cb520075eeb1a8))
+* do not show session expiry message when logging out ([#192](https://github.com/a-little-world/little-world-native/issues/192)) ([086ded4](https://github.com/a-little-world/little-world-native/commit/086ded439e8f3ea03ec8cca0d09aaaaf468f0fc1))
+* font bundling ([#198](https://github.com/a-little-world/little-world-native/issues/198)) ([a29d852](https://github.com/a-little-world/little-world-native/commit/a29d852136714a36f8bc8bcba486285e2c8b3a48))
+* **Notification:** remove duplicate notification handler ([#207](https://github.com/a-little-world/little-world-native/issues/207)) ([2f8344d](https://github.com/a-little-world/little-world-native/commit/2f8344d78a9952ec183f1952c6424e7075b4e571))
+* remove youtube tracking params from links + fix parser to ignore them ([#168](https://github.com/a-little-world/little-world-native/issues/168)) ([d32be7e](https://github.com/a-little-world/little-world-native/commit/d32be7e8c7797e86e72b0959319c414255a87d72))
+* revert shared frontend package update ([#202](https://github.com/a-little-world/little-world-native/issues/202)) ([b71b3a2](https://github.com/a-little-world/little-world-native/commit/b71b3a2ab3435736337510f6e7069d870e475aab))
+* webview request timeouts ([#206](https://github.com/a-little-world/little-world-native/issues/206)) ([5c5971f](https://github.com/a-little-world/little-world-native/commit/5c5971f5208caaa6d8ed1cdbb7190d67f1cc8377))
+
 ## [1.2.3](https://github.com/a-little-world/little-world-native/compare/v1.2.2...v1.2.3) (2026-10-09)
 
 

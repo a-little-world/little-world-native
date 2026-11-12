@@ -16,6 +16,7 @@ import { CustomThemeProvider as NativeThemeProvider } from '@a-little-world/litt
 import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 
+import { getDeviceId } from '@/src/utils/device';
 import { loadFonts } from '@/src/utils/loadFonts';
 
 import 'react-native-reanimated';
@@ -29,8 +30,13 @@ if (environmentNative.sentryUrl) {
     enableLogs: true,
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1,
+    enableTombstone: true,
+    enableMetricKit: true,
+    tracesSampleRate: 0.1,
     integrations: [Sentry.mobileReplayIntegration()],
   });
+  // shared with the webview sdk to link its reports to this device
+  getDeviceId().then(id => Sentry.setTag('install_id', id));
 }
 
 // // 1) Prevent auto hide *before* rendering anything.

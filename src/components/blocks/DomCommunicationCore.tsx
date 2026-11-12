@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
 } from 'react';
 import { AppState, Platform } from 'react-native';
 
@@ -24,6 +23,7 @@ import { CallAudio } from '@/modules/call-audio';
 import { requestIntegrityCheck, syncTokenStateToDom } from '@/src/api/helpers';
 import { debugStore, useDebugStore } from '@/src/store/debugStore';
 import { domCommunicationStore } from '@/src/store/domCommunicationStore';
+import { appStore } from '@/src/store/store';
 import { useWebViewStore } from '@/src/store/webViewStore';
 import {
   registerFirebaseDeviceToken,
@@ -31,6 +31,16 @@ import {
 } from '@/src/utils/firebase-util';
 
 import { LittleWorldDomRef } from './LittleWorldWebLazy';
+
+// light icons over dark backgrounds; calls are always dark
+const systemBars = { darkTheme: false, inCall: false };
+const applySystemBarStyle = () => {
+  const style = systemBars.darkTheme || systemBars.inCall ? 'light' : 'dark';
+  setStatusBarStyle(style);
+  if (Platform.OS === 'android') {
+    NavigationBar.setStyle(style);
+  }
+};
 
 export interface DomCommunicationContextType {
   sendToDom: DomCommunicationMessageFn;
@@ -56,16 +66,48 @@ interface DomCommunicationProviderProps {
 
 const REQUEST_TIMEOUT = 10000;
 
-function waitForWebViewReady(action: string) {
+let activeSince = Date.now();
+AppState.addEventListener('change', state => {
+  if (state === 'active') activeSince = Date.now();
+});
+
+// timers and webview freeze while backgrounded (incl. android system dialogs): only count foreground time
+export function setForegroundTimeout(callback: () => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout>;
+  const start = () => {
+    const startedAt = Date.now();
+    timer = setTimeout(() => {
+      const now = Date.now();
+      if (
+        AppState.currentState !== 'active' ||
+        now - activeSince < ms ||
+        now - startedAt > ms * 2
+      ) {
+        start();
+        return;
+      }
+      callback();
+    }, ms);
+  };
+  start();
+  return () => clearTimeout(timer);
+}
+
+// module-level: waiters can outlive their provider (android activity recreated in same js runtime)
+const domRef: RefObject<LittleWorldDomRef | null> = { current: null };
+const pendingRequests = new Map<
+  string,
+  {
+    resolve: (value: DomCommunicationResponse) => void;
+    reject: (reason: any) => void;
+    message: JSONValue;
+  }
+>();
+
+function waitForWebViewReady() {
   return new Promise<void>(resolve => {
-    const reportTimer = setTimeout(() => {
-      const message = `WebView not ready after ${(REQUEST_TIMEOUT * 2) / 1000}s`;
-      console.warn(message, action);
-      Sentry.captureMessage(message, { level: 'warning', tags: { action } });
-    }, REQUEST_TIMEOUT * 2);
     const unsubscribe = useWebViewStore.subscribe(({ ready }) => {
       if (!ready) return;
-      clearTimeout(reportTimer);
       unsubscribe();
       resolve();
     });
@@ -75,23 +117,10 @@ function waitForWebViewReady(action: string) {
 export function DomCommunicationProvider({
   children,
 }: DomCommunicationProviderProps) {
-  const domRef = useRef<LittleWorldDomRef | null>(null);
-
-  const pendingRequestsRef = useRef<
-    Map<
-      string,
-      {
-        resolve: (value: DomCommunicationResponse) => void;
-        reject: (reason: any) => void;
-        message: JSONValue;
-      }
-    >
-  >(new Map());
-
   const sendToDom: DomCommunicationMessageFn = useCallback(
     async (message: DomCommunicationMessage) => {
       if (!useWebViewStore.getState().ready) {
-        await waitForWebViewReady(message.action);
+        await waitForWebViewReady();
       }
       const handler = domRef.current?.sendMessageToDom;
       // should never happen: only if the webview unmounted without remounting
@@ -113,38 +142,26 @@ export function DomCommunicationProvider({
           message.requestId = requestId;
 
           // Store the promise resolvers
-          pendingRequestsRef.current.set(requestId, {
+          pendingRequests.set(requestId, {
             resolve,
             reject,
             message: messageWithId,
           });
 
-          const startTimeout = () => {
-            const startedAt = Date.now();
-            setTimeout(() => {
-              if (!pendingRequestsRef.current.has(requestId)) return;
-              // webview frozen while backgrounded/suspended; don't count that time
-              if (
-                AppState.currentState !== 'active' ||
-                Date.now() - startedAt > REQUEST_TIMEOUT * 2
-              ) {
-                startTimeout();
-                return;
-              }
-              const error = new Error(
-                `DOM bridge response timeout: ${message.action}`,
-              );
-              console.warn(error.message, requestId);
-              // payload omitted: may contain tokens
-              Sentry.captureException(error, {
-                tags: { action: message.action },
-                extra: { requestId },
-              });
-              pendingRequestsRef.current.delete(requestId);
-              reject(error);
-            }, REQUEST_TIMEOUT);
-          };
-          startTimeout();
+          setForegroundTimeout(() => {
+            if (!pendingRequests.has(requestId)) return;
+            const error = new Error(
+              `DOM bridge response timeout: ${message.action}`,
+            );
+            console.warn(error.message, requestId);
+            // payload omitted: may contain tokens
+            Sentry.captureException(error, {
+              tags: { action: message.action },
+              extra: { requestId },
+            });
+            pendingRequests.delete(requestId);
+            reject(error);
+          }, REQUEST_TIMEOUT);
         },
       );
       handler(messageWithId);
@@ -184,6 +201,8 @@ export function DomCommunicationProvider({
           };
         }
         case 'CALL_STATE_CHANGED': {
+          systemBars.inCall = payload.inCall;
+          applySystemBarStyle();
           if (payload.inCall) {
             await CallAudio.start();
           } else {
@@ -198,7 +217,7 @@ export function DomCommunicationProvider({
         case 'WEBVIEW_READY': {
           useWebViewStore.setState({ ready: true });
           // new page (reload, remount, killed renderer): anything still pending never reached it
-          pendingRequestsRef.current.forEach(({ message: pending }) =>
+          pendingRequests.forEach(({ message: pending }) =>
             domRef.current?.sendMessageToDom(pending),
           );
           // Sync debug config — also handles WebView reloads where `ready` was already true
@@ -221,11 +240,11 @@ export function DomCommunicationProvider({
         case 'RESPONSE': {
           const requestId = message.requestId;
 
-          const pendingRequest = pendingRequestsRef.current.get(requestId);
+          const pendingRequest = pendingRequests.get(requestId);
 
           if (pendingRequest) {
             pendingRequest.resolve(payload);
-            pendingRequestsRef.current.delete(requestId);
+            pendingRequests.delete(requestId);
 
             return payload;
           } else {
@@ -241,13 +260,15 @@ export function DomCommunicationProvider({
             };
           }
         }
+        case 'SET_USER': {
+          const user = payload.id ? { id: payload.id } : null;
+          Sentry.setUser(user);
+          appStore.set({ user });
+          return { ok: true };
+        }
         case 'SET_THEME': {
-          const dark = message.payload.mode === 'dark';
-          // keep status and navigation bar readable
-          setStatusBarStyle(dark ? 'light' : 'dark');
-          if (Platform.OS === 'android') {
-            NavigationBar.setStyle(dark ? 'light' : 'dark');
-          }
+          systemBars.darkTheme = message.payload.mode === 'dark';
+          applySystemBarStyle();
           return { ok: true };
         }
         case 'CONSOLE_LOG': {
@@ -260,25 +281,11 @@ export function DomCommunicationProvider({
         }
         case 'LOG_ERROR': {
           if (debugStore.get().debugEnabled) {
-            const { payload } = message;
-            if (payload.type === 'react') {
-              debugStore.get().addReactError({
-                source: 'frontend',
-                message: payload.message,
-                stack: payload.stack,
-              });
-            } else {
-              debugStore.get().addFetchError({
-                source: 'frontend',
-                method: payload.method,
-                endpoint: payload.endpoint,
-                url: payload.url,
-                headers: payload.headers,
-                requestBody: payload.requestBody,
-                status: payload.status,
-                error: payload.error,
-              });
-            }
+            debugStore.get().addReactError({
+              source: 'frontend',
+              message: message.payload.message,
+              stack: message.payload.stack,
+            });
           }
           return { ok: true };
         }
