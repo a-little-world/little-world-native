@@ -218,8 +218,7 @@ Press `w` in Metro. On web the DOM component renders inline, so `frontend/` is d
 Usually stale caches, not a dependency issue. Stop Metro, then:
 
 ```bash
-watchman watch-del "$PWD"
-watchman watch-project "$PWD"
+./_scripts/fix-watchman.sh
 pnpm start --clear
 ```
 
