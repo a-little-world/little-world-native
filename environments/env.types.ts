@@ -8,4 +8,5 @@ export interface EnvironmentNative {
   appleEnvironment: 'development' | 'production';
   sentryProject?: string;
   sentryUrl?: string;
+  integrityBypassToken?: string;
 }

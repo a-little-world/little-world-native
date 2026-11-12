@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { environment } from '@/environment';
+import environmentNative from '@/environments/env';
 import * as SecureStore from '@/src/helpers/secureStore';
 
 export type NetworkRequest = {
@@ -74,8 +75,8 @@ export const useDebugStore = create<DebugState & Actions>()(
       backendUrlOverride: null,
       debugAccessToken: null,
       debugRefreshToken: null,
-      bypassIntegrityChecks: false,
-      integrityBypassToken: null,
+      bypassIntegrityChecks: !!environmentNative.integrityBypassToken,
+      integrityBypassToken: environmentNative.integrityBypassToken ?? null,
       logNetworkErrors: true,
       logNetworkSuccesses: false,
       networkRequests: [],
