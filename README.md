@@ -2,7 +2,9 @@
 
 Expo / React Native app for Little World (iOS, Android, web).
 
-Setup and day-to-day development: see [DEVELOPMENT.md](DEVELOPMENT.md).
+- Setup and day-to-day development: [DEVELOPMENT.md](DEVELOPMENT.md)
+- Debugging: [DEBUGGING.md](DEBUGGING.md)
+- Releasing in the App Store / Play Store: [STORE_RELEASE.md](STORE_RELEASE.md)
 
 ## Repository layout
 
@@ -74,11 +76,11 @@ Merge commits only (no squash/rebase). The merge commit uses the PR title as sub
 
 Three variants, each a separate store app:
 
-| Variant | Bundle ID                             | Distribution                |
-| ------- | ------------------------------------- | --------------------------- |
-| Dev     | `com.littleworld.littleworldapp.dev`  | local / ad-hoc only         |
-| Beta    | `com.littleworld.littleworldapp.beta` | TestFlight + Play internal  |
-| Prod    | `com.littleworld.littleworldapp`      | App Store + Play production |
+| Variant | Bundle ID                             | Distribution               |
+| ------- | ------------------------------------- | -------------------------- |
+| Dev     | `com.littleworld.littleworldapp.dev`  | local / ad-hoc only        |
+| Beta    | `com.littleworld.littleworldapp.beta` | TestFlight + Play internal |
+| Prod    | `com.littleworld.littleworldapp`      | App Store + Play Store     |
 
 Beta and prod are independent tracks. A beta release does not touch `main` or bump the version.
 
@@ -86,12 +88,15 @@ Beta and prod are independent tracks. A beta release does not touch `main` or bu
 
 1. Merge PRs with conventional titles. release-please keeps a **Release PR** open that bumps `APP_VERSION` in [`app.config.ts`](app.config.ts) and updates [`CHANGELOG.md`](CHANGELOG.md).
 2. Merge the Release PR. release-please tags the commit and publishes GitHub release `vX.Y.Z`.
-3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), submits to the stores, attaches the `.ipa`, `.aab` and a [signed APK](#verifying-the-android-apk) to the release and notifies Sentry.
+3. [`production-release.yml`](.github/workflows/production-release.yml) builds both platforms (`production` EAS profile), uploads them to App Store Connect and the Play internal track, attaches the `.ipa`, `.aab` and a [signed APK](#verifying-the-android-apk) to the release and notifies Sentry.
+4. Release in the store portals: [STORE_RELEASE.md](STORE_RELEASE.md).
+
+`production-release.yml` can also be started manually (**Run workflow**, optional `baseUrl`) or by pushing to the `production` branch. Only use these if the Release PR or release-please is broken: they skip release-please, so there's no version bump, changelog entry or GitHub release (and no APK attached). The build number is derived from the version, so the stores reject a build of an already uploaded version.
 
 ### Beta
 
 1. **Actions -> Staging (Beta) Release -> Run workflow** on `main` ([`staging-release.yml`](.github/workflows/staging-release.yml)).
-2. Builds with the `staging` EAS profile, submits to TestFlight + Play internal, attaches the `.ipa`, `.aab` and a signed APK to pre-release `vX.Y.Z-beta.<run>`.
+2. Builds with the `staging` EAS profile (optional `baseUrl` input, default `https://stage.little-world.com`), submits to TestFlight + Play internal, attaches the `.ipa`, `.aab` and a signed APK to pre-release `vX.Y.Z-beta.<run>`.
 
 Can be run any number of times between production releases.
 
