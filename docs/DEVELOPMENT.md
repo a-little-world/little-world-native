@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Node.js 24 (see [`.nvmrc`](.nvmrc))
-- pnpm (version pinned in [`package.json`](package.json), `corepack enable` picks it up)
+- Node.js 24 (see [`.nvmrc`](../.nvmrc))
+- pnpm (version pinned in [`package.json`](../package.json), `corepack enable` picks it up)
 - Xcode (iOS) and/or Android Studio (Android), only for local builds
 
 Use `pnpm exec` for local binaries (`expo`, `eas`, ...), not `npx`.
@@ -26,7 +26,7 @@ pnpm frontend:setup
 
 ## Configuration
 
-Edit [`environment.ts`](environment.ts) at the repo root to choose the backend:
+Edit [`environment.ts`](../environment.ts) at the repo root to choose the backend:
 
 ```ts
 export const environment: Environment = {
@@ -37,7 +37,7 @@ export const environment: Environment = {
 
 - Copied to `frontend/src/environment.ts` by `pnpm frontend:setup` (also run by `pnpm start`). Don't edit the copy.
 - On a physical device, use your machine's LAN IP instead of `localhost`.
-- Native variant config (bundle ID, Firebase, Sentry) lives in [`environments/`](environments). Local builds use [`env.ts`](environments/env.ts) (Dev variant); CI swaps in [`env.staging.ts`](environments/env.staging.ts) / [`env.prod.ts`](environments/env.prod.ts).
+- Native variant config (bundle ID, Firebase, Sentry) lives in [`environments/`](../environments). Local builds use [`env.ts`](../environments/env.ts) (Dev variant); CI swaps in [`env.staging.ts`](../environments/env.staging.ts) / [`env.prod.ts`](../environments/env.prod.ts).
 
 ## Running
 
@@ -45,7 +45,7 @@ export const environment: Environment = {
 pnpm start
 ```
 
-Syncs [`environment.ts`](environment.ts), builds the frontend type declarations, then starts Metro on port 9000. Extra flags are passed through to `expo start`, e.g. `pnpm start --clear` or `pnpm start --tunnel`.
+Syncs [`environment.ts`](../environment.ts), builds the frontend type declarations, then starts Metro on port 9000. Extra flags are passed through to `expo start`, e.g. `pnpm start --clear` or `pnpm start --tunnel`.
 
 Everything else is done from the Metro terminal:
 
@@ -73,7 +73,7 @@ Otherwise the app tries to load the bundle from `<public-domain>:9000`.
 
 ## Development builds
 
-Profiles ([`eas.json`](eas.json)):
+Profiles ([`eas.json`](../eas.json)):
 
 - `simulator`: iOS simulator
 - `development`: physical devices (iOS + Android), Android emulator
@@ -91,9 +91,8 @@ Start Metro with an integrity bypass token:
 EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' pnpm start
 ```
 
-- Enables **Bypass integrity checks** in the [Debug Panel](DEBUGGING.md#debug-panel) with that token. It can still be toggled there.
-- The Debug Panel state is persisted: if the bypass was toggled before, the stored value wins. Turn it on in the Debug Panel or clear the app data.
-- Only read by [`environments/env.ts`](environments/env.ts) (Dev variant), so staging and production builds never bypass.
+- Always used when set, regardless of the **Bypass integrity checks** settings in the [Debug Panel](DEBUGGING.md#debug-panel). Those settings stay saved on the device and apply again once the token is unset. The panel shows the saved settings, not the token.
+- Only read by [`environments/env.ts`](../environments/env.ts) (Dev variant), so staging and production builds never bypass.
 - The backend must accept the same token: load `dev/envs/test.env` on top of its `.env`, see "Testing the native app on a simulator / emulator" in the [backend docs](https://github.com/a-little-world/little-world-backend-docs/blob/main/README.md).
 
 ### EAS cloud
@@ -138,7 +137,7 @@ Add `-d` to pick a device.
 
 ### GitHub Actions
 
-**Actions -> Build Application -> Run workflow** ([`build-application.yml`](.github/workflows/build-application.yml)):
+**Actions -> Build Application -> Run workflow** ([`build-application.yml`](../.github/workflows/build-application.yml)):
 
 - pick profile, backend URL and platforms
 - `buildLocally`: build in the GitHub runner instead of on EAS
@@ -147,7 +146,7 @@ On PRs, adding the label `build-android` or `build-ios` builds that platform on 
 
 ## Checks
 
-Same as CI ([`checks.yml`](.github/workflows/checks.yml)):
+Same as CI ([`checks.yml`](../.github/workflows/checks.yml)):
 
 ```bash
 pnpm lint
@@ -170,9 +169,9 @@ E2E tests live in the `e2e_simulations/` submodule. See its README.
 `frontend/` is pinned to a commit of [little-world-frontend](https://github.com/a-little-world/little-world-frontend). It's a regular git repo, so branch, commit and push inside it as usual.
 
 1. Make the change in `frontend/` and open a PR in the frontend repo.
-2. After it's merged to `main`, [`update-submodules.yml`](.github/workflows/update-submodules.yml) opens a `chore/update-submodules` PR here that bumps the pointer and syncs [shared dependencies](#dependencies).
+2. After it's merged to `main`, [`update-submodules.yml`](../.github/workflows/update-submodules.yml) opens a `chore/update-submodules` PR here that bumps the pointer and syncs [shared dependencies](#dependencies).
 
-PRs here fail [`submodules-up-to-date.yml`](.github/workflows/submodules-up-to-date.yml) unless every submodule is at its `main` HEAD. To bump manually:
+PRs here fail [`submodules-up-to-date.yml`](../.github/workflows/submodules-up-to-date.yml) unless every submodule is at its `main` HEAD. To bump manually:
 
 ```bash
 git -C frontend fetch origin main
@@ -182,14 +181,14 @@ git add frontend
 
 ## Dependencies
 
-- **Shared with frontend** (keys of `pnpm.overrides` in [`package.json`](package.json): `react`, `swr`, `zustand`, ...): pinned to the versions in `frontend/pnpm-lock.yaml`. Bump them in the frontend; the submodule bump PR syncs them here. Checked by [`lockfile.yml`](.github/workflows/lockfile.yml). To sync manually:
+- **Shared with frontend** (keys of `pnpm.overrides` in [`package.json`](../package.json): `react`, `swr`, `zustand`, ...): pinned to the versions in `frontend/pnpm-lock.yaml`. Bump them in the frontend; the submodule bump PR syncs them here. Checked by [`lockfile.yml`](../.github/workflows/lockfile.yml). To sync manually:
 
   ```bash
   node .github/scripts/sync-shared-deps.mts --fix
   pnpm install
   ```
 
-  A new shared dependency goes into `pnpm.overrides` and the "Shared with frontend" rule in [`renovate.json`](renovate.json).
+  A new shared dependency goes into `pnpm.overrides` and the "Shared with frontend" rule in [`renovate.json`](../renovate.json).
 
 - **Expo SDK packages**: install with `pnpm exec expo install <package>` to get the version matching the SDK.
 

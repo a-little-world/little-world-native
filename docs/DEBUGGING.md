@@ -2,7 +2,7 @@
 
 ## Debug Panel
 
-In-app panel ([`DebugPanel.tsx`](src/components/blocks/DebugPanel.tsx)) with app info, backend URL override, auth tokens, [integrity bypass](DEVELOPMENT.md#simulator--emulator-login), DOM communication, network requests and React errors. Available in all builds.
+In-app panel ([`DebugPanel.tsx`](../src/components/blocks/DebugPanel.tsx)) with app info, backend URL override, auth tokens, [integrity bypass](DEVELOPMENT.md#simulator--emulator-login), DOM communication, network requests and React errors. Available in all builds.
 
 1. Tap the bottom-right corner of the screen 7 times.
 2. Enter the developer secret (ask the team).
@@ -11,9 +11,9 @@ Once unlocked, a single tap on that corner toggles the panel.
 
 ## `frontend/`
 
-`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via [`src/components/blocks/LittleWorldWebLazy.tsx`](src/components/blocks/LittleWorldWebLazy.tsx). WebView debugging is enabled in dev via `webviewDebuggingEnabled` in [`DomWebViewHost.tsx`](src/components/blocks/DomWebViewHost.tsx).
+`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via [`src/components/blocks/LittleWorldWebLazy.tsx`](../src/components/blocks/LittleWorldWebLazy.tsx). WebView debugging is enabled in dev via `webviewDebuggingEnabled` in [`DomWebViewHost.tsx`](../src/components/blocks/DomWebViewHost.tsx).
 
-The DOM component is mounted as soon as the app starts: [`app/index.tsx`](app/index.tsx) always renders `DomWebViewHost`.
+The DOM component is mounted as soon as the app starts: [`app/index.tsx`](../app/index.tsx) always renders `DomWebViewHost`.
 
 ### Android: Chrome DevTools
 
@@ -28,19 +28,19 @@ Works with any Chromium browser (Chrome, Edge, Brave, ...).
 
 3. Open `chrome://inspect` in the browser and click **inspect** on the WebView entry. If that fails, use **inspect fallback**.
 
-   ![chrome://inspect listing the app's WebView](docs/images/debug_inspector.webp)
+   ![chrome://inspect listing the app's WebView](images/debug_inspector.webp)
 
 4. Optional: you can control the app from the screencast on the left and toggle between mouse and touch input in its toolbar.
 
-   ![Mouse/touch toggle in the screencast toolbar](docs/images/debug_touch_controls.webp)
+   ![Mouse/touch toggle in the screencast toolbar](images/debug_touch_controls.webp)
 
 5. Open the **Sources** tab and switch the left sidebar from **Workspace** to **Page**. Sources may take a second to load.
 
-   ![Sources tab with the Page sidebar](docs/images/debug_sources.webp)
+   ![Sources tab with the Page sidebar](images/debug_sources.webp)
 
 6. Quick-open (`Cmd+P` / `Ctrl+P`) a file under `frontend/src/` and set breakpoints.
 
-   ![Paused on a breakpoint in frontend/src](docs/images/debug_breakpoint.webp)
+   ![Paused on a breakpoint in frontend/src](images/debug_breakpoint.webp)
 
 Ignore the "drop a folder to sync edits" prompt in the **Workspace** tab. It's not needed for breakpoints.
 

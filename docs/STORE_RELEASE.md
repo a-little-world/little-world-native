@@ -1,14 +1,14 @@
 # Store release
 
-Steps in the store portals after [`production-release.yml`](.github/workflows/production-release.yml) has finished (see [Releases](README.md#production)). The workflow only uploads the builds. Nothing reaches users until it's released here.
+Steps in the store portals after [`production-release.yml`](../.github/workflows/production-release.yml) has finished (see [Releases](../README.md#production)). The workflow only uploads the builds. Nothing reaches users until it's released here.
 
-Release notes for both stores: the version's section in [`CHANGELOG.md`](CHANGELOG.md) / the GitHub release, rewritten for users, in English and German.
+Release notes for both stores: the version's section in [`CHANGELOG.md`](../CHANGELOG.md) / the GitHub release, rewritten for users, in English and German.
 
 ## Apple App Store
 
 [App Store Connect](https://appstoreconnect.apple.com) -> **Apps** -> Little World.
 
-1. Wait until the build is processed: it shows up under **TestFlight** (Apple also sends an email). Export compliance is answered automatically (`ITSAppUsesNonExemptEncryption: false` in [`app.config.ts`](app.config.ts)).
+1. Wait until the build is processed: it shows up under **TestFlight** (Apple also sends an email). Export compliance is answered automatically (`ITSAppUsesNonExemptEncryption: false` in [`app.config.ts`](../app.config.ts)).
 2. **Distribution** -> **+** next to **iOS App** -> enter the version `X.Y.Z` (must match the GitHub release).
 3. **What's New in This Version**: add the release notes for every localization.
 4. **Build** -> **Add Build** -> select the build of this version.
