@@ -21,6 +21,7 @@ git submodule update --init --recursive
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 pnpm install
+pnpm frontend:setup
 ```
 
 ## Configuration
@@ -140,6 +141,13 @@ Same as CI ([`checks.yml`](.github/workflows/checks.yml)):
 pnpm lint
 pnpm typecheck
 pnpm format:check   # or: pnpm format
+```
+
+`pnpm typecheck` uses the frontend type declarations. Re-run `pnpm frontend:setup` after frontend type changes (`pnpm start` does this too).
+
+Not in CI, but worth running after dependency changes:
+
+```bash
 pnpm exec expo-doctor
 ```
 
