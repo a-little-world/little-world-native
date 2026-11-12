@@ -37,6 +37,18 @@ Edit `environment.ts` at the repo root to point the app at the backend you want 
 
 Do not edit `frontend/src/environment.ts` directly — it is overwritten on each start.
 
+#### Integrity check bypass (simulator / emulator)
+
+App integrity checks can't pass on a simulator or emulator, so login fails there. For automated tests (e.g. Maestro flows launched with `clearState`), set the bypass token when starting Metro:
+
+```bash
+EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' pnpm run start
+```
+
+This turns the Debug Panel's integrity bypass on by default with the given token (it can still be toggled there). Only the development `environments/env.ts` reads it, so staging and production builds never bypass.
+
+The backend must accept the same token: load `dev/envs/test.env` on top of its `.env`, see "Testing the native app on a simulator / emulator" in the [backend docs](https://github.com/a-little-world/little-world-backend-docs/blob/main/README.md).
+
 ## 🌐 Development Proxy for WebSocket Testing
 
 To test WebSocket functionality, you need to use the development proxy:
