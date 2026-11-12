@@ -35,7 +35,7 @@ export const environment: Environment = {
 };
 ```
 
-- Copied to `frontend/src/environment.ts` on every `pnpm start`. Don't edit the copy.
+- Copied to `frontend/src/environment.ts` by `pnpm frontend:setup` (also run by `pnpm start`). Don't edit the copy.
 - On a physical device, use your machine's LAN IP instead of `localhost`.
 - Native variant config (bundle ID, Firebase, Sentry) lives in [`environments/`](environments). Local builds use [`env.ts`](environments/env.ts) (Dev variant); CI swaps in [`env.staging.ts`](environments/env.staging.ts) / [`env.prod.ts`](environments/env.prod.ts).
 
@@ -49,16 +49,15 @@ Syncs [`environment.ts`](environment.ts), builds the frontend type declarations,
 
 Everything else is done from the Metro terminal:
 
-| Key                   | Action                                       |
-| --------------------- | -------------------------------------------- |
-| `s`                   | switch between development build and Expo Go |
-| `a` / `i` / `w`       | open on Android / iOS / web                  |
-| `shift+a` / `shift+i` | choose Android / iOS device or simulator     |
-| `r`                   | reload app                                   |
-| `m`                   | toggle dev menu                              |
-| `?`                   | show all commands                            |
+| Key                   | Action                                   |
+| --------------------- | ---------------------------------------- |
+| `a` / `i` / `w`       | open on Android / iOS / web              |
+| `shift+a` / `shift+i` | choose Android / iOS device or simulator |
+| `r`                   | reload app                               |
+| `m`                   | toggle dev menu                          |
+| `?`                   | show all commands                        |
 
-Native modules (LiveKit, Firebase) need a development build. Rebuild only when native code or dependencies change; JS changes load from Metro.
+Native modules (LiveKit, Firebase) need a development build. Expo Go is not supported. Rebuild only when native code or dependencies change; JS changes load from Metro.
 
 ### Behind a reverse proxy
 
@@ -82,23 +81,36 @@ Profiles ([`eas.json`](eas.json)):
 Some features only work on a physical device, not in a simulator/emulator:
 
 - push notifications
-- app integrity checks
+- app integrity checks (login fails without the [bypass](#simulator--emulator-login))
+
+### Simulator / emulator login
+
+Start Metro with an integrity bypass token:
+
+```bash
+EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' pnpm start
+```
+
+- Enables **Bypass integrity checks** in the [Debug Panel](DEBUGGING.md#debug-panel) with that token. It can still be toggled there.
+- The Debug Panel state is persisted: if the bypass was toggled before, the stored value wins. Turn it on in the Debug Panel or clear the app data.
+- Only read by [`environments/env.ts`](environments/env.ts) (Dev variant), so staging and production builds never bypass.
+- The backend must accept the same token: load `dev/envs/test.env` on top of its `.env`, see "Testing the native app on a simulator / emulator" in the [backend docs](https://github.com/a-little-world/little-world-backend-docs/blob/main/README.md).
 
 ### EAS cloud
 
 Requires access to the Expo project (`pnpm exec eas login`).
 
 ```bash
-pnpm exec eas build --platform "$PLATFORM" --profile "$PROFILE"
+pnpm exec eas build --platform <ios|android> --profile <profile>
+
+# e.g.
+pnpm exec eas build --platform android --profile development
 ```
 
-- `PLATFORM`: `ios` or `android`
-- `PROFILE`: see above
-
-Install the latest build on a simulator / emulator:
+Install the latest build on a simulator / emulator (iOS: `simulator` profile builds only):
 
 ```bash
-pnpm exec eas build:run --platform "$PLATFORM"
+pnpm exec eas build:run --platform <ios|android> --latest
 ```
 
 ### EAS local
@@ -108,7 +120,7 @@ Same build, run on your machine. Requires Xcode / Android Studio.
 Also requires access to the Expo project: signing credentials are fetched from EAS (`credentialsSource: remote`).
 
 ```bash
-pnpm exec eas build --platform "$PLATFORM" --profile "$PROFILE" --local
+pnpm exec eas build --platform <ios|android> --profile <profile> --local
 ```
 
 Writes the artifact (`.ipa`, `.apk`, `.tar.gz`, ...) to the repo root.
@@ -131,7 +143,7 @@ Add `-d` to pick a device.
 - pick profile, backend URL and platforms
 - `buildLocally`: build in the GitHub runner instead of on EAS
 
-On PRs, adding the label `build-android` or `build-ios` builds that platform on every push.
+On PRs, adding the label `build-android` or `build-ios` builds that platform on every push (`staging` profile against `https://stage.little-world.com`).
 
 ## Checks
 
@@ -183,41 +195,7 @@ git add frontend
 
 ## Debugging
 
-`frontend/` runs in a WebView, rendered as a [DOM component](https://docs.expo.dev/guides/dom-components/) via [`src/components/blocks/LittleWorldWebLazy.tsx`](src/components/blocks/LittleWorldWebLazy.tsx). Debug it with the DevTools of any Chromium browser (Chrome, Edge, Brave, ...).
-
-### `frontend/` on Android
-
-WebView debugging is enabled in dev via `webviewDebuggingEnabled` in [`DomWebViewHost.tsx`](src/components/blocks/DomWebViewHost.tsx).
-
-1. Enable USB debugging on the phone and connect it (USB or wireless).
-2. Check the connection:
-
-   ```bash
-   adb devices
-   ```
-
-3. Open a screen that renders the web content, so the DOM component is mounted. Currently always the case: [`app/index.tsx`](app/index.tsx) renders `DomWebViewHost`.
-4. Open `chrome://inspect` in the browser and click **inspect** on the WebView entry. If that fails, use **inspect fallback**.
-
-   ![chrome://inspect listing the app's WebView](docs/images/debug_inspector.webp)
-
-5. Optional: you can control the app from the screencast on the left and toggle between mouse and touch input in its toolbar.
-
-   ![Mouse/touch toggle in the screencast toolbar](docs/images/debug_touch_controls.webp)
-
-6. Open the **Sources** tab and switch the left sidebar from **Workspace** to **Page**. Sources may take a second to load.
-
-   ![Sources tab with the Page sidebar](docs/images/debug_sources.webp)
-
-7. Quick-open (`Cmd+P` / `Ctrl+P`) a file under `frontend/src/` and set breakpoints.
-
-   ![Paused on a breakpoint in frontend/src](docs/images/debug_breakpoint.webp)
-
-Ignore the "drop a folder to sync edits" prompt in the **Workspace** tab. It's not needed for breakpoints.
-
-### `frontend/` without a device
-
-Press `w` in Metro. On web the DOM component renders inline, so `frontend/` is debuggable in the browser's DevTools. Not the device runtime, though.
+See [DEBUGGING.md](DEBUGGING.md).
 
 ## Troubleshooting
 
