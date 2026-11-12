@@ -46,22 +46,20 @@ Ignore the "drop a folder to sync edits" prompt in the **Workspace** tab. It's n
 
 ### iOS: Safari Web Inspector
 
-<!-- TODO: verify steps and add screenshots -->
-
 Requires Safari on a Mac.
 
 1. Enable the Develop menu: **Safari -> Settings -> Advanced -> Show features for web developers**.
-2. Physical device only: enable **Settings -> Apps -> Safari -> Advanced -> Web Inspector** on the iPhone and connect it via USB.
+2. Physical device only: enable **Settings -> Apps -> Safari -> Scroll all the way down -> Advanced -> Web Inspector** on the iPhone and connect it via USB.
 
-   <!-- TODO: screenshot of the Web Inspector setting -->
+   <img src="images/ios_web_inspector_setting.webp" alt="Web Inspector toggle in the iPhone's Safari Advanced settings" width="300">
 
 3. **Safari -> Develop -> _device or simulator_ -> _WebView entry_**.
 
-   <!-- TODO: screenshot of the Develop menu listing the app's WebView -->
+   ![Develop menu listing the app's WebView](images/debug_safari_develop_menu.webp)
 
 4. Open the **Sources** tab and find files under `frontend/src/` to set breakpoints.
 
-   <!-- TODO: screenshot of a breakpoint in frontend/src -->
+   At the time of writing this doesn't work, and it might never work: Safari doesn't load the source maps, so **Sources** only lists the bundled `frontend/src/index.bundle`. For breakpoints in `frontend/src/`, use [Android](#android-chrome-devtools) or [web](#without-a-device).
 
 ### Without a device
 
