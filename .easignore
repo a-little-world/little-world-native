@@ -27,9 +27,6 @@ app.log
 
 # Development scripts and tools
 _scripts/
-scripts/
-dev-troubleshoot.sh
-reset-project.js
 
 # Native platform folders (these are generated during build)
 android/
