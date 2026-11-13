@@ -31,12 +31,9 @@ importers:
 
   .:
     dependencies:
-      '@a-little-world/little-world-design-system-core':
-        specifier: ^1.17.1
-        version: 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@a-little-world/little-world-design-system-native':
-        specifier: ^0.11.4
-        version: 0.11.4(39981598daa7333b663b9cbf41ac46d6)
+        specifier: ^0.11.7
+        version: 0.11.7(39981598daa7333b663b9cbf41ac46d6)
       '@a-little-world/little-world-frontend-shared':
         specifier: ^0.1.1
         version: 0.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -524,20 +521,14 @@ packages:
       graphql:
         optional: true
 
-  '@a-little-world/little-world-design-system-core@1.17.1':
-    resolution: {integrity: sha512-VnzmoOxRsAtsk8Q4nZYHL8kZklU+slMasa2klCn0+KAwPL/dGwx3WTBl8zUrcaQHKs6frEBvtp5n0PqCRpNQYQ==}
-    peerDependencies:
-      react: 19.2.8
-      react-dom: 19.2.8
-
   '@a-little-world/little-world-design-system-core@1.19.1':
     resolution: {integrity: sha512-4tBZ9gkrBKx0PlVbtdbDQb73iRZP4e02yu+zBThGv82eSf0U4n+rDQ30LkWCyp4sUAD3LU6k7powZ2Q6mVr0mw==}
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
 
-  '@a-little-world/little-world-design-system-native@0.11.4':
-    resolution: {integrity: sha512-CVfiWBFFrEA2VNwm6KM/11joyPDZGuO2pn2Zq0ik89+PLJK9NQ8IWJxOPojocd7h4VK6uHSPLVb4cumclvIgmQ==}
+  '@a-little-world/little-world-design-system-native@0.11.7':
+    resolution: {integrity: sha512-wLOiZAf4aJ4I+oX1Ob7TndbeFgwTHC9rwYo9pUM4lk7NRjxQy3+0b39QX7pTbpDtm9aT1U//wLIxM+MyThYRUw==}
     peerDependencies:
       '@babel/runtime': ^7.27.6
       '@react-navigation/native': ^7.0.14
@@ -1693,7 +1684,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@57.0.33':
     resolution: {integrity: sha512-MyTMZ3PsofTao5CEoUtXG9l9BfVnUxFT/3wSzzkeeR/dD4SVy7KVMAEzIwT1Dh/v72B5k4nBP5rbXgbDXioJ9w==}
@@ -6890,7 +6881,6 @@ packages:
   http-call@5.3.0:
     resolution: {integrity: sha512-ahwimsC23ICE4kPl9xTBjKB4inbRaeLyZeRunC/1Jy/Z6X8tv22MEAjK+KBOMSVLaqXPTTmd8638waVIKLGx2w==}
     engines: {node: '>=8.0.0'}
-    deprecated: Renamed to @heroku/http-call — please install @heroku/http-call instead.
 
   http-deceiver@1.2.7:
     resolution: {integrity: sha512-LmpOGxTfbpgtGVxJrj5k7asXHCgNZp5nLfp+hWc8QQRqtb7fUy6kRY3BO1h9ddF6yIPYUARgxGOwB42DnxIaNw==}
@@ -7555,9 +7545,6 @@ packages:
 
   lodash.topairs@4.3.0:
     resolution: {integrity: sha512-qrRMbykBSEGdOgQLJJqVSdPWMD7Q+GJJ5jMRfQYb+LTLsw3tYVIabnCzRqTJb2WTo17PG5gNzXuFaZgYH/9SAQ==}
-
-  lodash@4.17.23:
-    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
@@ -10010,15 +9997,6 @@ snapshots:
     optionalDependencies:
       graphql: 16.8.1
 
-  '@a-little-world/little-world-design-system-core@1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@babel/runtime': 7.29.10
-      csstype: 3.2.3
-      lodash: 4.17.23
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      svgson: 5.3.1
-
   '@a-little-world/little-world-design-system-core@1.19.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@babel/runtime': 7.29.13
@@ -10028,9 +10006,9 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
       svgson: 5.3.1
 
-  '@a-little-world/little-world-design-system-native@0.11.4(39981598daa7333b663b9cbf41ac46d6)':
+  '@a-little-world/little-world-design-system-native@0.11.7(39981598daa7333b663b9cbf41ac46d6)':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.17.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@a-little-world/little-world-design-system-core': 1.19.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/runtime': 7.29.10
       '@react-navigation/native': 7.5.1(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)
       '@rn-primitives/accordion': 1.2.0(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)
@@ -18493,8 +18471,6 @@ snapshots:
   lodash.throttle@4.1.1: {}
 
   lodash.topairs@4.3.0: {}
-
-  lodash@4.17.23: {}
 
   lodash@4.18.1: {}
 
