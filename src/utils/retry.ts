@@ -1,3 +1,5 @@
+import { delay } from './delay';
+
 export const RETRY_DELAY_MS = 30_000;
 export const MAX_RETRIES = 5;
 
@@ -6,17 +8,19 @@ export async function retry<T>(
   signal: AbortSignal,
   delayMs = RETRY_DELAY_MS,
 ): Promise<T> {
-  for (let retries = 0; ; retries++) {
+  const attempt = async (currentAttempt: number): Promise<T> => {
     try {
       return await fn();
     } catch (error) {
-      if (retries >= MAX_RETRIES || signal.aborted) {
+      if (currentAttempt >= MAX_RETRIES || signal.aborted) {
         throw error;
       }
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await delay(delayMs);
       if (signal.aborted) {
         throw error;
       }
+      return attempt(currentAttempt + 1);
     }
-  }
+  };
+  return attempt(0);
 }
