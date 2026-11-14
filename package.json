@@ -84,7 +84,7 @@
     "@types/react": "19.2.8",
     "@types/react-test-renderer": "19.3.0",
     "babel-preset-expo": "57.0.17",
-    "eas-cli": "24.14.0",
+    "eas-cli": "27.7.2",
     "eslint": "9.39.5",
     "eslint-config-expo": "57.0.2",
     "metro-minify-terser": "0.84.5",
