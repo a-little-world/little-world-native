@@ -1,4 +1,4 @@
-import { fontFiles } from '@a-little-world/little-world-design-system-core';
+import { fontFiles } from '@a-little-world/little-world-design-system-native';
 import * as Font from 'expo-font';
 
 export const loadFonts = async (): Promise<void> => {
