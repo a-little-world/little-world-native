@@ -187,8 +187,11 @@ export function DomCommunicationProvider({
           };
         }
         case 'REGISTER_DEVICE_PUSH_TOKEN': {
-          await registerFirebaseDeviceToken();
-
+          try {
+            await registerFirebaseDeviceToken();
+          } catch (error) {
+            return { ok: false, error: String(error) };
+          }
           return {
             ok: true,
           };

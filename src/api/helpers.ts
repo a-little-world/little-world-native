@@ -306,8 +306,11 @@ const APP_INTEGRITY_KEY_ID_KEY = 'APP_INTEGRITY_KEY_ID';
 export async function requestIntegrityCheck(): Promise<IntegrityCheck> {
   const { bypassIntegrityChecks, integrityBypassToken } =
     useDebugStore.getState();
-  if (bypassIntegrityChecks && integrityBypassToken) {
-    return bypassIntegrityCheck(integrityBypassToken);
+  const bypassToken =
+    environmentNative.integrityBypassToken ||
+    (bypassIntegrityChecks ? integrityBypassToken : null);
+  if (bypassToken) {
+    return bypassIntegrityCheck(bypassToken);
   }
 
   switch (Platform.OS) {
@@ -385,7 +388,10 @@ async function requestIntegrityCheckIOS(): Promise<IntegrityCheckIOS> {
     );
     return { platform: 'ios', keyId, challengeId, attestationObject };
   } catch (error) {
-    if (error !== 'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE') {
+    if (
+      (error as { code?: string })?.code !==
+      'ERR_APP_INTEGRITY_SERVER_UNAVAILABLE'
+    ) {
       await SecureStore.deleteItemAsync(APP_INTEGRITY_KEY_ID_KEY);
     }
     throw new Error('Integrity check failed', { cause: error });
