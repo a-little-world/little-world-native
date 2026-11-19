@@ -3,6 +3,8 @@ import { BackHandler, Platform, View } from 'react-native';
 
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+import { getPermissionsAsync } from 'expo-notifications';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -152,6 +154,13 @@ export default function DomWebViewHost() {
 
   const getInstallId = async () => getDeviceId();
 
+  const getDeviceInfo = async () => ({
+    appVersion: `${version} (${build})`,
+    os: `${Device.osName} ${Device.osVersion}`,
+    deviceModel: `${Device.manufacturer} ${Device.modelName}`,
+    pushPermission: (await getPermissionsAsync()).status,
+  });
+
   return (
     <View style={{ flex: 1 }}>
       <LittleWorldWebLazy
@@ -179,6 +188,7 @@ export default function DomWebViewHost() {
         getAccessToken={getAccessToken}
         setAccessTokens={setAccessTokens}
         getInstallId={getInstallId}
+        getDeviceInfo={getDeviceInfo}
         hasStoredToken={hasStoredToken}
         safeTop={insets.top}
         safeBottom={insets.bottom}

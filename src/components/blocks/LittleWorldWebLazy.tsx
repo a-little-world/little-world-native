@@ -84,6 +84,7 @@ export default function LittleWorldWebLazy({
   getAccessToken: () => Promise<string | undefined>;
   setAccessTokens: typeof updateTokens;
   getInstallId: () => Promise<string>;
+  getDeviceInfo: LittleWorldWebNativeProps['getDeviceInfo'];
   hasStoredToken: boolean;
   safeTop: number;
   safeBottom: number;
@@ -166,6 +167,7 @@ export default function LittleWorldWebLazy({
         getAccessToken={props.getAccessToken}
         setAccessTokens={props.setAccessTokens}
         getInstallId={props.getInstallId}
+        getDeviceInfo={props.getDeviceInfo}
         hasStoredToken={props.hasStoredToken}
       />
     </Sentry.ErrorBoundary>
