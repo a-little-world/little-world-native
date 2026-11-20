@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.6.0](https://github.com/a-little-world/little-world-native/compare/v1.5.0...v1.6.0) (2026-11-18)
+
+
+### Features
+
+* add match nudges to progress panel ([4f6595c](https://github.com/a-little-world/little-world-native/commit/4f6595c143d2950c9b77b14f8d8784678537a720))
+* allow sending push notifications also trough web sockets ([#245](https://github.com/a-little-world/little-world-native/issues/245)) ([898cf07](https://github.com/a-little-world/little-world-native/commit/898cf07515208e0a5f99a2242548f2cdc9f35400))
+* enable logging of all network requests in debugging mode ([#261](https://github.com/a-little-world/little-world-native/issues/261)) ([7f416c9](https://github.com/a-little-world/little-world-native/commit/7f416c9238c29ee7391954c25a18e85252255aa0))
+* preserve deep-link destination through login ([ea97935](https://github.com/a-little-world/little-world-native/commit/ea9793502dc8409cce9b3705dc751525a13e2422))
+* video calls portrait layout ([#237](https://github.com/a-little-world/little-world-native/issues/237)) ([2015cad](https://github.com/a-little-world/little-world-native/commit/2015cadc4034069eed2bdb57919f99abc0fbcc52))
+
+
+### Bug Fixes
+
+* add safe are insets to debug panel trigger ([#264](https://github.com/a-little-world/little-world-native/issues/264)) ([a924aab](https://github.com/a-little-world/little-world-native/commit/a924aab0f522f4738877d575f98705e6b4b8af35))
+* chat date headers not dimming when menu is open ([a2ab76e](https://github.com/a-little-world/little-world-native/commit/a2ab76e9136539fdedf4dd9ce60558f88d2bd7f6))
+* form data uploads and media fetches ([#263](https://github.com/a-little-world/little-world-native/issues/263)) ([2a0469c](https://github.com/a-little-world/little-world-native/commit/2a0469c9f82ded6aa71200e7dd5663179dc0d5d2))
+* keep app attest key when apple server is unavailable ([#268](https://github.com/a-little-world/little-world-native/issues/268)) ([7cb541f](https://github.com/a-little-world/little-world-native/commit/7cb541f13a8832ecfe871d8a4f1f6088e01d8534))
+* let env integrity bypass token override debug panel settings ([#277](https://github.com/a-little-world/little-world-native/issues/277)) ([d823323](https://github.com/a-little-world/little-world-native/commit/d8233239e7f10bb8ffc566deb36bb889f031ef20)), closes [#276](https://github.com/a-little-world/little-world-native/issues/276)
+* websocket connections now close and restore on app focus changes ([898cf07](https://github.com/a-little-world/little-world-native/commit/898cf07515208e0a5f99a2242548f2cdc9f35400))
+
 ## [1.5.0](https://github.com/a-little-world/little-world-native/compare/v1.4.1...v1.5.0) (2026-11-06)
 
 

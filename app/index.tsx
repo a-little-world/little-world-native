@@ -16,6 +16,7 @@ import FireBase from '@/src/components/blocks/Firebase';
 import { setupReactErrorTracking } from '@/src/store/debugStore';
 import { registerFirebaseDeviceToken } from '@/src/utils/firebase-util';
 import { registerInstallation } from '@/src/utils/installation';
+import { retry } from '@/src/utils/retry';
 
 setupReactErrorTracking();
 
@@ -41,9 +42,11 @@ export default function Page() {
     if (Platform.OS === 'web' || !isAuthenticated) {
       return;
     }
-    registerInstallation()
-      .then(registerFirebaseDeviceToken)
+    const controller = new AbortController();
+    retry(registerInstallation, controller.signal)
+      .then(() => retry(registerFirebaseDeviceToken, controller.signal))
       .catch(() => {});
+    return () => controller.abort();
   }, [isAuthenticated]);
 
   return (

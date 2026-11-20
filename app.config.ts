@@ -6,7 +6,7 @@ import 'tsx';
 import environmentNative, { SENTRY_ORG } from './environments/env';
 import withWebViewSourceMaps from './plugins/withWebViewSourceMaps';
 
-const APP_VERSION = '1.5.0'; // x-release-please-version
+const APP_VERSION = '1.6.0'; // x-release-please-version
 const [APP_MAJOR, APP_MINOR, APP_PATCH] = APP_VERSION.split('.').map(Number);
 
 // The build number (CFBundleVersion / versionCode) is just a monotonic "which upload" counter.
@@ -143,16 +143,9 @@ const appConfig = ({ config }: ConfigContext): ExpoConfig => ({
     router: {
       origin: false,
     },
-    ...(process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true'
-      ? {
-          eas: {
-            projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05',
-            //projectId: "93610aa8-629e-4031-ac3c-f622399cca78", @tbscode project id
-          },
-        }
-      : {}),
-    useExpoGo: process.env.EXPO_PUBLIC_USE_EXPO_GO === 'true',
-    useLiveKit: process.env.EXPO_PUBLIC_USE_EXPO_GO !== 'true',
+    eas: {
+      projectId: 'd114c1e1-3b95-463a-b8d4-c24ca29f1d05',
+    },
   },
 });
 

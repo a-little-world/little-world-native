@@ -13,21 +13,17 @@ export async function registerFirebaseDeviceToken(): Promise<void> {
     return;
   }
 
-  try {
-    await setUpNotificationChannels();
-    if (!(await ensureNotificationPermission())) {
-      return;
-    }
-    await apiFetch('/api/push_notifications/register', {
-      method: 'POST',
-      body: {
-        install_id: await getDeviceId(),
-        token: await getMessaging().getToken(),
-      },
-    });
-  } catch {
-    // ignore
+  await setUpNotificationChannels();
+  if (!(await ensureNotificationPermission())) {
+    return;
   }
+  await apiFetch('/api/push_notifications/register', {
+    method: 'POST',
+    body: {
+      install_id: await getDeviceId(),
+      token: await getMessaging().getToken(),
+    },
+  });
 }
 
 export async function unregisterFirebaseDeviceToken(): Promise<void> {

@@ -18,6 +18,7 @@ const environmentNative: EnvironmentNative = {
           'https://4448ffc34284db3a044459b1ce4fcba8@o4506032071507968.ingest.us.sentry.io/4512380585115648',
       }
     : {}),
+  integrityBypassToken: process.env.EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN,
 };
 
 export const SENTRY_ORG = 'a-little-world-gug';
