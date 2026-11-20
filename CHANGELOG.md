@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/a-little-world/little-world-native/compare/v1.6.0...v1.6.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* silence notifications during calls ([#269](https://github.com/a-little-world/little-world-native/issues/269)) ([83b4b68](https://github.com/a-little-world/little-world-native/commit/83b4b689630db258bd520192707ee8cc85fb29da))
+
 ## [1.6.0](https://github.com/a-little-world/little-world-native/compare/v1.5.0...v1.6.0) (2026-11-18)
 
 
