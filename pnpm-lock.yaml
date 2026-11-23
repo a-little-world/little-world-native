@@ -32,8 +32,8 @@ importers:
   .:
     dependencies:
       '@a-little-world/little-world-design-system-native':
-        specifier: ^0.11.7
-        version: 0.11.7(39981598daa7333b663b9cbf41ac46d6)
+        specifier: ^0.12.0
+        version: 0.12.0(39981598daa7333b663b9cbf41ac46d6)
       '@a-little-world/little-world-frontend-shared':
         specifier: ^0.1.1
         version: 0.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -267,8 +267,8 @@ importers:
   frontend:
     dependencies:
       '@a-little-world/little-world-design-system':
-        specifier: ^3.3.1
-        version: 3.3.1(@types/react@19.2.8)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@7.18.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))
+        specifier: ^3.4.0
+        version: 3.4.0(@types/react@19.2.8)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@7.18.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))
       '@babel/core':
         specifier: ^7.29.7
         version: 7.29.7
@@ -521,14 +521,14 @@ packages:
       graphql:
         optional: true
 
-  '@a-little-world/little-world-design-system-core@1.19.1':
-    resolution: {integrity: sha512-4tBZ9gkrBKx0PlVbtdbDQb73iRZP4e02yu+zBThGv82eSf0U4n+rDQ30LkWCyp4sUAD3LU6k7powZ2Q6mVr0mw==}
+  '@a-little-world/little-world-design-system-core@1.20.0':
+    resolution: {integrity: sha512-iT5z5fksnXxltyjnULaFnNpkusJnS7x4FxsbAPPoZQdCyMmLjaMKnWxfEFQV41lUOsC8tV7cQ9uhAGYkNiUcqQ==}
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
 
-  '@a-little-world/little-world-design-system-native@0.11.7':
-    resolution: {integrity: sha512-wLOiZAf4aJ4I+oX1Ob7TndbeFgwTHC9rwYo9pUM4lk7NRjxQy3+0b39QX7pTbpDtm9aT1U//wLIxM+MyThYRUw==}
+  '@a-little-world/little-world-design-system-native@0.12.0':
+    resolution: {integrity: sha512-MFl1eXPxDBrG01AFs7lpwmq92P0m3phbOmSYXwzi4SkCl9Tyur+yzCFThRSu6rggdcSBrwNlfUO3yvDAauIeNA==}
     peerDependencies:
       '@babel/runtime': ^7.27.6
       '@react-navigation/native': ^7.0.14
@@ -539,8 +539,8 @@ packages:
       react-native-svg: 15.12.1
       styled-components: 6.5.3
 
-  '@a-little-world/little-world-design-system@3.3.1':
-    resolution: {integrity: sha512-30G//wr5vbEdlgGBYLjLeAW3A5sniFBuS7rMerjwSKQ8XlWFUKNUkfQk/y2ucHnjhNkjlKPp24kKFnt7FkY18w==}
+  '@a-little-world/little-world-design-system@3.4.0':
+    resolution: {integrity: sha512-XeLKkKDZkc1QJ6sAC2Re0B8IpH04WD9YsmH8jdfYtNRyyLDEsTgqJW0CkBd3XQT1DbAq2a29fuhLoC/doUtyLA==}
     peerDependencies:
       react: 19.2.8
       react-dom: 19.2.8
@@ -10015,7 +10015,7 @@ snapshots:
     optionalDependencies:
       graphql: 16.8.1
 
-  '@a-little-world/little-world-design-system-core@1.19.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@a-little-world/little-world-design-system-core@1.20.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@babel/runtime': 7.29.13
       csstype: 3.2.3
@@ -10024,9 +10024,9 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
       svgson: 5.3.1
 
-  '@a-little-world/little-world-design-system-native@0.11.7(39981598daa7333b663b9cbf41ac46d6)':
+  '@a-little-world/little-world-design-system-native@0.12.0(39981598daa7333b663b9cbf41ac46d6)':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.19.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@a-little-world/little-world-design-system-core': 1.20.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@babel/runtime': 7.29.10
       '@react-navigation/native': 7.5.1(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)
       '@rn-primitives/accordion': 1.2.0(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react-native-web@0.21.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8)
@@ -10050,9 +10050,9 @@ snapshots:
       - '@types/react-dom'
       - react-native-web
 
-  '@a-little-world/little-world-design-system@3.3.1(@types/react@19.2.8)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@7.18.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))':
+  '@a-little-world/little-world-design-system@3.4.0(@types/react@19.2.8)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react-router-dom@7.18.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(styled-components@6.5.3(css-to-react-native@3.2.0)(react-dom@19.2.8(react@19.2.8))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.8)(react@19.2.8))(react@19.2.8))':
     dependencies:
-      '@a-little-world/little-world-design-system-core': 1.19.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@a-little-world/little-world-design-system-core': 1.20.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@base-ui/react': 1.5.0(@types/react@19.2.8)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-accordion': 1.2.12(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-checkbox': 1.3.3(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -18992,6 +18992,7 @@ snapshots:
 
   minimizer-webpack-plugin@5.13.1(postcss@8.4.49)(webpack@5.112.2):
     dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.8.1(webpack@5.112.2)
       terser: 5.51.2
@@ -19001,6 +19002,7 @@ snapshots:
 
   minimizer-webpack-plugin@5.13.1(webpack@5.112.2):
     dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.8.1(webpack@5.112.2)
       terser: 5.51.2
@@ -20102,7 +20104,7 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.20.0)
       ajv-keywords: 5.1.0(ajv@8.20.0)
     optionalDependencies:
-      webpack: 5.112.2
+      webpack: 5.112.2(postcss@8.4.49)(webpack-cli@5.1.4)
 
   sdp-transform@2.15.0: {}
 
