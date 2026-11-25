@@ -93,6 +93,7 @@ EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' pnpm start
 
 - Always used when set, regardless of the **Bypass integrity checks** settings in the [Debug Panel](DEBUGGING.md#debug-panel). Those settings stay saved on the device and apply again once the token is unset. The panel shows the saved settings, not the token.
 - Only read by [`environments/env.ts`](../environments/env.ts) (Dev variant), so staging and production builds never bypass.
+- Test automation logs in without the form: `littleworld-dev://e2e-login?access=…&refresh=…` (tokens from `POST /api/user/native-login/android` with the bypass) stores the tokens and reloads ([`app/e2e-login.tsx`](../app/e2e-login.tsx), dev builds only).
 - The backend must accept the same token: load `dev/envs/test.env` on top of its `.env`, see "Testing the native app on a simulator / emulator" in the [backend docs](https://github.com/a-little-world/little-world-backend-docs/blob/main/README.md).
 
 ### EAS cloud
