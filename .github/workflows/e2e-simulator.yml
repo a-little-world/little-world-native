@@ -257,7 +257,7 @@ jobs:
   recordings-comment:
     name: Recordings comment
     needs: android
-    if: always() && github.event_name == 'pull_request' && needs.android.result != 'skipped'
+    if: always() && github.event_name == 'pull_request' && contains(fromJSON('["success", "failure"]'), needs.android.result)
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -283,9 +283,12 @@ jobs:
           comments="repos/$REPO/issues/$PR_NUMBER/comments"
           comment_id="$(gh api "$comments" --paginate --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n1)"
           if [ -n "$comment_id" ]; then
-            gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" >/dev/null
+            node_id="$(gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" --jq .node_id)"
           else
             node_id="$(gh api "$comments" -f body="$body" --jq .node_id)"
+          fi
+          pinned="$(gh api graphql -f id="$node_id" -f query='query($id: ID!) { node(id: $id) { ... on IssueComment { isPinned } } }' --jq .data.node.isPinned)"
+          if [ "$pinned" != true ]; then
             gh api graphql -f id="$node_id" \
               -f query='mutation($id: ID!) { pinIssueComment(input: {issueCommentId: $id}) { clientMutationId } }' >/dev/null
           fi
