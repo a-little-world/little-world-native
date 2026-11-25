@@ -169,6 +169,133 @@ jobs:
           echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
           echo "app_build_version=$APP_BUILD_VERSION" >> "$GITHUB_OUTPUT"
 
+  # Dev clients for simulator/emulator testing (e2e-simulator workflow), built on the runners.
+  build-dev-android:
+    name: Build Android dev client (release asset)
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GRADLE_OPTS: -Xmx16g
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: 'true'
+    steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+          token: ${{ steps.app-token.outputs.token }}
+
+      # dev clients load their JS from Metro; the baked-in backend URL is only a fallback
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: http://localhost:8000
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Disable Sentry source map upload
+        run: jq '.build.development.env.SENTRY_DISABLE_AUTO_UPLOAD = "true"' eas.json > eas.tmp && mv eas.tmp eas.json
+
+      - name: Build and attach to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p local-artifacts
+          EAS_LOCAL_BUILD_ARTIFACTS_DIR="$PWD/local-artifacts" \
+            eas build --platform android --profile development --local --non-interactive
+          ART=$(find local-artifacts -maxdepth 1 -type f -name '*.apk' | head -n1)
+          if [ -z "$ART" ]; then
+            echo "Local build produced no .apk" >&2
+            ls -la local-artifacts >&2
+            exit 1
+          fi
+          OUT="little-world_${VERSION}-development-android.apk"
+          mv "$ART" "$OUT"
+          gh release upload "$TAG" "$OUT" --clobber --repo "$GITHUB_REPOSITORY"
+
+  build-dev-ios:
+    name: Build iOS simulator dev client (release asset)
+    if: github.event_name == 'release'
+    runs-on: macos-26
+    permissions:
+      contents: write
+    env:
+      NODE_OPTIONS: --max_old_space_size=16384
+      IS_CI_BUILD: 'true'
+    steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests
+          permission-contents: read
+
+      - name: Checkout little-world-native with submodule at pinned commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+          token: ${{ steps.app-token.outputs.token }}
+
+      # dev clients load their JS from Metro; the baked-in backend URL is only a fallback
+      - name: Setup build workspace
+        id: setup
+        uses: ./.github/actions/setup-build-workspace
+        with:
+          base-url: http://localhost:8000
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+
+      - name: Disable Sentry source map upload
+        run: jq '.build.simulator.env.SENTRY_DISABLE_AUTO_UPLOAD = "true"' eas.json > eas.tmp && mv eas.tmp eas.json
+
+      - name: Build and attach to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+          VERSION: ${{ steps.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p local-artifacts
+          EAS_LOCAL_BUILD_ARTIFACTS_DIR="$PWD/local-artifacts" \
+            eas build --platform ios --profile simulator --local --non-interactive
+          ART=$(find local-artifacts -maxdepth 1 -type f -name '*.tar.gz' | head -n1)
+          if [ -z "$ART" ]; then
+            echo "Local build produced no .tar.gz" >&2
+            ls -la local-artifacts >&2
+            exit 1
+          fi
+          OUT="little-world_${VERSION}-simulator-ios.tar.gz"
+          mv "$ART" "$OUT"
+          gh release upload "$TAG" "$OUT" --clobber --repo "$GITHUB_REPOSITORY"
+
   attach-release-assets:
     name: Attach build artifacts to GitHub release
     if: github.event_name == 'release'

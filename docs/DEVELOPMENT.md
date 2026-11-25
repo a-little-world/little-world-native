@@ -145,6 +145,9 @@ Add `-d` to pick a device.
 
 On PRs, adding the label `build-android` or `build-ios` builds that platform on every push (`staging` profile against `https://stage.little-world.com`).
 
+Each release also gets dev clients as assets (`*-development-android.apk`, `*-simulator-ios.tar.gz`, against `http://localhost:8000`).
+
+
 ## Checks
 
 Same as CI ([`checks.yml`](../.github/workflows/checks.yml)):
