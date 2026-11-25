@@ -147,6 +147,7 @@ On PRs, adding the label `build-android` or `build-ios` builds that platform on 
 
 Each release also gets dev clients as assets (`*-development-android.apk`, `*-simulator-ios.tar.gz`, against `http://localhost:8000`).
 
+On PRs, the label `e2e-simulator` runs the [simulator e2e suite](../e2e_simulations/README.md#android-app-flows) on an Android emulator ([`e2e-simulator.yml`](../.github/workflows/e2e-simulator.yml)). It uses the newest dev client whose commit is in the branch: a release asset or, after native code changes, a `development` Build Application run (`buildLocally`, Android) on a commit of the branch.
 
 ## Checks
 

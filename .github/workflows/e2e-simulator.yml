@@ -1,0 +1,239 @@
+name: E2E Simulator
+
+# The real app (dev client + Metro) on an Android emulator: Maestro flows, mixed app + web
+# flows and the web app in the emulator's Chrome (e2e_simulations/run_android.sh).
+# The dev client is the newest one whose commit is in this branch (release asset or a
+# Build Application artifact), see .github/scripts/download-dev-build.py.
+
+on:
+  workflow_dispatch:
+    inputs:
+      backendRef:
+        description: 'Backend git ref to test against (overrides .backend-ref)'
+        required: false
+        default: ''
+  pull_request:
+    types: [opened, reopened, labeled, synchronize]
+
+concurrency:
+  group: e2e-simulator-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
+jobs:
+  android:
+    name: Android emulator
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'e2e-simulator')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      E2E_BASE_URL: http://localhost:8000
+      PLAYWRIGHT_INSTALL_FLAGS: --with-deps
+    steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: little-world-native,little-world-frontend,little-world-e2e-tests,little-world-backend,little-world-patenmatch-frontend,little-world-backend-docs,little-world-backend-scripts
+          permission-contents: read
+
+      - name: Checkout (with submodules, full history for the dev build lookup)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Resolve backend ref
+        id: ref
+        run: |
+          set -euo pipefail
+          REF="${{ github.event.inputs.backendRef }}"
+          if [ -z "$REF" ]; then
+            REF="$(grep -vE '^\s*(#|$)' .backend-ref | head -n1 | tr -d '[:space:]')"
+          fi
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "use_prebuilt=$([ "$REF" = main ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout backend
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: a-little-world/little-world-backend
+          ref: ${{ steps.ref.outputs.ref }}
+          path: backend
+          token: ${{ steps.app-token.outputs.token }}
+          submodules: recursive
+
+      - name: Setup Docker Buildx
+        if: steps.ref.outputs.use_prebuilt != 'true'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      # unlike e2e.yml keep the main frontend: the web partner in the mixed flows uses it
+      - name: Build backend image (with main frontend, cached)
+        if: steps.ref.outputs.use_prebuilt != 'true'
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker buildx build \
+            --target backend \
+            --build-arg DEVELOPMENT=false \
+            --build-arg TESTING=true \
+            --build-arg ENTRYPOINT=./entry.sh \
+            --cache-from type=gha,scope=e2e-simulator \
+            --cache-to type=gha,mode=max,scope=e2e-simulator \
+            --load \
+            -t lw-backend:e2e \
+            -f Dockerfile.full \
+            .
+
+      - name: Pull prebuilt backend image (backend main-test)
+        if: steps.ref.outputs.use_prebuilt == 'true'
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test
+          docker tag ghcr.io/a-little-world/little-world-backend/littleworld-backend:main-test lw-backend:e2e
+
+      - name: Start backend + redis
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          cp dev/ci/docker-compose.ci.yaml docker-compose.yaml
+          cat > .env <<'EOF'
+          APP_IMAGE_URL=lw-backend:e2e
+          BUILD_TYPE=pro
+          ENTRYPOINT=./entry.sh
+          DEVELOPMENT=false
+          TESTING=true
+          WEBPACK_PUBLIC_PATH=
+          REDIS_URL=redis://redis:6379
+          DJ_REDIS_HOST=redis
+          DJ_REDIS_PORT=6379
+          CI=true
+          DJANGO_TESTING=true
+          DJ_ENABLE_E2E_TEST_APIS=true
+          DJ_AWS_STATIC_ACCESS_KEY_ID=
+          DJ_AWS_STATIC_SECRET_KEY=
+          DJ_AWS_STATIC_BUCKET_NAME=
+          DJ_AWS_REGION_NAME=
+          EOF
+          cat > docker-compose.override.yaml <<'EOF'
+          services:
+            all:
+              environment:
+                DJ_NATIVE_APP_INTEGRITY_ALLOW_BYPASS: "1"
+                DJ_NATIVE_APP_INTEGRITY_BYPASS_TOKEN: "bypassChangeMe!"
+          EOF
+          docker compose up -d --no-build redis all
+
+      - name: Wait for backend readiness
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 90); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' "$E2E_BASE_URL/api/user/authenticated/" || true)"
+            if [ "$code" != "000" ]; then
+              echo "Backend responding (HTTP $code) after $((i*2))s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become ready in time" >&2
+          docker compose -f backend/docker-compose.yaml logs || true
+          exit 1
+
+      - name: Download dev client
+        id: apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "path=$(python3 .github/scripts/download-dev-build.py dev-build)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Python venv
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: e2e_simulations/.venv
+          key: e2e-venv-${{ runner.os }}-py3.12-${{ hashFiles('e2e_simulations/requirements.txt') }}
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e_simulations/requirements.txt') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Maestro
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Start Metro
+        run: |
+          set -euo pipefail
+          EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' nohup pnpm start > metro.log 2>&1 &
+          for _ in $(seq 1 90); do
+            curl -sf http://localhost:9000/status >/dev/null && exit 0
+            sleep 2
+          done
+          cat metro.log
+          exit 1
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run simulator suite
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
+          script: |
+            adb install -r "${{ steps.apk.outputs.path }}"
+            adb reverse tcp:8000 tcp:8000
+            adb reverse tcp:9000 tcp:9000
+            bash e2e_simulations/run_android.sh -rA
+
+      - name: Upload Metro log and Maestro debug output
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: e2e-simulator-logs
+          path: |
+            metro.log
+            ~/.maestro/tests
+          if-no-files-found: ignore
