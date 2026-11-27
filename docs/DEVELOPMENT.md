@@ -93,6 +93,7 @@ EXPO_PUBLIC_INTEGRITY_BYPASS_TOKEN='bypassChangeMe!' pnpm start
 
 - Always used when set, regardless of the **Bypass integrity checks** settings in the [Debug Panel](DEBUGGING.md#debug-panel). Those settings stay saved on the device and apply again once the token is unset. The panel shows the saved settings, not the token.
 - Only read by [`environments/env.ts`](../environments/env.ts) (Dev variant), so staging and production builds never bypass.
+- Test automation logs in without the form: `littleworld-dev://e2e-login?access=…&refresh=…` (tokens from `POST /api/user/native-login/android` with the bypass) stores the tokens and reloads ([`app/e2e-login.tsx`](../app/e2e-login.tsx), dev builds only).
 - The backend must accept the same token: load `dev/envs/test.env` on top of its `.env`, see "Testing the native app on a simulator / emulator" in the [backend docs](https://github.com/a-little-world/little-world-backend-docs/blob/main/README.md).
 
 ### EAS cloud
@@ -143,6 +144,10 @@ Add `-d` to pick a device.
 - `buildLocally`: build in the GitHub runner instead of on EAS
 
 On PRs, adding the label `build-android` or `build-ios` builds that platform on every push (`staging` profile against `https://stage.little-world.com`).
+
+Each release also gets dev clients as assets (`*-development-android.apk`, `*-simulator-ios.tar.gz`, against `http://localhost:8000`).
+
+On PRs, the label `e2e-simulator` runs the [simulator e2e suite](../e2e_simulations/README.md#android-app-flows) on an Android emulator ([`e2e-simulator.yml`](../.github/workflows/e2e-simulator.yml)). Every test is recorded (run artifact `e2e-simulator-recordings`); a pinned PR comment links the latest recordings. It uses the newest dev client whose commit is in the branch: a release asset or, after native code changes, a `development` Build Application run (`buildLocally`, Android) on a commit of the branch.
 
 ## Checks
 
