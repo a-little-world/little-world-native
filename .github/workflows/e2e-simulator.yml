@@ -4,7 +4,7 @@ name: E2E Simulator
 # flows and the web app in the emulator's Chrome (e2e_simulations/run_android.sh).
 # The dev client is the newest one whose commit is in this branch (release asset or a
 # Build Application artifact), see .github/scripts/download-dev-build.py.
-# Every test is recorded; on PRs a pinned comment links the latest recordings.
+# Every test is recorded; on PRs a comment links the latest recordings.
 
 on:
   workflow_dispatch:
@@ -38,6 +38,7 @@ jobs:
     env:
       E2E_BASE_URL: http://localhost:8000
       PLAYWRIGHT_INSTALL_FLAGS: --with-deps
+      PYTHONUNBUFFERED: '1'
     steps:
       - name: Create app token
         id: app-token
@@ -227,21 +228,13 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           script: |
             adb install -r "${{ steps.apk.outputs.path }}"
             adb reverse tcp:8000 tcp:8000
             adb reverse tcp:9000 tcp:9000
-            bash e2e_simulations/run_android.sh -rA
-
-      # the emulator can die without output of its own
-      - name: Host diagnostics
-        if: failure()
-        run: |
-          free -m
-          df -h /
-          sudo dmesg | grep -iE 'oom|killed process|qemu' | tail -n 20 || true
-          ls -la /tmp/android-runner 2>/dev/null || true
+            # -vv on top of the script's -q: one line per test as it finishes
+            bash e2e_simulations/run_android.sh -rA -vv
 
       - name: Upload recordings
         id: recordings
@@ -253,7 +246,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Upload Metro log and Maestro debug output
+      - name: Upload Metro log, Maestro debug output and emulator crash dumps
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -261,6 +254,7 @@ jobs:
           path: |
             metro.log
             ~/.maestro/tests
+            /tmp/android-runner/emu-crash-*.db
           if-no-files-found: ignore
 
   recordings-comment:
@@ -269,10 +263,9 @@ jobs:
     if: always() && github.event_name == 'pull_request' && contains(fromJSON('["success", "failure"]'), needs.android.result)
     runs-on: ubuntu-latest
     permissions:
-      issues: write
       pull-requests: write
     steps:
-      - name: Update pinned recordings comment
+      - name: Update recordings comment
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -293,11 +286,7 @@ jobs:
           comments="repos/$REPO/issues/$PR_NUMBER/comments"
           comment_id="$(gh api "$comments" --paginate --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n1)"
           if [ -n "$comment_id" ]; then
-            pinned="$(gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" --jq '.pin != null')"
+            gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" >/dev/null
           else
-            comment_id="$(gh api "$comments" -f body="$body" --jq .id)"
-            pinned=false
-          fi
-          if [ "$pinned" != true ]; then
-            gh api -X PUT "repos/$REPO/issues/comments/$comment_id/pin" >/dev/null
+            gh api "$comments" -f body="$body" >/dev/null
           fi
