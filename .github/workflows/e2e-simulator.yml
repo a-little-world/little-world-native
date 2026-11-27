@@ -234,6 +234,15 @@ jobs:
             adb reverse tcp:9000 tcp:9000
             bash e2e_simulations/run_android.sh -rA
 
+      # the emulator can die without output of its own
+      - name: Host diagnostics
+        if: failure()
+        run: |
+          free -m
+          df -h /
+          sudo dmesg | grep -iE 'oom|killed process|qemu' | tail -n 20 || true
+          ls -la /tmp/android-runner 2>/dev/null || true
+
       - name: Upload recordings
         id: recordings
         if: always()
@@ -260,6 +269,7 @@ jobs:
     if: always() && github.event_name == 'pull_request' && contains(fromJSON('["success", "failure"]'), needs.android.result)
     runs-on: ubuntu-latest
     permissions:
+      issues: write
       pull-requests: write
     steps:
       - name: Update pinned recordings comment
@@ -283,12 +293,11 @@ jobs:
           comments="repos/$REPO/issues/$PR_NUMBER/comments"
           comment_id="$(gh api "$comments" --paginate --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n1)"
           if [ -n "$comment_id" ]; then
-            node_id="$(gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" --jq .node_id)"
+            pinned="$(gh api -X PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" --jq '.pin != null')"
           else
-            node_id="$(gh api "$comments" -f body="$body" --jq .node_id)"
+            comment_id="$(gh api "$comments" -f body="$body" --jq .id)"
+            pinned=false
           fi
-          pinned="$(gh api graphql -f id="$node_id" -f query='query($id: ID!) { node(id: $id) { ... on IssueComment { isPinned } } }' --jq .data.node.isPinned)"
           if [ "$pinned" != true ]; then
-            gh api graphql -f id="$node_id" \
-              -f query='mutation($id: ID!) { pinIssueComment(input: {issueCommentId: $id}) { clientMutationId } }' >/dev/null
+            gh api -X PUT "repos/$REPO/issues/comments/$comment_id/pin" >/dev/null
           fi
