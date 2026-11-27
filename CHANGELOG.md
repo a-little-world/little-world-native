@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.7.0](https://github.com/a-little-world/little-world-native/compare/v1.6.0...v1.7.0) (2026-11-27)
+
+
+### Features
+
+* **advent:** add Advent tab on Home where learners can book and cancel ([22b132a](https://github.com/a-little-world/little-world-native/commit/22b132a73f2e7354ffe33de64f0e7e2353d0ff40))
+* **advent:** confirm Advent signups by email and sign guests in with a ([ffbfb24](https://github.com/a-little-world/little-world-native/commit/ffbfb24f2d1b7bfd76edd4b684cfa042121e8ac6))
+* **random-calls:** add guest lobby, after-call and session-ended pages ([22b132a](https://github.com/a-little-world/little-world-native/commit/22b132a73f2e7354ffe33de64f0e7e2353d0ff40))
+* start new pages at the top and restore the scroll position on ([22b132a](https://github.com/a-little-world/little-world-native/commit/22b132a73f2e7354ffe33de64f0e7e2353d0ff40))
+
+
+### Bug Fixes
+
+* **random-calls:** handle each websocket message only once so message ([ffbfb24](https://github.com/a-little-world/little-world-native/commit/ffbfb24f2d1b7bfd76edd4b684cfa042121e8ac6))
+* silence notifications during calls ([#269](https://github.com/a-little-world/little-world-native/issues/269)) ([83b4b68](https://github.com/a-little-world/little-world-native/commit/83b4b689630db258bd520192707ee8cc85fb29da))
+
 ## [1.6.0](https://github.com/a-little-world/little-world-native/compare/v1.5.0...v1.6.0) (2026-11-18)
 
 
